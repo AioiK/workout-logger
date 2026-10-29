@@ -948,40 +948,36 @@ function saveAndExport() {
 
   // 2. GitHub Pages等からGAS Webhook APIへ送信する場合
   const gasUrl = localStorage.getItem("workout_gas_url") || "";
-  if (gasUrl) {
-    saveBtn.disabled = true;
-    saveBtn.innerText = "☁️ Google Driveに送信中...";
-
-    fetch(gasUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(lastExportData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = origBtnText;
-      if (data && data.success) {
-        document.getElementById("success-msg").innerHTML = `
-          <strong>${data.filename}</strong> をGoogle Driveに保存しました！<br>
-          <span style="font-size:0.75rem; color:var(--text-muted);">（マイドライブ/筋トレログ フォルダへ直接格納されました）</span>
-        `;
-        document.getElementById("success-modal").classList.add("open");
-      } else {
-        alert("保存エラー: " + (data.error || JSON.stringify(data)));
-      }
-    })
-    .catch(err => {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = origBtnText;
-      alert("Google Driveへの通信に失敗したため、端末へのダウンロードに切り替えます: " + err);
-      triggerDownloadFallback(filename, lastExportData);
-    });
+  if (!gasUrl) {
+    openSettingsModal();
+    alert("【初回設定が必要です】\nGoogle Driveへ直接保存するための「GASウェブアプリURL」がまだ設定されていません。\n\n表示された設定画面にGASのURLを貼り付けて「設定を保存」してください。\n（端末のダウンロードフォルダは使用しません）");
     return;
   }
 
-  // 3. スタンドアロン/通常ブラウザの場合：フォールバックダウンロード
-  triggerDownloadFallback(filename, lastExportData);
+  saveBtn.disabled = true;
+  saveBtn.innerText = "☁️ Google Driveに保存中...";
+
+  // Google Apps Scriptの302リダイレクト仕様に対応するため mode: 'no-cors' で送信
+  fetch(gasUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(lastExportData)
+  })
+  .then(() => {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = origBtnText;
+    document.getElementById("success-msg").innerHTML = `
+      <strong>Google Driveに直接保存しました！</strong><br>
+      <span style="font-size:0.75rem; color:var(--text-muted);">（マイドライブ/筋トレログ フォルダへ直接格納されました。PCに自動同期されます）</span>
+    `;
+    document.getElementById("success-modal").classList.add("open");
+  })
+  .catch(err => {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = origBtnText;
+    alert("Google Driveへの送信に失敗しました: " + err);
+  });
 }
 
 function triggerDownloadFallback(filename, data) {
@@ -993,6 +989,69 @@ function triggerDownloadFallback(filename, data) {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
