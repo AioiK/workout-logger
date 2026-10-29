@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<title>筋トレログ | 記録ツール</title>
+<style>
+  :root {
+    --bg-main: #0b1120;
+    --bg-card: #1e293b;
+    --bg-card-sub: #162032;
+    --bg-input: #0f172a;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-blue: #38bdf8;
+    --accent-indigo: #6366f1;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --border-card: #334155;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    padding: 12px 12px 100px 12px;
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-card);
+  }
+
+  h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .meta-field {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+  }
+
+  .meta-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .meta-input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 100%;
+    outline: none;
+  }
+
+  /* Routine Tabs */
+  .tabs {
+    display: flex;
+    background: var(--bg-card-sub);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+    border: 1px solid var(--border-card);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent-indigo);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  }
+
+  /* Superset Container */
+  .superset-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .superset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border-card);
+  }
+
+  .superset-badge {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent-blue);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .superset-pair-names {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* Exercise Headers (Weight Selector) */
+  .exercise-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .exercise-setting-box {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+  }
+
+  .ex-name-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .weight-select-btn {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid #475569;
+    color: var(--accent-amber);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  /* Set Row (Interleaved) */
+  .set-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .set-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .set-label-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .set-inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stepper-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid #475569;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .stepper-btn {
+    width: 40px;
+    height: 44px;
+    border: none;
+    background: #1e293b;
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .stepper-btn:active {
+    background: var(--accent-indigo);
+  }
+
+  .stepper-val {
+    flex: 1;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .stepper-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: block;
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  /* Memo / Notes Box */
+  .memo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    margin-bottom: 16px;
+  }
+
+  .memo-textarea {
+    width: 100%;
+    height: 54px;
+    background: var(--bg-input);
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 8px;
+    font-size: 0.85rem;
+    resize: none;
+    outline: none;
+  }
+
+  /* Bottom Sticky Action Bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border-card);
+    padding: 10px 16px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .save-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    color: #fff;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .save-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* Modal Dialog for Weight Picker */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 200;
+    animation: fadeIn 0.2s;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-card);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px 36px 16px;
+    width: 100%;
+    max-width: 500px;
+    animation: slideUp 0.25s ease-out;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .modal-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .weight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .weight-option-btn {
+    background: var(--bg-input);
+    border: 2px solid var(--border-card);
+    color: var(--text-primary);
+    padding: 12px 6px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .weight-option-btn.selected {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: var(--accent-amber);
+    color: var(--accent-amber);
+  }
+
+  .weight-option-btn:active {
+    background: var(--accent-indigo);
+    color: #fff;
+  }
+
+  .modal-close-btn {
+    width: 100%;
+    background: #334155;
+    border: none;
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  /* Completion Success Overlay */
+  .success-box {
+    text-align: center;
+  }
+  .success-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+  .success-h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--accent-emerald);
+    margin-bottom: 8px;
+  }
+  .success-p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+
+  .settings-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+  }
+  .settings-btn:active {
+    transform: scale(0.92);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏋️ 筋トレ記録</h1>
+  <button class="settings-btn" onclick="openSettingsModal()" title="設定">⚙️</button>
+</header>
+
+<div class="meta-bar">
+  <div class="meta-field">
+    <div class="meta-label">日付</div>
+    <input type="date" id="input-date" class="meta-input">
+  </div>
+  <div class="meta-field">
+    <div class="meta-label">時間 (分)</div>
+    <input type="number" id="input-duration" class="meta-input" value="25" step="1" min="1">
+  </div>
+</div>
+
+<!-- Routine Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" id="tab-main" onclick="switchRoutine('main')">メイン (月・水・金)</button>
+  <button class="tab-btn" id="tab-sub" onclick="switchRoutine('sub')">補助 (火・土)</button>
+</div>
+
+<!-- Workout Container -->
+<div id="routine-container"></div>
+
+<!-- Memo Box -->
+<div class="memo-card">
+  <div class="meta-label" style="margin-bottom:4px;">メモ・体調・ウォームアップ</div>
+  <textarea id="input-memo" class="memo-textarea" placeholder="例: 背中違和感なし、RIR1目標、ウォームアップ懸垂ぶら下がり10秒"></textarea>
+</div>
+
+<!-- Bottom Save Bar -->
+<div class="bottom-bar">
+  <button class="save-btn" onclick="saveAndExport()">
+    💾 筋トレ完了・保存 (JSON)
+  </button>
+</div>
+
+<!-- Weight Picker Modal -->
+<div class="modal-overlay" id="weight-modal" onclick="closeWeightModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-ex-title">重量選択</div>
+    <div class="modal-desc" id="modal-ex-desc">前回の重量が保持されます。更新時はタップして選択。</div>
+    <div class="weight-grid" id="modal-weight-grid"></div>
+    <button class="modal-close-btn" onclick="closeWeightModal()">決定 / 閉じる</button>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="success-modal" onclick="closeSuccessModal()">
+  <div class="modal-content success-box" onclick="event.stopPropagation()">
+    <div class="success-icon">🎉</div>
+    <div class="success-h2">記録を保存しました！</div>
+    <div class="success-p" id="success-msg">
+      workout_xxxx.json を保存しました。
+    </div>
+    <button class="save-btn" style="width:100%; margin-bottom:10px;" onclick="copySummaryText()">📋 記録テキストをコピー</button>
+    <button class="modal-close-btn" onclick="closeSuccessModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal" onclick="closeSettingsModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-title">⚙️ Google Drive 連携設定</div>
+    <div class="modal-desc">Google Driveへ直接自動保存するための設定です。</div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">GAS ウェブアプリのURL</label>
+      <input type="text" id="setting-gas-url" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%; background:var(--bg-input); border:1px solid #475569; color:var(--text-primary); padding:10px; border-radius:8px; font-size:0.85rem; outline:none;">
+      <span style="font-size:0.7rem; color:var(--text-secondary); display:block; margin-top:6px; line-height:1.4;">
+        ※ Google Apps Scriptのデプロイで発行されたURLを貼り付けます。<br>
+        一度設定すれば次回以降は自動でGoogle Driveへ直接保存されます。
+      </span>
+    </div>
+    <button class="save-btn" style="width:100%; margin-bottom:10px;" onclick="saveGasUrlSetting()">設定を保存</button>
+    <button class="modal-close-btn" onclick="closeSettingsModal()">閉じる</button>
+  </div>
+</div>
+
+<script>
+// 指定の9段階重量刻み (kg)
+const WEIGHT_STEPS = [5, 9, 14, 18, 23, 27, 32, 37, 42];
+
+// ルーティン定義 (8種目)
+const ROUTINES = {
+  main: {
+    name: "メイン",
+    pairs: [
+      {
+        id: "pair1",
+        label: "スーパーセット①",
+        exA: {
+          key: "pullup",
+          name: "懸垂",
+          isPullup: true,
+          defaultWeight: 0,
+          unit: "自重",
+          mode: "自重",
+          defaultReps: [14, 12, 10]
+        },
+        exB: {
+          key: "squat",
+          name: "ダンベルスクワット",
+          isDumbbell: true,
+          mode: "×2",
+          defaultWeight: 18,
+          defaultReps: [12, 10, 10]
+        }
+      },
+      {
+        id: "pair2",
+        label: "スーパーセット②",
+        exA: {
+          key: "floorpress",
+          name: "ダンベルフロアプレス",
+          isDumbbell: true,
+          mode: "×2",
+          defaultWeight: 18,
+          defaultReps: [12, 10, 10]
+        },
+        exB: {
+          key: "rdl",
+          name: "両脚ダンベルRDL",
+          isDumbbell: true,
+          mode: "×2",
+          defaultWeight: 23,
+          defaultReps: [13, 11, 11]
+        }
+      }
+    ]
+  },
+  sub: {
+    name: "補助",
+    pairs: [
+      {
+        id: "pair3",
+        label: "スーパーセット③",
+        exA: {
+          key: "row",
+          name: "ダンベルロー",
+          isDumbbell: true,
+          mode: "片手",
+          defaultWeight: 18,
+          defaultReps: [12, 12, 12]
+        },
+        exB: {
+          key: "crunch",
+          name: "ダンベルクランチ",
+          isDumbbell: true,
+          mode: "1個",
+          defaultWeight: 9,
+          defaultReps: [15, 15, 15]
+        }
+      },
+      {
+        id: "pair4",
+        label: "スーパーセット④",
+        exA: {
+          key: "sidebend",
+          name: "ダンベルサイドベント",
+          isDumbbell: true,
+          mode: "片手",
+          defaultWeight: 18,
+          defaultReps: [15, 15, 15]
+        },
+        exB: {
+          key: "calfraise",
+          name: "ダンベルカーフレイズ",
+          isDumbbell: true,
+          mode: "×2",
+          defaultWeight: 18,
+          defaultReps: [20, 20, 20]
+        }
+      }
+    ]
+  }
+};
+
+let currentRoutineKey = "main";
+let workoutState = {}; // { [exKey]: { weight: number, reps: [r1, r2, r3], mode: string } }
+let activeModalExKey = null;
+
+// 初期化
+window.addEventListener("DOMContentLoaded", () => {
+  // 今日の日付をセット
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  document.getElementById("input-date").value = `${yyyy}-${mm}-${dd}`;
+
+  // 曜日に応じてタブ自動選択 (火・土なら補助、それ以外はメイン)
+  const dayOfWeek = today.getDay(); // 0=日, 2=火, 6=土
+  if (dayOfWeek === 2 || dayOfWeek === 6) {
+    currentRoutineKey = "sub";
+  } else {
+    currentRoutineKey = "main";
+  }
+
+  loadStateFromStorage();
+  updateTabUI();
+  renderWorkout();
+});
+
+function loadStateFromStorage() {
+  const savedWeights = localStorage.getItem("workout_weights_v1");
+  const parsedWeights = savedWeights ? JSON.parse(savedWeights) : {};
+
+  // 全種目の状態を構築
+  ["main", "sub"].forEach(rKey => {
+    ROUTINES[rKey].pairs.forEach(p => {
+      [p.exA, p.exB].forEach(ex => {
+        const savedW = parsedWeights[ex.key];
+        workoutState[ex.key] = {
+          name: ex.name,
+          weight: savedW !== undefined ? savedW : ex.defaultWeight,
+          reps: [...ex.defaultReps],
+          mode: ex.mode,
+          isPullup: !!ex.isPullup
+        };
+      });
+    });
+  });
+}
+
+function saveStateToStorage() {
+  const weightsOnly = {};
+  for (let k in workoutState) {
+    weightsOnly[k] = workoutState[k].weight;
+  }
+  localStorage.setItem("workout_weights_v1", JSON.stringify(weightsOnly));
+}
+
+function switchRoutine(routineKey) {
+  currentRoutineKey = routineKey;
+  updateTabUI();
+  renderWorkout();
+}
+
+function updateTabUI() {
+  document.getElementById("tab-main").className = "tab-btn " + (currentRoutineKey === "main" ? "active" : "");
+  document.getElementById("tab-sub").className = "tab-btn " + (currentRoutineKey === "sub" ? "active" : "");
+}
+
+function getWeightDisplayString(exKey) {
+  const s = workoutState[exKey];
+  if (s.isPullup) {
+    if (s.weight === 0) return "自重 (0kg)";
+    return `自重 +${s.weight}kg`;
+  }
+  if (s.mode === "×2") {
+    const total = s.weight * 2;
+    return `${s.weight}kg ×2 (${total}kg)`;
+  }
+  return `${s.weight}kg (${s.mode})`;
+}
+
+function renderWorkout() {
+  const container = document.getElementById("routine-container");
+  container.innerHTML = "";
+  const pairs = ROUTINES[currentRoutineKey].pairs;
+
+  pairs.forEach(pair => {
+    const card = document.createElement("div");
+    card.className = "superset-card";
+
+    const exA = pair.exA;
+    const exB = pair.exB;
+
+    let html = `
+      <div class="superset-header">
+        <span class="superset-badge">${pair.label}</span>
+        <span class="superset-pair-names">${exA.name} ＋ ${exB.name}</span>
+      </div>
+
+      <div class="exercise-settings-grid">
+        <div class="exercise-setting-box">
+          <div class="ex-name-label">${exA.name}</div>
+          <button class="weight-select-btn" onclick="openWeightModal('${exA.key}')">
+            <span>${getWeightDisplayString(exA.key)}</span>
+            <span>▾</span>
+          </button>
+        </div>
+        <div class="exercise-setting-box">
+          <div class="ex-name-label">${exB.name}</div>
+          <button class="weight-select-btn" onclick="openWeightModal('${exB.key}')">
+            <span>${getWeightDisplayString(exB.key)}</span>
+            <span>▾</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="set-container">
+    `;
+
+    for (let setIdx = 0; setIdx < 3; setIdx++) {
+      const repA = workoutState[exA.key].reps[setIdx];
+      const repB = workoutState[exB.key].reps[setIdx];
+
+      html += `
+        <div class="set-card">
+          <div class="set-label-bar">
+            <span>SET ${setIdx + 1}</span>
+            <span>${exA.name} ➔ ${exB.name}</span>
+          </div>
+          <div class="set-inputs-grid">
+            <div class="stepper-box">
+              <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, -1)">−</button>
+              <div class="stepper-val" onclick="promptReps('${exA.key}', ${setIdx})">
+                ${repA}
+                <span class="stepper-sub">${exA.name.slice(0, 4)}</span>
+              </div>
+              <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, +1)">＋</button>
+            </div>
+            <div class="stepper-box">
+              <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, -1)">−</button>
+              <div class="stepper-val" onclick="promptReps('${exB.key}', ${setIdx})">
+                ${repB}
+                <span class="stepper-sub">${exB.name.slice(0, 4)}</span>
+              </div>
+              <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, +1)">＋</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+}
+
+function adjustReps(exKey, setIdx, delta) {
+  if (navigator.vibrate) navigator.vibrate(15);
+  let cur = workoutState[exKey].reps[setIdx];
+  let next = Math.max(0, cur + delta);
+  workoutState[exKey].reps[setIdx] = next;
+  renderWorkout();
+}
+
+function promptReps(exKey, setIdx) {
+  const cur = workoutState[exKey].reps[setIdx];
+  const input = prompt(`${workoutState[exKey].name} Set ${setIdx + 1} の回数を入力:`, cur);
+  if (input !== null) {
+    const val = parseInt(input, 10);
+    if (!isNaN(val) && val >= 0) {
+      workoutState[exKey].reps[setIdx] = val;
+      renderWorkout();
+    }
+  }
+}
+
+// Weight Modal
+function openWeightModal(exKey) {
+  activeModalExKey = exKey;
+  const s = workoutState[exKey];
+  document.getElementById("modal-ex-title").innerText = `${s.name} の重量`;
+  const grid = document.getElementById("modal-weight-grid");
+  grid.innerHTML = "";
+
+  if (s.isPullup) {
+    document.getElementById("modal-ex-desc").innerText = "自重、または追加加重量を選択：";
+    const pullupOptions = [0, 5, 9, 14, 16.5, 18, 23];
+    pullupOptions.forEach(w => {
+      const btn = document.createElement("button");
+      btn.className = "weight-option-btn " + (s.weight === w ? "selected" : "");
+      btn.innerText = w === 0 ? "自重 (0)" : `+${w}kg`;
+      btn.onclick = () => selectWeight(w);
+      grid.appendChild(btn);
+    });
+  } else {
+    document.getElementById("modal-ex-desc").innerText = "ダンベルの重量（刻み: 5〜42kg）を選択：";
+    WEIGHT_STEPS.forEach(w => {
+      const btn = document.createElement("button");
+      btn.className = "weight-option-btn " + (s.weight === w ? "selected" : "");
+      btn.innerText = `${w} kg`;
+      btn.onclick = () => selectWeight(w);
+      grid.appendChild(btn);
+    });
+  }
+
+  document.getElementById("weight-modal").classList.add("open");
+}
+
+function selectWeight(weight) {
+  if (activeModalExKey) {
+    workoutState[activeModalExKey].weight = weight;
+    saveStateToStorage();
+    renderWorkout();
+  }
+  closeWeightModal();
+}
+
+function closeWeightModal() {
+  document.getElementById("weight-modal").classList.remove("open");
+  activeModalExKey = null;
+}
+
+// 完了・保存処理 (JSON生成 & ダウンロード)
+let lastExportData = null;
+
+function saveAndExport() {
+  const dateStr = document.getElementById("input-date").value || new Date().toISOString().slice(0, 10);
+  const duration = parseFloat(document.getElementById("input-duration").value) || 25.0;
+  const memoText = document.getElementById("input-memo").value.trim();
+
+  saveStateToStorage();
+
+  const routine = ROUTINES[currentRoutineKey];
+  const exercisesData = [];
+
+  routine.pairs.forEach((pair, pIdx) => {
+    const symbol = currentRoutineKey === "main" ? (pIdx === 0 ? "①" : "②") : (pIdx === 0 ? "③" : "④");
+    [pair.exA, pair.exB].forEach(exDef => {
+      const s = workoutState[exDef.key];
+      const repsTotal = s.reps.reduce((a, b) => a + b, 0);
+      const repsDetails = s.reps.join("/");
+
+      let loadKg = 0;
+      let loadDetails = "";
+
+      if (s.isPullup) {
+        loadKg = s.weight;
+        loadDetails = s.weight === 0 ? "自重" : `自重+${s.weight}kg`;
+      } else if (s.mode === "×2") {
+        loadKg = s.weight * 2;
+        loadDetails = `${s.weight}kg×2`;
+      } else {
+        loadKg = s.weight;
+        loadDetails = `${s.weight}kg`;
+      }
+
+      exercisesData.push({
+        exercise: s.name,
+        load_kg: loadKg,
+        load_details: loadDetails,
+        sets: 3,
+        reps_total: repsTotal,
+        reps_details: repsDetails,
+        target_rir: 1,
+        actual_rir: "",
+        superset_group: symbol,
+        notes: ""
+      });
+    });
+  });
+
+  lastExportData = {
+    version: 1,
+    date: dateStr,
+    created_at: new Date().toISOString(),
+    routine_type: routine.name,
+    duration_min: duration,
+    exercises: exercisesData,
+    memo: memoText
+  };
+
+  const timeClean = new Date().toTimeString().slice(0, 5).replace(":", "");
+  const filename = `workout_${dateStr.replace(/-/g, "")}_${timeClean}.json`;
+
+  const saveBtn = document.querySelector(".save-btn");
+  const origBtnText = saveBtn.innerHTML;
+
+  // 1. Google Apps Script 内部で開かれている場合（google.script.run利用可能）
+  if (typeof google !== "undefined" && google.script && google.script.run) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = "☁️ Google Driveに保存中...";
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origBtnText;
+        document.getElementById("success-msg").innerHTML = `
+          <strong>${res.filename}</strong> をGoogle Driveに直接保存しました！<br>
+          <span style="font-size:0.75rem; color:var(--text-muted);">（マイドライブ/筋トレログ フォルダへ同期完了）</span>
+        `;
+        document.getElementById("success-modal").classList.add("open");
+      })
+      .withFailureHandler(function(err) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origBtnText;
+        alert("Google Driveへの保存に失敗しました: " + err);
+      })
+      .saveWorkoutToDrive(lastExportData);
+    return;
+  }
+
+  // 2. GitHub Pages等からGAS Webhook APIへ送信する場合
+  const gasUrl = localStorage.getItem("workout_gas_url") || "";
+  if (gasUrl) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = "☁️ Google Driveに送信中...";
+
+    fetch(gasUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(lastExportData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = origBtnText;
+      if (data && data.success) {
+        document.getElementById("success-msg").innerHTML = `
+          <strong>${data.filename}</strong> をGoogle Driveに保存しました！<br>
+          <span style="font-size:0.75rem; color:var(--text-muted);">（マイドライブ/筋トレログ フォルダへ直接格納されました）</span>
+        `;
+        document.getElementById("success-modal").classList.add("open");
+      } else {
+        alert("保存エラー: " + (data.error || JSON.stringify(data)));
+      }
+    })
+    .catch(err => {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = origBtnText;
+      alert("Google Driveへの通信に失敗したため、端末へのダウンロードに切り替えます: " + err);
+      triggerDownloadFallback(filename, lastExportData);
+    });
+    return;
+  }
+
+  // 3. スタンドアロン/通常ブラウザの場合：フォールバックダウンロード
+  triggerDownloadFallback(filename, lastExportData);
+}
+
+function triggerDownloadFallback(filename, data) {
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  document.getElementById("success-msg").innerHTML = `
+    <strong>${filename}</strong> を保存しました！<br>
+    FolderSync経由でGoogle Driveへ自動同期されます。
+  `;
+  document.getElementById("success-modal").classList.add("open");
+}
+
+// 設定モーダル
+function openSettingsModal() {
+  document.getElementById("setting-gas-url").value = localStorage.getItem("workout_gas_url") || "";
+  document.getElementById("settings-modal").classList.add("open");
+}
+
+function closeSettingsModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById("settings-modal").classList.remove("open");
+}
+
+function saveGasUrlSetting() {
+  const url = document.getElementById("setting-gas-url").value.trim();
+  localStorage.setItem("workout_gas_url", url);
+  closeSettingsModal();
+  alert("GASのURLを保存しました！次回からGoogle Driveへ自動送信されます。");
+}
+}
+
+function closeSuccessModal() {
+  document.getElementById("success-modal").classList.remove("open");
+}
+
+function copySummaryText() {
+  if (!lastExportData) return;
+  const lines = [
+    `【筋トレ記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:${lastExportData.duration_min}分`,
+    ...lastExportData.exercises.map(e => `・${e.exercise} ${e.load_details} ${e.reps_details} (計${e.reps_total}回)`),
+    lastExportData.memo ? `メモ: ${lastExportData.memo}` : ""
+  ].filter(Boolean);
+
+  const text = lines.join("\n");
+  navigator.clipboard.writeText(text).then(() => {
+    alert("クリップボードにコピーしました！");
+  });
+}
+</script>
+</body>
+</html>
