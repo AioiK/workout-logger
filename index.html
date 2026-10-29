@@ -633,26 +633,34 @@ let workoutState = {}; // { [exKey]: { weight: number, reps: [r1, r2, r3], mode:
 let activeModalExKey = null;
 
 // 初期化
-window.addEventListener("DOMContentLoaded", () => {
-  // 今日の日付をセット
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  document.getElementById("input-date").value = `${yyyy}-${mm}-${dd}`;
+function initApp() {
+  const dateInput = document.getElementById("input-date");
+  if (dateInput && !dateInput.value) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
 
-  // 曜日に応じてタブ自動選択 (火・土なら補助、それ以外はメイン)
-  const dayOfWeek = today.getDay(); // 0=日, 2=火, 6=土
-  if (dayOfWeek === 2 || dayOfWeek === 6) {
-    currentRoutineKey = "sub";
-  } else {
-    currentRoutineKey = "main";
+    // 曜日に応じてタブ自動選択 (火・土なら補助、それ以外はメイン)
+    const dayOfWeek = today.getDay(); // 0=日, 2=火, 6=土
+    if (dayOfWeek === 2 || dayOfWeek === 6) {
+      currentRoutineKey = "sub";
+    } else {
+      currentRoutineKey = "main";
+    }
   }
 
   loadStateFromStorage();
   updateTabUI();
   renderWorkout();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 function loadStateFromStorage() {
   const savedWeights = localStorage.getItem("workout_weights_v1");
@@ -1011,7 +1019,6 @@ function saveGasUrlSetting() {
   localStorage.setItem("workout_gas_url", url);
   closeSettingsModal();
   alert("GASのURLを保存しました！次回からGoogle Driveへ自動送信されます。");
-}
 }
 
 function closeSuccessModal() {
