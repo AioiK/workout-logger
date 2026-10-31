@@ -603,6 +603,9 @@
   <button class="settings-btn" onclick="openSettingsModal()" title="設定">⚙️</button>
 </header>
 
+<!-- バックグラウンドスリープ防止用無音オーディオ -->
+<audio id="keep-alive-audio" loop preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP//"></audio>
+
 <div class="meta-bar">
   <div class="meta-field">
     <div class="meta-label">日付</div>
@@ -796,30 +799,13 @@ let activeTimer = {
 };
 
 let swRegistration = null;
-let keepAliveAudio = null;
 
 // Service Workerと通知サービスの初期化
 async function initNotificationService() {
   if ('serviceWorker' in navigator) {
     try {
-      const swCode = `
-        self.addEventListener('install', e => self.skipWaiting());
-        self.addEventListener('activate', e => self.clients.claim());
-        self.addEventListener('notificationclick', e => {
-          e.notification.close();
-          e.waitUntil(
-            clients.matchAll({ type: 'window' }).then(clientList => {
-              for (const client of clientList) {
-                if ('focus' in client) return client.focus();
-              }
-              if (clients.openWindow) return clients.openWindow('./');
-            })
-          );
-        });
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
-      swRegistration = await navigator.serviceWorker.register(swUrl);
+      swRegistration = await navigator.serviceWorker.register('./sw.js');
+      console.log('Service Worker registered successfully:', swRegistration.scope);
     } catch (e) {
       console.log('SW registration error:', e);
     }
@@ -827,7 +813,7 @@ async function initNotificationService() {
 }
 
 // バックグラウンド通知の送信
-function triggerPopupNotification(title = "⏱️ 筋トレタイマー終了！", body = "休憩時間が終了しました。次のセットを開始してください！") {
+async function triggerPopupNotification(title = "⏱️ 筋トレタイマー終了！", body = "休憩時間が終了しました。次のセットを開始してください！") {
   const options = {
     body: body,
     icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>",
@@ -838,16 +824,20 @@ function triggerPopupNotification(title = "⏱️ 筋トレタイマー終了！
     requireInteraction: true
   };
 
-  if (swRegistration && swRegistration.showNotification) {
-    swRegistration.showNotification(title, options).catch(() => {
-      fallbackNotification(title, options);
-    });
-  } else {
-    fallbackNotification(title, options);
+  // 1. Service Worker 経由（Android Chromeのバックグラウンド通知で必須）
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = swRegistration || await navigator.serviceWorker.ready;
+      if (reg && reg.showNotification) {
+        await reg.showNotification(title, options);
+        return;
+      }
+    } catch (err) {
+      console.log("SW showNotification error:", err);
+    }
   }
-}
 
-function fallbackNotification(title, options) {
+  // 2. フォールバック（PCブラウザ等）
   if ("Notification" in window && Notification.permission === "granted") {
     try {
       new Notification(title, options);
@@ -857,46 +847,67 @@ function fallbackNotification(title, options) {
   }
 }
 
-function testNotification() {
+async function testNotification() {
   if (!("Notification" in window)) {
     alert("お使いのブラウザは通知機能に対応していません。");
     return;
   }
-  Notification.requestPermission().then(perm => {
-    if (perm === "granted") {
-      triggerPopupNotification("🔔 通知テスト成功", "タイマー終了時にこの通知が届きます！");
-    } else {
-      alert("通知が許可されていません。ブラウザの設定から通知を許可してください。");
+
+  let perm = Notification.permission;
+  if (perm !== "granted") {
+    perm = await Notification.requestPermission();
+  }
+
+  if (perm !== "granted") {
+    alert("通知が許可されていません（状態: " + perm + "）。\nChromeの設定から通知を「許可」にしてください。");
+    return;
+  }
+
+  // Service Worker の確認
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = swRegistration || await navigator.serviceWorker.ready;
+      if (reg && reg.showNotification) {
+        await reg.showNotification("🔔 通知テスト成功", {
+          body: "タイマー通知が正常に届きました！バックグラウンドでも届きます。",
+          icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>",
+          vibrate: [300, 150, 300]
+        });
+        alert("通知を送信しました！画面上部または通知バーをご確認ください。");
+        return;
+      }
+    } catch (err) {
+      alert("Service Worker経由の通知に失敗しました: " + err.message + "\nGitHubリポジトリに sw.js が配置されているかご確認ください。");
+      return;
     }
-  });
+  }
+
+  // フォールバック
+  try {
+    new Notification("🔔 通知テスト成功", { body: "通知が届きました！" });
+    alert("通知を送信しました！");
+  } catch (e) {
+    alert("通知エラー: " + e.message);
+  }
 }
 
 function startKeepAliveAudio() {
   try {
-    if (!keepAliveAudio) {
-      keepAliveAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const audio = document.getElementById("keep-alive-audio");
+    if (audio) {
+      audio.play().catch(() => {});
     }
-    if (keepAliveAudio.state === 'suspended') {
-      keepAliveAudio.resume();
-    }
-    const osc = keepAliveAudio.createOscillator();
-    const gain = keepAliveAudio.createGain();
-    gain.gain.value = 0.0001;
-    osc.connect(gain);
-    gain.connect(keepAliveAudio.destination);
-    osc.start();
-    activeTimer.keepAliveOsc = osc;
   } catch (e) {}
 }
 
 function stopKeepAliveAudio() {
-  if (activeTimer.keepAliveOsc) {
-    try {
-      activeTimer.keepAliveOsc.stop();
-      activeTimer.keepAliveOsc.disconnect();
-    } catch (e) {}
-    activeTimer.keepAliveOsc = null;
-  }
+  try {
+    const audio = document.getElementById("keep-alive-audio");
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  } catch (e) {}
 }
 
 // 画面復帰時のチェック（バックグラウンドズレ即時解消）
