@@ -668,6 +668,13 @@
         一度設定すれば次回以降は自動でGoogle Driveへ直接保存されます。
       </span>
     </div>
+    <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed #334155;">
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">タイマー終了ポップアップ通知</label>
+      <button type="button" class="modal-close-btn" style="background:#1e293b; border:1px solid #475569;" onclick="testNotification()">🔔 通知の許可を確認 / テスト</button>
+      <span style="font-size:0.7rem; color:var(--text-secondary); display:block; margin-top:6px; line-height:1.4;">
+        ※ バックグラウンド時や画面消灯時でも、タイマー終了時にポップアップでお知らせします。
+      </span>
+    </div>
     <button class="save-btn" style="width:100%; margin-bottom:10px;" onclick="saveGasUrlSetting()">設定を保存</button>
     <button class="modal-close-btn" onclick="closeSettingsModal()">閉じる</button>
   </div>
@@ -782,8 +789,122 @@ let workoutStartTime = null;
 let activeTimer = {
   pairId: null,
   remainingSec: 0,
-  intervalId: null
+  targetTime: null,
+  intervalId: null,
+  wasFinished: false,
+  keepAliveOsc: null
 };
+
+let swRegistration = null;
+let keepAliveAudio = null;
+
+// Service Workerと通知サービスの初期化
+async function initNotificationService() {
+  if ('serviceWorker' in navigator) {
+    try {
+      const swCode = `
+        self.addEventListener('install', e => self.skipWaiting());
+        self.addEventListener('activate', e => self.clients.claim());
+        self.addEventListener('notificationclick', e => {
+          e.notification.close();
+          e.waitUntil(
+            clients.matchAll({ type: 'window' }).then(clientList => {
+              for (const client of clientList) {
+                if ('focus' in client) return client.focus();
+              }
+              if (clients.openWindow) return clients.openWindow('./');
+            })
+          );
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      swRegistration = await navigator.serviceWorker.register(swUrl);
+    } catch (e) {
+      console.log('SW registration error:', e);
+    }
+  }
+}
+
+// バックグラウンド通知の送信
+function triggerPopupNotification(title = "⏱️ 筋トレタイマー終了！", body = "休憩時間が終了しました。次のセットを開始してください！") {
+  const options = {
+    body: body,
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>",
+    badge: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>",
+    vibrate: [300, 150, 300, 150, 500],
+    tag: "workout-rest-timer",
+    renotify: true,
+    requireInteraction: true
+  };
+
+  if (swRegistration && swRegistration.showNotification) {
+    swRegistration.showNotification(title, options).catch(() => {
+      fallbackNotification(title, options);
+    });
+  } else {
+    fallbackNotification(title, options);
+  }
+}
+
+function fallbackNotification(title, options) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    try {
+      new Notification(title, options);
+    } catch (e) {
+      console.log("Normal notification error:", e);
+    }
+  }
+}
+
+function testNotification() {
+  if (!("Notification" in window)) {
+    alert("お使いのブラウザは通知機能に対応していません。");
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm === "granted") {
+      triggerPopupNotification("🔔 通知テスト成功", "タイマー終了時にこの通知が届きます！");
+    } else {
+      alert("通知が許可されていません。ブラウザの設定から通知を許可してください。");
+    }
+  });
+}
+
+function startKeepAliveAudio() {
+  try {
+    if (!keepAliveAudio) {
+      keepAliveAudio = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (keepAliveAudio.state === 'suspended') {
+      keepAliveAudio.resume();
+    }
+    const osc = keepAliveAudio.createOscillator();
+    const gain = keepAliveAudio.createGain();
+    gain.gain.value = 0.0001;
+    osc.connect(gain);
+    gain.connect(keepAliveAudio.destination);
+    osc.start();
+    activeTimer.keepAliveOsc = osc;
+  } catch (e) {}
+}
+
+function stopKeepAliveAudio() {
+  if (activeTimer.keepAliveOsc) {
+    try {
+      activeTimer.keepAliveOsc.stop();
+      activeTimer.keepAliveOsc.disconnect();
+    } catch (e) {}
+    activeTimer.keepAliveOsc = null;
+  }
+}
+
+// 画面復帰時のチェック（バックグラウンドズレ即時解消）
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && activeTimer.intervalId) {
+    checkTimerTick();
+  }
+});
 
 // 初期化
 function initApp() {
@@ -805,6 +926,7 @@ function initApp() {
   }
 
   workoutStartTime = new Date();
+  initNotificationService();
   loadStateFromStorage();
   updateTabUI();
   renderWorkout();
@@ -973,7 +1095,7 @@ function renderWorkout() {
                 <span class="stepper-sub">${exA.name.slice(0, 4)}</span>
               </div>
               <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, +1)">＋</button>
-              <button class="check-btn ${doneA ? 'checked' : ''}" onclick="toggleCheck('${exA.key}', ${setIdx}, '${pair.id}')" title="完了チェック">
+              <button class="check-btn ${doneA ? 'checked' : ''}" onclick="toggleCheck('${exA.key}', ${setIdx}, '${pair.id}', false)" title="完了チェック">
                 ${doneA ? '✓' : '○'}
               </button>
             </div>
@@ -984,7 +1106,7 @@ function renderWorkout() {
                 <span class="stepper-sub">${exB.name.slice(0, 4)}</span>
               </div>
               <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, +1)">＋</button>
-              <button class="check-btn ${doneB ? 'checked' : ''}" onclick="toggleCheck('${exB.key}', ${setIdx}, '${pair.id}')" title="完了チェック">
+              <button class="check-btn ${doneB ? 'checked' : ''}" onclick="toggleCheck('${exB.key}', ${setIdx}, '${pair.id}', true)" title="完了チェック">
                 ${doneB ? '✓' : '○'}
               </button>
             </div>
@@ -999,16 +1121,21 @@ function renderWorkout() {
   });
 }
 
-// チェックボタンのトグル動作
-function toggleCheck(exKey, setIdx, pairId) {
+// チェックボタンのトグル動作（各セットの最後の種目のみタイマー自動起動）
+function toggleCheck(exKey, setIdx, pairId, isLastExercise) {
   const key = `${exKey}_${setIdx}`;
   const nowDone = !completedSets[key];
   completedSets[key] = nowDone;
 
   if (navigator.vibrate) navigator.vibrate(25);
 
-  // チェックを付けた場合、インターバルタイマーを自動スタート
-  if (nowDone && pairId) {
+  // 初回チェック時に通知許可をリクエスト
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
+  // 各セットの最後の種目（exB）を完了（ON）にした時だけタイマーを自動スタート
+  if (nowDone && isLastExercise && pairId) {
     startTimer(pairId);
   }
 
@@ -1047,27 +1174,43 @@ function startTimer(pairId) {
   const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
   activeTimer.pairId = pairId;
   activeTimer.remainingSec = mins * 60;
+  activeTimer.targetTime = Date.now() + activeTimer.remainingSec * 1000;
   activeTimer.wasFinished = false;
 
+  // 通知許可のリクエスト（未設定時）
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
+  startKeepAliveAudio();
+
   activeTimer.intervalId = setInterval(() => {
-    activeTimer.remainingSec--;
-    if (activeTimer.remainingSec <= 0) {
-      stopTimer();
-      activeTimer.wasFinished = true;
-      playBeep();
-      if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
-      renderWorkout();
-    } else {
-      const btn = document.getElementById(`timer-btn-${pairId}`);
-      if (btn) {
-        const m = Math.floor(activeTimer.remainingSec / 60);
-        const s = activeTimer.remainingSec % 60;
-        btn.innerHTML = `⏸️ ${m}:${s.toString().padStart(2, "0")} (停止)`;
-      }
-    }
+    checkTimerTick();
   }, 1000);
 
   renderWorkout();
+}
+
+function checkTimerTick() {
+  if (!activeTimer.targetTime) return;
+  const remaining = Math.max(0, Math.round((activeTimer.targetTime - Date.now()) / 1000));
+  activeTimer.remainingSec = remaining;
+
+  if (remaining <= 0) {
+    stopTimer();
+    activeTimer.wasFinished = true;
+    playBeep();
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+    triggerPopupNotification();
+    renderWorkout();
+  } else {
+    const btn = document.getElementById(`timer-btn-${activeTimer.pairId}`);
+    if (btn) {
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      btn.innerHTML = `⏸️ ${m}:${s.toString().padStart(2, "0")} (停止)`;
+    }
+  }
 }
 
 function stopTimer() {
@@ -1075,6 +1218,8 @@ function stopTimer() {
     clearInterval(activeTimer.intervalId);
     activeTimer.intervalId = null;
   }
+  activeTimer.targetTime = null;
+  stopKeepAliveAudio();
 }
 
 // 終了通知音（Web Audio APIによる優しいピピッ音）
