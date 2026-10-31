@@ -81,7 +81,7 @@
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     width: 100%;
     outline: none;
@@ -128,11 +128,17 @@
 
   .superset-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 8px;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 10px;
     margin-bottom: 10px;
     border-bottom: 1px dashed var(--border-card);
+  }
+
+  .superset-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .superset-badge {
@@ -148,6 +154,91 @@
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-weight: 600;
+  }
+
+  /* Interval Timer Widget inside Header */
+  .timer-widget {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card-sub);
+    border: 1px solid #334155;
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+  }
+
+  .timer-config {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .timer-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  .timer-step-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    border: 1px solid #475569;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .timer-step-btn:active {
+    background: var(--accent-indigo);
+  }
+
+  .timer-duration-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .timer-action-btn {
+    background: #1e293b;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+
+  .timer-action-btn.running {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: var(--accent-amber);
+    color: var(--accent-amber);
+    animation: timerPulse 1s infinite;
+  }
+
+  .timer-action-btn.finished {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+  }
+
+  @keyframes timerPulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
   }
 
   /* Exercise Headers (Weight Selector) */
@@ -202,6 +293,7 @@
     border: 1px solid var(--border-card);
     border-radius: var(--radius-sm);
     padding: 8px 10px;
+    transition: all 0.2s;
   }
 
   .set-label-bar {
@@ -226,15 +318,41 @@
     border: 1px solid #475569;
     border-radius: 8px;
     overflow: hidden;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  /* 現在取り組むべきセット（NOW）のハイライト */
+  .stepper-box.active-now {
+    border: 2px solid var(--accent-blue);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    animation: pulseNow 2s infinite;
+  }
+
+  @keyframes pulseNow {
+    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.5); }
+    70% { box-shadow: 0 0 0 5px rgba(56, 189, 248, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+  }
+
+  /* 完了したセットのスタイル */
+  .stepper-box.done {
+    border-color: var(--accent-emerald);
+    background: rgba(16, 185, 129, 0.08);
+    opacity: 0.75;
+  }
+
+  .stepper-box.done .stepper-val {
+    color: var(--accent-emerald);
   }
 
   .stepper-btn {
-    width: 40px;
+    width: 32px;
     height: 44px;
     border: none;
     background: #1e293b;
     color: var(--text-primary);
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -250,18 +368,48 @@
   .stepper-val {
     flex: 1;
     text-align: center;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: #fff;
     cursor: pointer;
   }
 
   .stepper-sub {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     display: block;
     line-height: 1;
     margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* セット完了チェックボタン（トグル可能） */
+  .check-btn {
+    width: 38px;
+    height: 44px;
+    border: none;
+    border-left: 1px solid #334155;
+    background: #1e293b;
+    color: #64748b;
+    font-size: 1.1rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+
+  .check-btn.checked {
+    background: var(--accent-emerald);
+    color: #ffffff;
+  }
+
+  .check-btn:active {
+    transform: scale(0.92);
   }
 
   /* Memo / Notes Box */
@@ -405,6 +553,18 @@
     cursor: pointer;
   }
 
+  .settings-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+  }
+  .settings-btn:active {
+    transform: scale(0.92);
+  }
+
   /* Completion Success Overlay */
   .success-box {
     text-align: center;
@@ -424,18 +584,6 @@
     color: var(--text-secondary);
     margin-bottom: 16px;
     line-height: 1.4;
-  }
-
-  .settings-btn {
-    background: transparent;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-  }
-  .settings-btn:active {
-    transform: scale(0.92);
   }
 
   @keyframes fadeIn {
@@ -460,10 +608,6 @@
     <div class="meta-label">日付</div>
     <input type="date" id="input-date" class="meta-input">
   </div>
-  <div class="meta-field">
-    <div class="meta-label">時間 (分)</div>
-    <input type="number" id="input-duration" class="meta-input" value="25" step="1" min="1">
-  </div>
 </div>
 
 <!-- Routine Tabs -->
@@ -484,7 +628,7 @@
 <!-- Bottom Save Bar -->
 <div class="bottom-bar">
   <button class="save-btn" onclick="saveAndExport()">
-    💾 筋トレ完了・保存 (JSON)
+    💾 筋トレ完了・保存
   </button>
 </div>
 
@@ -630,7 +774,16 @@ const ROUTINES = {
 
 let currentRoutineKey = "main";
 let workoutState = {}; // { [exKey]: { weight: number, reps: [r1, r2, r3], mode: string } }
+let completedSets = {}; // { [`${exKey}_${setIdx}`]: boolean }
 let activeModalExKey = null;
+let workoutStartTime = null;
+
+// インターバルタイマー管理
+let activeTimer = {
+  pairId: null,
+  remainingSec: 0,
+  intervalId: null
+};
 
 // 初期化
 function initApp() {
@@ -651,15 +804,10 @@ function initApp() {
     }
   }
 
+  workoutStartTime = new Date();
   loadStateFromStorage();
   updateTabUI();
   renderWorkout();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
 }
 
 function loadStateFromStorage() {
@@ -693,6 +841,7 @@ function saveStateToStorage() {
 
 function switchRoutine(routineKey) {
   currentRoutineKey = routineKey;
+  stopTimer();
   updateTabUI();
   renderWorkout();
 }
@@ -715,10 +864,26 @@ function getWeightDisplayString(exKey) {
   return `${s.weight}kg (${s.mode})`;
 }
 
+// 現在のルーティン内で「次にやるべきセット（NOW）」のキーを取得
+function getActiveTargetKey() {
+  const pairs = ROUTINES[currentRoutineKey].pairs;
+  for (const pair of pairs) {
+    for (let setIdx = 0; setIdx < 3; setIdx++) {
+      const keyA = `${pair.exA.key}_${setIdx}`;
+      if (!completedSets[keyA]) return keyA;
+      const keyB = `${pair.exB.key}_${setIdx}`;
+      if (!completedSets[keyB]) return keyB;
+    }
+  }
+  return null;
+}
+
 function renderWorkout() {
   const container = document.getElementById("routine-container");
   container.innerHTML = "";
   const pairs = ROUTINES[currentRoutineKey].pairs;
+  const activeTargetKey = getActiveTargetKey();
+  const timerMins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
 
   pairs.forEach(pair => {
     const card = document.createElement("div");
@@ -727,10 +892,38 @@ function renderWorkout() {
     const exA = pair.exA;
     const exB = pair.exB;
 
+    // タイマー表示状態
+    const isThisTimerRunning = (activeTimer.intervalId !== null && activeTimer.pairId === pair.id);
+    let timerBtnClass = "timer-action-btn";
+    let timerBtnText = `⏱️ ${timerMins}:00 スタート`;
+
+    if (isThisTimerRunning) {
+      timerBtnClass += " running";
+      const m = Math.floor(activeTimer.remainingSec / 60);
+      const s = activeTimer.remainingSec % 60;
+      timerBtnText = `⏸️ ${m}:${s.toString().padStart(2, "0")} (停止)`;
+    } else if (activeTimer.pairId === pair.id && activeTimer.remainingSec === 0 && activeTimer.wasFinished) {
+      timerBtnClass += " finished";
+      timerBtnText = "🔔 0:00 (時間です)";
+    }
+
     let html = `
       <div class="superset-header">
-        <span class="superset-badge">${pair.label}</span>
-        <span class="superset-pair-names">${exA.name} ＋ ${exB.name}</span>
+        <div class="superset-title-row">
+          <span class="superset-badge">${pair.label}</span>
+          <span class="superset-pair-names">${exA.name} ＋ ${exB.name}</span>
+        </div>
+        <div class="timer-widget">
+          <div class="timer-config">
+            <span class="timer-label">休憩:</span>
+            <button class="timer-step-btn" onclick="adjustTimerDuration(-1)">−</button>
+            <span class="timer-duration-val">${timerMins}分</span>
+            <button class="timer-step-btn" onclick="adjustTimerDuration(+1)">＋</button>
+          </div>
+          <button class="${timerBtnClass}" id="timer-btn-${pair.id}" onclick="toggleTimer('${pair.id}')">
+            ${timerBtnText}
+          </button>
+        </div>
       </div>
 
       <div class="exercise-settings-grid">
@@ -757,6 +950,15 @@ function renderWorkout() {
       const repA = workoutState[exA.key].reps[setIdx];
       const repB = workoutState[exB.key].reps[setIdx];
 
+      const keyA = `${exA.key}_${setIdx}`;
+      const keyB = `${exB.key}_${setIdx}`;
+
+      const doneA = !!completedSets[keyA];
+      const doneB = !!completedSets[keyB];
+
+      const nowA = (keyA === activeTargetKey);
+      const nowB = (keyB === activeTargetKey);
+
       html += `
         <div class="set-card">
           <div class="set-label-bar">
@@ -764,21 +966,27 @@ function renderWorkout() {
             <span>${exA.name} ➔ ${exB.name}</span>
           </div>
           <div class="set-inputs-grid">
-            <div class="stepper-box">
+            <div class="stepper-box ${doneA ? 'done' : ''} ${nowA ? 'active-now' : ''}">
               <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, -1)">−</button>
               <div class="stepper-val" onclick="promptReps('${exA.key}', ${setIdx})">
                 ${repA}
                 <span class="stepper-sub">${exA.name.slice(0, 4)}</span>
               </div>
               <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, +1)">＋</button>
+              <button class="check-btn ${doneA ? 'checked' : ''}" onclick="toggleCheck('${exA.key}', ${setIdx}, '${pair.id}')" title="完了チェック">
+                ${doneA ? '✓' : '○'}
+              </button>
             </div>
-            <div class="stepper-box">
+            <div class="stepper-box ${doneB ? 'done' : ''} ${nowB ? 'active-now' : ''}">
               <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, -1)">−</button>
               <div class="stepper-val" onclick="promptReps('${exB.key}', ${setIdx})">
                 ${repB}
                 <span class="stepper-sub">${exB.name.slice(0, 4)}</span>
               </div>
               <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, +1)">＋</button>
+              <button class="check-btn ${doneB ? 'checked' : ''}" onclick="toggleCheck('${exB.key}', ${setIdx}, '${pair.id}')" title="完了チェック">
+                ${doneB ? '✓' : '○'}
+              </button>
             </div>
           </div>
         </div>
@@ -789,6 +997,114 @@ function renderWorkout() {
     card.innerHTML = html;
     container.appendChild(card);
   });
+}
+
+// チェックボタンのトグル動作
+function toggleCheck(exKey, setIdx, pairId) {
+  const key = `${exKey}_${setIdx}`;
+  const nowDone = !completedSets[key];
+  completedSets[key] = nowDone;
+
+  if (navigator.vibrate) navigator.vibrate(25);
+
+  // チェックを付けた場合、インターバルタイマーを自動スタート
+  if (nowDone && pairId) {
+    startTimer(pairId);
+  }
+
+  renderWorkout();
+}
+
+// タイマー時間の変更（1分刻み、1〜10分、全ペア共有記憶）
+function adjustTimerDuration(delta) {
+  let current = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
+  let next = Math.max(1, Math.min(10, current + delta));
+  localStorage.setItem("workout_timer_minutes", next.toString());
+
+  if (!activeTimer.intervalId) {
+    activeTimer.remainingSec = next * 60;
+    activeTimer.wasFinished = false;
+  }
+  renderWorkout();
+}
+
+// タイマーの開始/停止トグル
+function toggleTimer(pairId) {
+  if (activeTimer.intervalId) {
+    if (activeTimer.pairId === pairId) {
+      stopTimer();
+      renderWorkout();
+      return;
+    } else {
+      stopTimer();
+    }
+  }
+  startTimer(pairId);
+}
+
+function startTimer(pairId) {
+  stopTimer();
+  const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
+  activeTimer.pairId = pairId;
+  activeTimer.remainingSec = mins * 60;
+  activeTimer.wasFinished = false;
+
+  activeTimer.intervalId = setInterval(() => {
+    activeTimer.remainingSec--;
+    if (activeTimer.remainingSec <= 0) {
+      stopTimer();
+      activeTimer.wasFinished = true;
+      playBeep();
+      if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+      renderWorkout();
+    } else {
+      const btn = document.getElementById(`timer-btn-${pairId}`);
+      if (btn) {
+        const m = Math.floor(activeTimer.remainingSec / 60);
+        const s = activeTimer.remainingSec % 60;
+        btn.innerHTML = `⏸️ ${m}:${s.toString().padStart(2, "0")} (停止)`;
+      }
+    }
+  }, 1000);
+
+  renderWorkout();
+}
+
+function stopTimer() {
+  if (activeTimer.intervalId) {
+    clearInterval(activeTimer.intervalId);
+    activeTimer.intervalId = null;
+  }
+}
+
+// 終了通知音（Web Audio APIによる優しいピピッ音）
+function playBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.25);
+
+    setTimeout(() => {
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1174.66, audioCtx.currentTime); // D6
+      gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      osc2.start();
+      osc2.stop(audioCtx.currentTime + 0.35);
+    }, 280);
+  } catch (e) {
+    console.log("Audio play error", e);
+  }
 }
 
 function adjustReps(exKey, setIdx, delta) {
@@ -857,15 +1173,20 @@ function closeWeightModal() {
   activeModalExKey = null;
 }
 
-// 完了・保存処理 (JSON生成 & ダウンロード)
+// 完了・保存処理 (JSON生成 & 送信)
 let lastExportData = null;
 
 function saveAndExport() {
   const dateStr = document.getElementById("input-date").value || new Date().toISOString().slice(0, 10);
-  const duration = parseFloat(document.getElementById("input-duration").value) || 25.0;
+  
+  // 経過時間を自動計算（最低5分以上なら実測、それ未満なら標準25分）
+  const elapsedMin = workoutStartTime ? Math.round((new Date() - workoutStartTime) / 60000) : 0;
+  const duration = elapsedMin >= 5 ? elapsedMin : 25.0;
+
   const memoText = document.getElementById("input-memo").value.trim();
 
   saveStateToStorage();
+  stopTimer();
 
   const routine = ROUTINES[currentRoutineKey];
   const exercisesData = [];
@@ -916,9 +1237,6 @@ function saveAndExport() {
     memo: memoText
   };
 
-  const timeClean = new Date().toTimeString().slice(0, 5).replace(":", "");
-  const filename = `workout_${dateStr.replace(/-/g, "")}_${timeClean}.json`;
-
   const saveBtn = document.querySelector(".save-btn");
   const origBtnText = saveBtn.innerHTML;
 
@@ -933,7 +1251,7 @@ function saveAndExport() {
         saveBtn.innerHTML = origBtnText;
         document.getElementById("success-msg").innerHTML = `
           <strong>${res.filename}</strong> をGoogle Driveに直接保存しました！<br>
-          <span style="font-size:0.75rem; color:var(--text-muted);">（マイドライブ/筋トレログ フォルダへ同期完了）</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分）</span>
         `;
         document.getElementById("success-modal").classList.add("open");
       })
@@ -950,7 +1268,7 @@ function saveAndExport() {
   const gasUrl = localStorage.getItem("workout_gas_url") || "";
   if (!gasUrl) {
     openSettingsModal();
-    alert("【初回設定が必要です】\nGoogle Driveへ直接保存するための「GASウェブアプリURL」がまだ設定されていません。\n\n表示された設定画面にGASのURLを貼り付けて「設定を保存」してください。\n（端末のダウンロードフォルダは使用しません）");
+    alert("【初回設定が必要です】\nGoogle Driveへ直接保存するための「GASウェブアプリURL」がまだ設定されていません。\n\n表示された設定画面にGASのURLを貼り付けて「設定を保存」してください。");
     return;
   }
 
@@ -969,7 +1287,7 @@ function saveAndExport() {
     saveBtn.innerHTML = origBtnText;
     document.getElementById("success-msg").innerHTML = `
       <strong>Google Driveに直接保存しました！</strong><br>
-      <span style="font-size:0.75rem; color:var(--text-muted);">（マイドライブ/筋トレログ フォルダへ直接格納されました。PCに自動同期されます）</span>
+      <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分 / マイドライブ/筋トレログ フォルダへ同期完了）</span>
     `;
     document.getElementById("success-modal").classList.add("open");
   })
@@ -978,88 +1296,6 @@ function saveAndExport() {
     saveBtn.innerHTML = origBtnText;
     alert("Google Driveへの送信に失敗しました: " + err);
   });
-}
-
-function triggerDownloadFallback(filename, data) {
-  const jsonStr = JSON.stringify(data, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  document.getElementById("success-msg").innerHTML = `
-    <strong>${filename}</strong> を保存しました！<br>
-    FolderSync経由でGoogle Driveへ自動同期されます。
-  `;
-  document.getElementById("success-modal").classList.add("open");
 }
 
 // 設定モーダル
@@ -1096,6 +1332,12 @@ function copySummaryText() {
   navigator.clipboard.writeText(text).then(() => {
     alert("クリップボードにコピーしました！");
   });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
 }
 </script>
 </body>
