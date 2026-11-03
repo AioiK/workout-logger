@@ -1,0 +1,18 @@
+# 筋トレログツール除外設定 (.gitignore)
+# 個人データ・CSV・ログファイル等のGitHub誤送信を強制防止
+
+# CSVファイル（筋トレ・運動・体重等の正本・バックアップデータ）
+*.csv
+
+# 一時ファイル・バックアップファイル・ログ
+*.bak
+*.log
+*.tmp
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# 筋トレ実績ログJSON（※ただし manifest.json と version.json はアプリ配信用に許可）
+*.json
+!manifest.json
+!version.json
