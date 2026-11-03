@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0f172a">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>筋トレログ | 記録ツール</title>
 <style>
   :root {
@@ -678,6 +681,14 @@
         ※ バックグラウンド時や画面消灯時でも、タイマー終了時にポップアップでお知らせします。
       </span>
     </div>
+    <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed #334155;">
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">アプリの自動更新</label>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.8rem; color:var(--text-secondary);">現在のバージョン:</span>
+        <span id="app-version-display" style="font-size:0.8rem; font-weight:700; color:var(--accent-blue);">確認中...</span>
+      </div>
+      <button type="button" class="modal-close-btn" style="background:#1e293b; border:1px solid #475569;" onclick="manualUpdateCheck()">🔄 今すぐ更新をチェック</button>
+    </div>
     <button class="save-btn" style="width:100%; margin-bottom:10px;" onclick="saveGasUrlSetting()">設定を保存</button>
     <button class="modal-close-btn" onclick="closeSettingsModal()">閉じる</button>
   </div>
@@ -910,8 +921,87 @@ function stopKeepAliveAudio() {
   } catch (e) {}
 }
 
-// 画面復帰時のチェック（バックグラウンドズレ即時解消）
+// アプリ自動更新システム
+async function checkForAppUpdate(isManual = false) {
+  if (!navigator.onLine) {
+    if (isManual) alert("オフラインのため更新を確認できませんでした。");
+    return;
+  }
+  try {
+    const res = await fetch(`version.json?t=${Date.now()}`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      const latestVer = data.version;
+      const storedVer = localStorage.getItem("workout_app_version");
+
+      const verDisplay = document.getElementById("app-version-display");
+      if (verDisplay) verDisplay.innerText = "v" + latestVer;
+
+      if (!storedVer) {
+        localStorage.setItem("workout_app_version", latestVer);
+        if (isManual) alert(`お使いのアプリは最新バージョンです (v${latestVer})`);
+        return;
+      }
+
+      if (storedVer !== latestVer) {
+        showUpdateToast(`🎉 最新バージョン (v${latestVer}) を検出しました。更新中...`);
+        localStorage.setItem("workout_app_version", latestVer);
+
+        if ('serviceWorker' in navigator) {
+          try {
+            const reg = swRegistration || await navigator.serviceWorker.getRegistration();
+            if (reg) await reg.update();
+          } catch (e) {}
+        }
+
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 1000);
+      } else {
+        if (isManual) alert(`お使いのアプリは最新バージョンです (v${latestVer})`);
+      }
+    }
+  } catch (err) {
+    console.warn("Update check failed:", err);
+    if (isManual) alert("更新の確認に失敗しました: " + err.message);
+  }
+}
+
+function manualUpdateCheck() {
+  checkForAppUpdate(true);
+}
+
+function showUpdateToast(msg) {
+  let toast = document.getElementById("update-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "update-toast";
+    toast.style.cssText = `
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0284c7;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      z-index: 9999;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.innerText = msg;
+}
+
+// 画面復帰時のチェック（バックグラウンドズレ即時解消 ＆ アプリ自動更新チェック）
 document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    checkForAppUpdate(false);
+  }
   if (!document.hidden && activeTimer.intervalId) {
     checkTimerTick();
   }
@@ -941,6 +1031,7 @@ function initApp() {
   loadStateFromStorage();
   updateTabUI();
   renderWorkout();
+  checkForAppUpdate(false);
 }
 
 function loadStateFromStorage() {
@@ -1457,6 +1548,9 @@ function saveAndExport() {
 // 設定モーダル
 function openSettingsModal() {
   document.getElementById("setting-gas-url").value = localStorage.getItem("workout_gas_url") || "";
+  const curV = localStorage.getItem("workout_app_version");
+  const verDisplay = document.getElementById("app-version-display");
+  if (verDisplay) verDisplay.innerText = curV ? "v" + curV : "確認中...";
   document.getElementById("settings-modal").classList.add("open");
 }
 
