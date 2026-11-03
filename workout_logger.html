@@ -7,6 +7,12 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="筋トレログ">
 <title>筋トレログ | 記録ツール</title>
 <style>
   :root {
@@ -597,6 +603,102 @@
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
   }
+
+  /* RIR Selector */
+  .rir-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  .rir-options {
+    display: flex;
+    gap: 6px;
+  }
+  .rir-btn {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid #475569;
+    border-radius: var(--radius-sm);
+    padding: 8px 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+  .rir-btn.active {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: var(--accent-indigo);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+  }
+  .rir-score {
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+  .rir-desc {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+  .rir-btn.active .rir-desc {
+    color: var(--accent-blue);
+  }
+
+  /* Last Reps Badge inside Stepper */
+  .last-rep-badge {
+    font-size: 0.65rem;
+    color: var(--accent-blue);
+    background: rgba(56, 189, 248, 0.12);
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-top: 2px;
+    display: inline-block;
+    font-weight: 600;
+  }
+
+  /* History Log in Settings Modal */
+  .history-item {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+  }
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .history-date {
+    font-weight: 700;
+    color: var(--accent-blue);
+  }
+  .history-summary {
+    color: var(--text-secondary);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .history-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  .history-sm-btn {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: var(--text-primary);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -624,6 +726,25 @@
 
 <!-- Workout Container -->
 <div id="routine-container"></div>
+
+<!-- RIR (余力・きつさ) Selector -->
+<div class="rir-card">
+  <div class="meta-label" style="margin-bottom:6px;">本日の余力・きつさ (RIR)</div>
+  <div class="rir-options">
+    <button type="button" class="rir-btn" id="rir-btn-2" onclick="setRIR(2)">
+      <span class="rir-score">RIR 2</span>
+      <span class="rir-desc">余裕あり (+2回可能)</span>
+    </button>
+    <button type="button" class="rir-btn active" id="rir-btn-1" onclick="setRIR(1)">
+      <span class="rir-score">RIR 1</span>
+      <span class="rir-desc">適正 (あと1回限界)</span>
+    </button>
+    <button type="button" class="rir-btn" id="rir-btn-0" onclick="setRIR(0)">
+      <span class="rir-score">RIR 0</span>
+      <span class="rir-desc">限界 (これ以上無理)</span>
+    </button>
+  </div>
+</div>
 
 <!-- Memo Box -->
 <div class="memo-card">
@@ -688,6 +809,12 @@
         <span id="app-version-display" style="font-size:0.8rem; font-weight:700; color:var(--accent-blue);">確認中...</span>
       </div>
       <button type="button" class="modal-close-btn" style="background:#1e293b; border:1px solid #475569;" onclick="manualUpdateCheck()">🔄 今すぐ更新をチェック</button>
+    </div>
+    <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed #334155;">
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">直近の保存ログ（端末内バックアップ）</label>
+      <div id="history-container" style="max-height:180px; overflow-y:auto;">
+        <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:10px;">履歴はありません</div>
+      </div>
     </div>
     <button class="save-btn" style="width:100%; margin-bottom:10px;" onclick="saveGasUrlSetting()">設定を保存</button>
     <button class="modal-close-btn" onclick="closeSettingsModal()">閉じる</button>
@@ -794,10 +921,26 @@ const ROUTINES = {
 };
 
 let currentRoutineKey = "main";
+let currentRIR = 1;
+let lastSavedReps = {}; // { [exKey]: [r1, r2, r3] }
 let workoutState = {}; // { [exKey]: { weight: number, reps: [r1, r2, r3], mode: string } }
 let completedSets = {}; // { [`${exKey}_${setIdx}`]: boolean }
 let activeModalExKey = null;
 let workoutStartTime = null;
+
+function setRIR(val) {
+  currentRIR = val;
+  [0, 1, 2].forEach(v => {
+    const btn = document.getElementById(`rir-btn-${v}`);
+    if (btn) {
+      if (v === val) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    }
+  });
+}
 
 // インターバルタイマー管理
 let activeTimer = {
@@ -1038,15 +1181,19 @@ function loadStateFromStorage() {
   const savedWeights = localStorage.getItem("workout_weights_v1");
   const parsedWeights = savedWeights ? JSON.parse(savedWeights) : {};
 
+  const savedReps = localStorage.getItem("workout_last_reps_v1");
+  lastSavedReps = savedReps ? JSON.parse(savedReps) : {};
+
   // 全種目の状態を構築
   ["main", "sub"].forEach(rKey => {
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
         const savedW = parsedWeights[ex.key];
+        const lastR = lastSavedReps[ex.key];
         workoutState[ex.key] = {
           name: ex.name,
           weight: savedW !== undefined ? savedW : ex.defaultWeight,
-          reps: [...ex.defaultReps],
+          reps: (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps],
           mode: ex.mode,
           isPullup: !!ex.isPullup
         };
@@ -1057,10 +1204,13 @@ function loadStateFromStorage() {
 
 function saveStateToStorage() {
   const weightsOnly = {};
+  const repsOnly = {};
   for (let k in workoutState) {
     weightsOnly[k] = workoutState[k].weight;
+    repsOnly[k] = [...workoutState[k].reps];
   }
   localStorage.setItem("workout_weights_v1", JSON.stringify(weightsOnly));
+  localStorage.setItem("workout_last_reps_v1", JSON.stringify(repsOnly));
 }
 
 function switchRoutine(routineKey) {
@@ -1174,6 +1324,9 @@ function renderWorkout() {
       const repA = workoutState[exA.key].reps[setIdx];
       const repB = workoutState[exB.key].reps[setIdx];
 
+      const lastRepA = (lastSavedReps[exA.key] && lastSavedReps[exA.key][setIdx] !== undefined) ? lastSavedReps[exA.key][setIdx] : null;
+      const lastRepB = (lastSavedReps[exB.key] && lastSavedReps[exB.key][setIdx] !== undefined) ? lastSavedReps[exB.key][setIdx] : null;
+
       const keyA = `${exA.key}_${setIdx}`;
       const keyB = `${exB.key}_${setIdx}`;
 
@@ -1195,6 +1348,7 @@ function renderWorkout() {
               <div class="stepper-val" onclick="promptReps('${exA.key}', ${setIdx})">
                 ${repA}
                 <span class="stepper-sub">${exA.name.slice(0, 4)}</span>
+                ${lastRepA !== null ? `<span class="last-rep-badge">前:${lastRepA}</span>` : ''}
               </div>
               <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, +1)">＋</button>
               <button class="check-btn ${doneA ? 'checked' : ''}" onclick="toggleCheck('${exA.key}', ${setIdx}, '${pair.id}', false)" title="完了チェック">
@@ -1206,6 +1360,7 @@ function renderWorkout() {
               <div class="stepper-val" onclick="promptReps('${exB.key}', ${setIdx})">
                 ${repB}
                 <span class="stepper-sub">${exB.name.slice(0, 4)}</span>
+                ${lastRepB !== null ? `<span class="last-rep-badge">前:${lastRepB}</span>` : ''}
               </div>
               <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, +1)">＋</button>
               <button class="check-btn ${doneB ? 'checked' : ''}" onclick="toggleCheck('${exB.key}', ${setIdx}, '${pair.id}', true)" title="完了チェック">
@@ -1467,7 +1622,7 @@ function saveAndExport() {
         reps_total: repsTotal,
         reps_details: repsDetails,
         target_rir: 1,
-        actual_rir: "",
+        actual_rir: currentRIR,
         superset_group: symbol,
         notes: ""
       });
@@ -1484,6 +1639,9 @@ function saveAndExport() {
     memo: memoText
   };
 
+  // 端末内ローカル履歴にバックアップ保存（最新5件）
+  saveToLocalHistory(lastExportData);
+
   const saveBtn = document.querySelector(".save-btn");
   const origBtnText = saveBtn.innerHTML;
 
@@ -1498,14 +1656,14 @@ function saveAndExport() {
         saveBtn.innerHTML = origBtnText;
         document.getElementById("success-msg").innerHTML = `
           <strong>${res.filename}</strong> をGoogle Driveに直接保存しました！<br>
-          <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分）</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分 / RIR: ${currentRIR}）</span>
         `;
         document.getElementById("success-modal").classList.add("open");
       })
       .withFailureHandler(function(err) {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
-        alert("Google Driveへの保存に失敗しました: " + err);
+        alert("Google Driveへの保存に失敗しました: " + err + "\n※端末内にバックアップ済みです。設定から再送信できます。");
       })
       .saveWorkoutToDrive(lastExportData);
     return;
@@ -1515,14 +1673,13 @@ function saveAndExport() {
   const gasUrl = localStorage.getItem("workout_gas_url") || "";
   if (!gasUrl) {
     openSettingsModal();
-    alert("【初回設定が必要です】\nGoogle Driveへ直接保存するための「GASウェブアプリURL」がまだ設定されていません。\n\n表示された設定画面にGASのURLを貼り付けて「設定を保存」してください。");
+    alert("【初回設定が必要です】\nGoogle Driveへ直接保存するための「GASウェブアプリURL」がまだ設定されていません。\n※記録は端末内に一時バックアップされました。URL設定後に再送信できます。");
     return;
   }
 
   saveBtn.disabled = true;
   saveBtn.innerText = "☁️ Google Driveに保存中...";
 
-  // Google Apps Scriptの302リダイレクト仕様に対応するため mode: 'no-cors' で送信
   fetch(gasUrl, {
     method: "POST",
     mode: "no-cors",
@@ -1534,14 +1691,95 @@ function saveAndExport() {
     saveBtn.innerHTML = origBtnText;
     document.getElementById("success-msg").innerHTML = `
       <strong>Google Driveに直接保存しました！</strong><br>
-      <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分 / マイドライブ/筋トレログ フォルダへ同期完了）</span>
+      <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）</span>
     `;
     document.getElementById("success-modal").classList.add("open");
   })
   .catch(err => {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
-    alert("Google Driveへの送信に失敗しました: " + err);
+    alert("Google Driveへの送信に失敗しました: " + err + "\n※記録は端末内に安全にバックアップされています。設定画面から再送信できます。");
+  });
+}
+
+// 端末内ローカル履歴の保存＆描画
+function saveToLocalHistory(data) {
+  try {
+    let history = JSON.parse(localStorage.getItem("workout_history_v1") || "[]");
+    history = history.filter(item => item.created_at !== data.created_at);
+    history.unshift(data);
+    if (history.length > 5) history = history.slice(0, 5);
+    localStorage.setItem("workout_history_v1", JSON.stringify(history));
+  } catch (e) {
+    console.warn("History save error:", e);
+  }
+}
+
+function renderHistoryLogs() {
+  const container = document.getElementById("history-container");
+  if (!container) return;
+  try {
+    const history = JSON.parse(localStorage.getItem("workout_history_v1") || "[]");
+    if (!history.length) {
+      container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:10px;">保存された履歴はありません</div>';
+      return;
+    }
+    container.innerHTML = history.map((item, idx) => {
+      const exSummary = item.exercises ? item.exercises.map(e => `${e.exercise.slice(0, 4)}:${e.reps_details}`).join(", ") : "";
+      const rirVal = item.exercises && item.exercises[0] && item.exercises[0].actual_rir !== undefined ? `RIR ${item.exercises[0].actual_rir}` : "";
+      return `
+        <div class="history-item">
+          <div class="history-header">
+            <span class="history-date">${item.date} (${item.routine_type})</span>
+            <span style="color:var(--accent-amber); font-weight:700;">${item.duration_min}分 ${rirVal}</span>
+          </div>
+          <div class="history-summary">${exSummary}</div>
+          <div class="history-actions">
+            <button type="button" class="history-sm-btn" onclick="copyHistoryItem(${idx})">📋 コピー</button>
+            <button type="button" class="history-sm-btn" style="border-color:var(--accent-blue); color:var(--accent-blue);" onclick="resendHistoryItem(${idx})">☁️ Driveへ再送信</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (e) {
+    container.innerHTML = '<div style="font-size:0.75rem; color:red; padding:6px;">履歴の読み込みに失敗しました</div>';
+  }
+}
+
+function copyHistoryItem(idx) {
+  const history = JSON.parse(localStorage.getItem("workout_history_v1") || "[]");
+  const item = history[idx];
+  if (!item) return;
+  const lines = [
+    `【筋トレ記録】${item.date} (${item.routine_type}) 所要:約${item.duration_min}分`,
+    ...item.exercises.map(e => `・${e.exercise} ${e.load_details} ${e.reps_details} (計${e.reps_total}回)`),
+    item.memo ? `メモ: ${item.memo}` : ""
+  ].filter(Boolean);
+  navigator.clipboard.writeText(lines.join("\n")).then(() => {
+    alert("履歴の記録テキストをコピーしました！");
+  });
+}
+
+function resendHistoryItem(idx) {
+  const history = JSON.parse(localStorage.getItem("workout_history_v1") || "[]");
+  const item = history[idx];
+  if (!item) return;
+  const gasUrl = localStorage.getItem("workout_gas_url") || "";
+  if (!gasUrl) {
+    alert("GASウェブアプリURLが設定されていません。上の設定欄に入力してください。");
+    return;
+  }
+  fetch(gasUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(item)
+  })
+  .then(() => {
+    alert(`【${item.date}の記録】\nGoogle Driveへ再送信しました！`);
+  })
+  .catch(err => {
+    alert("再送信に失敗しました: " + err);
   });
 }
 
@@ -1551,6 +1789,7 @@ function openSettingsModal() {
   const curV = localStorage.getItem("workout_app_version");
   const verDisplay = document.getElementById("app-version-display");
   if (verDisplay) verDisplay.innerText = curV ? "v" + curV : "確認中...";
+  renderHistoryLogs();
   document.getElementById("settings-modal").classList.add("open");
 }
 
