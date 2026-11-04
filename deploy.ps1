@@ -1,17 +1,14 @@
-﻿# deploy.ps1
+# deploy.ps1
 Set-Location $PSScriptRoot
 
-# 1. workout_logger.html -> index.html
-Copy-Item "workout_logger.html" "index.html" -Force
-
-# 2. version.json
+# 1. version.json 更新
 $ver = Get-Date -Format "yyyy.MM.dd.HHmm"
 @{ version = $ver } | ConvertTo-Json | Set-Content "version.json" -Encoding UTF8
 Write-Host "New Version: $ver" -ForegroundColor Green
 
-# 3. git add, commit, push
-git add .
-git commit -m "Auto deploy: $ver"
+# 2. git add, commit, push
+git add index.html workout_logger.html version.json deploy.ps1
+git commit -m "fix: timer background issue, final superset auto-start, audio ducking, and unify to index.html ($ver)"
 git push origin main
 
 Write-Host "Deploy completed! GitHub Pages updated." -ForegroundColor Cyan
