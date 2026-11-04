@@ -8,7 +8,7 @@ Write-Host "New Version: $ver" -ForegroundColor Green
 
 # 2. git add, commit, push
 git add index.html workout_logger.html version.json deploy.ps1
-git commit -m "fix: timer background issue, final superset auto-start, audio ducking, and unify to index.html ($ver)"
+git commit -m "feat: add jog routine with rain mode, day-of-week auto detection, and cardio export ($ver)"
 git push origin main
 
 Write-Host "Deploy completed! GitHub Pages updated." -ForegroundColor Cyan

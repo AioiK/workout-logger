@@ -104,25 +104,355 @@
     border-radius: var(--radius-md);
     margin-bottom: 14px;
     border: 1px solid var(--border-card);
+    gap: 4px;
   }
 
   .tab-btn {
     flex: 1;
-    padding: 10px 0;
+    padding: 8px 2px;
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 0.95rem;
-    font-weight: 700;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .tab-btn .tab-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .tab-btn .tab-days {
+    font-size: 0.65rem;
+    font-weight: 500;
+    opacity: 0.8;
+    margin-top: 2px;
   }
 
   .tab-btn.active {
     background: var(--accent-indigo);
     color: #fff;
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  }
+
+  /* Jog & Cardio Styles */
+  .jog-weather-bar {
+    margin-bottom: 14px;
+  }
+
+  .weather-toggle-group {
+    display: flex;
+    background: var(--bg-card-sub);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-card);
+    gap: 4px;
+  }
+
+  .weather-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+
+  .weather-btn.active {
+    background: linear-gradient(135deg, var(--accent-blue) 0%, #0284c7 100%);
+    color: #0b1120;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+  }
+
+  .weather-btn.active.rain {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  }
+
+  .jog-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .jog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .jog-badge {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent-blue);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .jog-badge.rain {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+  }
+
+  .jog-target-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .jog-notice {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid #334155;
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 0.76rem;
+    color: var(--accent-blue);
+    line-height: 1.45;
+    margin-bottom: 14px;
+  }
+
+  .jog-timer-display {
+    font-size: 3.2rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: var(--text-primary);
+    margin: 12px 0 16px 0;
+    letter-spacing: 2px;
+  }
+
+  .jog-timer-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .jog-ctrl-btn {
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+
+  .jog-ctrl-btn.btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue) 0%, #0284c7 100%);
+    color: #0b1120;
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+  }
+
+  .jog-ctrl-btn.btn-primary.running {
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    animation: timerPulse 1s infinite;
+  }
+
+  .jog-ctrl-btn.btn-secondary {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+  }
+
+  .jog-duration-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    margin-top: 10px;
+  }
+
+  .jog-duration-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .jog-duration-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 65px;
+    text-align: center;
+  }
+
+  .rainy-step-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+  }
+
+  .rainy-step-card.completed {
+    border-color: var(--accent-emerald);
+    background: rgba(16, 185, 129, 0.06);
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+  }
+
+  .step-num {
+    background: var(--accent-indigo);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .step-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+    margin-left: 8px;
+  }
+
+  .step-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .step-status.done {
+    color: var(--accent-emerald);
+    font-weight: 700;
+  }
+
+  .step-guide-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .step-guide-list li {
+    margin-bottom: 5px;
+    position: relative;
+    padding-left: 14px;
+  }
+
+  .step-guide-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent-blue);
+  }
+
+  .step-timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .step-timer-time {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .step-action-btn {
+    background: var(--accent-indigo);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .step-action-btn.running {
+    background: var(--accent-amber);
+    animation: timerPulse 1s infinite;
+  }
+
+  .step-check-btn {
+    background: transparent;
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .step-check-btn.done {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+  }
+
+  .foam-tips-box {
+    background: rgba(15, 23, 42, 0.7);
+    border-left: 3px solid var(--accent-blue);
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  .foam-tips-box ol {
+    padding-left: 16px;
+    margin-top: 4px;
+  }
+
+  .rainy-total-box {
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    background: var(--bg-card-sub);
+    border: 1px dashed var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    margin-top: 10px;
   }
 
   /* Superset Container */
@@ -720,12 +1050,142 @@
 
 <!-- Routine Tabs -->
 <div class="tabs">
-  <button class="tab-btn active" id="tab-main" onclick="switchRoutine('main')">メイン (月・水・金)</button>
-  <button class="tab-btn" id="tab-sub" onclick="switchRoutine('sub')">補助 (火・土)</button>
+  <button class="tab-btn active" id="tab-main" onclick="switchRoutine('main')">
+    <span class="tab-title">メイン</span>
+    <span class="tab-days">月・水・金</span>
+  </button>
+  <button class="tab-btn" id="tab-sub" onclick="switchRoutine('sub')">
+    <span class="tab-title">補助</span>
+    <span class="tab-days">火・土</span>
+  </button>
+  <button class="tab-btn" id="tab-jog" onclick="switchRoutine('jog')">
+    <span class="tab-title">ジョグ</span>
+    <span class="tab-days">木・日</span>
+  </button>
 </div>
 
-<!-- Workout Container -->
+<!-- Workout Container (筋トレ用) -->
 <div id="routine-container"></div>
+
+<!-- Jog Container (有酸素・ジョグ用) -->
+<div id="jog-container" style="display:none;">
+  <!-- 天候切り替えスイッチ -->
+  <div class="jog-weather-bar">
+    <div class="weather-toggle-group">
+      <button type="button" class="weather-btn active" id="weather-sunny-btn" onclick="setJogWeather('sunny')">
+        ☀️ 晴れ (外ジョグ)
+      </button>
+      <button type="button" class="weather-btn" id="weather-rainy-btn" onclick="setJogWeather('rainy')">
+        ☔ 雨の日 (室内スロージョグ)
+      </button>
+    </div>
+  </div>
+
+  <!-- 【晴れモード用】 -->
+  <div id="jog-sunny-view">
+    <div class="jog-card">
+      <div class="jog-header">
+        <span class="jog-badge">🏃 外ジョギング</span>
+        <span class="jog-target-info">目標: 約20分 (Zone 2)</span>
+      </div>
+      <div class="jog-notice">
+        ℹ️ 心拍数・距離・ペース等の詳細は、後からヘルスコネクトの同期により正本CSVへ自動反映されます。
+      </div>
+
+      <!-- タイマー / 時間計測 -->
+      <div class="jog-timer-display" id="sunny-timer-display">00:00</div>
+      <div class="jog-timer-controls">
+        <button type="button" class="jog-ctrl-btn btn-primary" id="sunny-timer-btn" onclick="toggleSunnyTimer()">
+          ⏱️ タイマースタート
+        </button>
+        <button type="button" class="jog-ctrl-btn btn-secondary" onclick="resetSunnyTimer()">
+          🔄 リセット
+        </button>
+      </div>
+
+      <!-- 手動時間調整 -->
+      <div class="jog-duration-box">
+        <span class="jog-duration-label">記録時間:</span>
+        <button type="button" class="stepper-btn" onclick="adjustJogDuration(-1)">−</button>
+        <span class="jog-duration-val" id="jog-duration-text">20分</span>
+        <button type="button" class="stepper-btn" onclick="adjustJogDuration(1)">＋</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 【雨の日モード用】 -->
+  <div id="jog-rainy-view" style="display:none;">
+    <div class="jog-card">
+      <div class="jog-header">
+        <span class="jog-badge rain">☔ 室内スロージョグ (雨天プログラム)</span>
+        <span class="jog-target-info">合計: 約20分 (Zone 2)</span>
+      </div>
+      <div class="jog-notice">
+        筋トレ疲労を残さない超省力フォーム。丁寧な準備と一定ペースのスロージョグで構成されます。
+      </div>
+
+      <!-- STEP 1: 準備 -->
+      <div class="rainy-step-card" id="step1-card">
+        <div class="step-header">
+          <div class="step-num">STEP 1</div>
+          <div class="step-title">準備フェーズ（約4分）</div>
+          <span class="step-status" id="step1-status">未完了</span>
+        </div>
+        <div class="step-body">
+          <ul class="step-guide-list">
+            <li><strong>フォームローラー（約3分）</strong>: 太もも前・お尻・ふくらはぎ・胸椎を各20〜30秒ほぐす</li>
+            <li><strong>懸垂スタンドぶら下がり（約1分）</strong>: 10〜15秒 × 2セットで背骨をリセット</li>
+          </ul>
+          <div class="step-timer-row">
+            <span class="step-timer-time" id="step1-timer-display">04:00</span>
+            <button type="button" class="step-action-btn" id="step1-timer-btn" onclick="toggleStep1Timer()">
+              ⏱️ 準備タイマー開始
+            </button>
+            <button type="button" class="step-check-btn" id="step1-check-btn" onclick="completeStep1()">
+              ✓ 準備完了
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: 室内スロージョグ -->
+      <div class="rainy-step-card" id="step2-card">
+        <div class="step-header">
+          <div class="step-num">STEP 2</div>
+          <div class="step-title">室内スロージョグ（16分）</div>
+          <span class="step-status" id="step2-status">未完了</span>
+        </div>
+        <div class="step-body">
+          <div class="foam-tips-box">
+            <strong>💡 省力フォームの3原則:</strong>
+            <ol>
+              <li><strong>母趾球（フォアフット）接地</strong>: かかとをわずかに浮かせ、静かにトントン（静音＆衝撃1/3）</li>
+              <li><strong>ピッチ細かく（約180歩/分）</strong>: 跳ばずに脱力して優しく体重移動</li>
+              <li><strong>笑顔ペース（Zone 2）</strong>: 鼻呼吸ができる強度で筋疲労をリカバリー</li>
+            </ol>
+          </div>
+          <div class="step-timer-row">
+            <span class="step-timer-time" id="step2-timer-display">16:00</span>
+            <button type="button" class="step-action-btn" id="step2-timer-btn" onclick="toggleStep2Timer()">
+              ⏱️ ジョグタイマー開始
+            </button>
+          </div>
+          <div class="jog-duration-box" style="margin-top:10px;">
+            <span class="jog-duration-label">ジョグ時間:</span>
+            <button type="button" class="stepper-btn" onclick="adjustStep2Duration(-1)">−</button>
+            <span class="jog-duration-val" id="step2-duration-text">16分</span>
+            <button type="button" class="stepper-btn" onclick="adjustStep2Duration(1)">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 合計時間表示 -->
+      <div class="rainy-total-box">
+        準備 4分 ＋ ジョグ <span id="rainy-total-jog-min">16</span>分 ＝ 合計 <strong id="rainy-total-sum-min" style="color:var(--accent-blue); font-size:1.1rem;">20</strong>分
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- RIR (余力・きつさ) Selector -->
 <div class="rir-card">
@@ -754,7 +1214,7 @@
 
 <!-- Bottom Save Bar -->
 <div class="bottom-bar">
-  <button class="save-btn" onclick="saveAndExport()">
+  <button class="save-btn" id="main-save-btn" onclick="saveAndExport()">
     💾 筋トレ完了・保存
   </button>
 </div>
@@ -827,6 +1287,10 @@ const WEIGHT_STEPS = [5, 9, 14, 18, 23, 27, 32, 37, 42];
 
 // ルーティン定義 (8種目)
 const ROUTINES = {
+  jog: {
+    name: "ジョグ",
+    pairs: []
+  },
   main: {
     name: "メイン",
     pairs: [
@@ -1203,9 +1667,11 @@ function initApp() {
     const dd = String(today.getDate()).padStart(2, "0");
     dateInput.value = `${yyyy}-${mm}-${dd}`;
 
-    // 曜日に応じてタブ自動選択 (火・土なら補助、それ以外はメイン)
-    const dayOfWeek = today.getDay(); // 0=日, 2=火, 6=土
-    if (dayOfWeek === 2 || dayOfWeek === 6) {
+    // 曜日に応じてタブ自動選択 (木・日ならジョグ、火・土なら補助、月・水・金ならメイン)
+    const dayOfWeek = today.getDay(); // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
+    if (dayOfWeek === 0 || dayOfWeek === 4) {
+      currentRoutineKey = "jog";
+    } else if (dayOfWeek === 2 || dayOfWeek === 6) {
       currentRoutineKey = "sub";
     } else {
       currentRoutineKey = "main";
@@ -1260,6 +1726,7 @@ function saveStateToStorage() {
 function switchRoutine(routineKey) {
   currentRoutineKey = routineKey;
   stopTimer();
+  stopJogTimers();
   updateTabUI();
   renderWorkout();
 }
@@ -1267,6 +1734,17 @@ function switchRoutine(routineKey) {
 function updateTabUI() {
   document.getElementById("tab-main").className = "tab-btn " + (currentRoutineKey === "main" ? "active" : "");
   document.getElementById("tab-sub").className = "tab-btn " + (currentRoutineKey === "sub" ? "active" : "");
+  const tabJog = document.getElementById("tab-jog");
+  if (tabJog) tabJog.className = "tab-btn " + (currentRoutineKey === "jog" ? "active" : "");
+
+  const saveBtn = document.getElementById("main-save-btn") || document.querySelector(".save-btn");
+  if (saveBtn) {
+    if (currentRoutineKey === "jog") {
+      saveBtn.innerHTML = "💾 ジョグ記録保存";
+    } else {
+      saveBtn.innerHTML = "💾 筋トレ保存";
+    }
+  }
 }
 
 function getWeightDisplayString(exKey) {
@@ -1298,6 +1776,21 @@ function getActiveTargetKey() {
 
 function renderWorkout() {
   const container = document.getElementById("routine-container");
+  const jogContainer = document.getElementById("jog-container");
+  const rirCard = document.querySelector(".rir-card");
+
+  if (currentRoutineKey === "jog") {
+    if (container) container.style.display = "none";
+    if (jogContainer) jogContainer.style.display = "block";
+    if (rirCard) rirCard.style.display = "none";
+    renderJogView();
+    return;
+  }
+
+  if (container) container.style.display = "block";
+  if (jogContainer) jogContainer.style.display = "none";
+  if (rirCard) rirCard.style.display = "block";
+
   container.innerHTML = "";
   const pairs = ROUTINES[currentRoutineKey].pairs;
   const activeTargetKey = getActiveTargetKey();
@@ -1685,61 +2178,99 @@ function saveAndExport() {
   
   // 経過時間を自動計算（最低5分以上なら実測、それ未満なら標準25分）
   const elapsedMin = workoutStartTime ? Math.round((new Date() - workoutStartTime) / 60000) : 0;
-  const duration = elapsedMin >= 5 ? elapsedMin : 25.0;
+  let duration = elapsedMin >= 5 ? elapsedMin : 25.0;
 
   const memoText = document.getElementById("input-memo").value.trim();
 
   saveStateToStorage();
   stopTimer();
+  stopJogTimers();
 
   const routine = ROUTINES[currentRoutineKey];
   const exercisesData = [];
+  let routineName = routine.name;
+  let finalMemo = memoText;
 
-  routine.pairs.forEach((pair, pIdx) => {
-    const symbol = currentRoutineKey === "main" ? (pIdx === 0 ? "①" : "②") : (pIdx === 0 ? "③" : "④");
-    [pair.exA, pair.exB].forEach(exDef => {
-      const s = workoutState[exDef.key];
-      const repsTotal = s.reps.reduce((a, b) => a + b, 0);
-      const repsDetails = s.reps.join("/");
+  if (currentRoutineKey === "jog") {
+    const isRain = (jogWeatherMode === "rainy");
+    routineName = isRain ? "室内スロージョグ" : "ジョギング";
+    duration = isRain ? (4 + rainyJogMinutes) : sunnyJogMinutes;
+    const rainDetails = isRain 
+      ? `準備（フォームローラー・ぶら下がり）4分、室内スロージョグ${rainyJogMinutes}分。フォアフット接地。`
+      : `外ジョギング${duration}分。後からヘルスコネクト自動連携予定。`;
+    finalMemo = memoText ? `${memoText}（${rainDetails}）` : rainDetails;
 
-      let loadKg = 0;
-      let loadDetails = "";
+    exercisesData.push({
+      exercise: routineName,
+      load_kg: 0,
+      load_details: "自重",
+      sets: 1,
+      reps_total: 1,
+      reps_details: `${duration}分`,
+      target_rir: 1,
+      actual_rir: currentRIR,
+      superset_group: "",
+      notes: isRain ? "雨天室内モード" : "晴天外ジョグ"
+    });
 
-      if (s.isPullup) {
-        loadKg = s.weight;
-        loadDetails = s.weight === 0 ? "自重" : `自重+${s.weight}kg`;
-      } else if (s.mode === "×2") {
-        loadKg = s.weight * 2;
-        loadDetails = `${s.weight}kg×2`;
-      } else {
-        loadKg = s.weight;
-        loadDetails = `${s.weight}kg`;
-      }
+    lastExportData = {
+      version: 1,
+      date: dateStr,
+      created_at: new Date().toISOString(),
+      activity_type: "aerobic",
+      routine_type: routineName,
+      weather: isRain ? "rainy" : "sunny",
+      duration_min: duration,
+      exercises: exercisesData,
+      memo: finalMemo
+    };
+  } else {
+    routine.pairs.forEach((pair, pIdx) => {
+      const symbol = currentRoutineKey === "main" ? (pIdx === 0 ? "①" : "②") : (pIdx === 0 ? "③" : "④");
+      [pair.exA, pair.exB].forEach(exDef => {
+        const s = workoutState[exDef.key];
+        const repsTotal = s.reps.reduce((a, b) => a + b, 0);
+        const repsDetails = s.reps.join("/");
 
-      exercisesData.push({
-        exercise: s.name,
-        load_kg: loadKg,
-        load_details: loadDetails,
-        sets: 3,
-        reps_total: repsTotal,
-        reps_details: repsDetails,
-        target_rir: 1,
-        actual_rir: currentRIR,
-        superset_group: symbol,
-        notes: ""
+        let loadKg = 0;
+        let loadDetails = "";
+
+        if (s.isPullup) {
+          loadKg = s.weight;
+          loadDetails = s.weight === 0 ? "自重" : `自重+${s.weight}kg`;
+        } else if (s.mode === "×2") {
+          loadKg = s.weight * 2;
+          loadDetails = `${s.weight}kg×2`;
+        } else {
+          loadKg = s.weight;
+          loadDetails = `${s.weight}kg`;
+        }
+
+        exercisesData.push({
+          exercise: s.name,
+          load_kg: loadKg,
+          load_details: loadDetails,
+          sets: 3,
+          reps_total: repsTotal,
+          reps_details: repsDetails,
+          target_rir: 1,
+          actual_rir: currentRIR,
+          superset_group: symbol,
+          notes: ""
+        });
       });
     });
-  });
 
-  lastExportData = {
-    version: 1,
-    date: dateStr,
-    created_at: new Date().toISOString(),
-    routine_type: routine.name,
-    duration_min: duration,
-    exercises: exercisesData,
-    memo: memoText
-  };
+    lastExportData = {
+      version: 1,
+      date: dateStr,
+      created_at: new Date().toISOString(),
+      routine_type: routine.name,
+      duration_min: duration,
+      exercises: exercisesData,
+      memo: finalMemo
+    };
+  }
 
   // 端末内ローカル履歴にバックアップ保存（最新5件）
   saveToLocalHistory(lastExportData);
@@ -1930,6 +2461,232 @@ if (document.readyState === "loading") {
 } else {
   initApp();
 }
+
+// ==================== ジョグ ＆ 有酸素 管理ロジック ====================
+let jogWeatherMode = localStorage.getItem("jog_weather_mode") || "sunny";
+let sunnyJogMinutes = 20;
+let sunnyTimerSec = 0;
+let sunnyTimerInterval = null;
+
+let step1TimerSec = 240; // 4分
+let step1Interval = null;
+let step1Done = false;
+
+let rainyJogMinutes = 16; // 16分
+let step2TimerSec = 16 * 60;
+let step2Interval = null;
+
+function renderJogView() {
+  setJogWeather(jogWeatherMode, false);
+}
+
+function setJogWeather(mode, save = true) {
+  jogWeatherMode = mode;
+  if (save) localStorage.setItem("jog_weather_mode", mode);
+
+  const sunnyBtn = document.getElementById("weather-sunny-btn");
+  const rainyBtn = document.getElementById("weather-rainy-btn");
+  const sunnyView = document.getElementById("jog-sunny-view");
+  const rainyView = document.getElementById("jog-rainy-view");
+
+  if (mode === "sunny") {
+    if (sunnyBtn) sunnyBtn.className = "weather-btn active";
+    if (rainyBtn) rainyBtn.className = "weather-btn";
+    if (sunnyView) sunnyView.style.display = "block";
+    if (rainyView) rainyView.style.display = "none";
+  } else {
+    if (sunnyBtn) sunnyBtn.className = "weather-btn";
+    if (rainyBtn) rainyBtn.className = "weather-btn active rain";
+    if (sunnyView) sunnyView.style.display = "none";
+    if (rainyView) rainyView.style.display = "block";
+  }
+}
+
+// 晴れモードタイマー
+function toggleSunnyTimer() {
+  const btn = document.getElementById("sunny-timer-btn");
+  if (sunnyTimerInterval) {
+    // 停止
+    clearInterval(sunnyTimerInterval);
+    sunnyTimerInterval = null;
+    if (btn) {
+      btn.innerHTML = "⏱️ タイマー再開";
+      btn.className = "jog-ctrl-btn btn-primary";
+    }
+    // 実測分数を反映（最低5分）
+    const elapsedM = Math.max(5, Math.round(sunnyTimerSec / 60));
+    sunnyJogMinutes = elapsedM;
+    const durText = document.getElementById("jog-duration-text");
+    if (durText) durText.innerText = sunnyJogMinutes + "分";
+  } else {
+    // 開始
+    sunnyTimerInterval = setInterval(() => {
+      sunnyTimerSec++;
+      updateSunnyDisplay();
+    }, 1000);
+    if (btn) {
+      btn.innerHTML = "⏸️ 一時停止";
+      btn.className = "jog-ctrl-btn btn-primary running";
+    }
+  }
+}
+
+function resetSunnyTimer() {
+  if (sunnyTimerInterval) {
+    clearInterval(sunnyTimerInterval);
+    sunnyTimerInterval = null;
+  }
+  sunnyTimerSec = 0;
+  updateSunnyDisplay();
+  const btn = document.getElementById("sunny-timer-btn");
+  if (btn) {
+    btn.innerHTML = "⏱️ タイマースタート";
+    btn.className = "jog-ctrl-btn btn-primary";
+  }
+}
+
+function updateSunnyDisplay() {
+  const m = String(Math.floor(sunnyTimerSec / 60)).padStart(2, "0");
+  const s = String(sunnyTimerSec % 60).padStart(2, "0");
+  const disp = document.getElementById("sunny-timer-display");
+  if (disp) disp.innerText = `${m}:${s}`;
+}
+
+function adjustJogDuration(delta) {
+  sunnyJogMinutes = Math.max(5, Math.min(180, sunnyJogMinutes + delta));
+  const el = document.getElementById("jog-duration-text");
+  if (el) el.innerText = sunnyJogMinutes + "分";
+}
+
+// 雨の日 Step 1 (準備) タイマー
+function toggleStep1Timer() {
+  const btn = document.getElementById("step1-timer-btn");
+  if (step1Interval) {
+    clearInterval(step1Interval);
+    step1Interval = null;
+    if (btn) {
+      btn.innerHTML = "⏱️ 再開";
+      btn.className = "step-action-btn";
+    }
+  } else {
+    step1Interval = setInterval(() => {
+      step1TimerSec--;
+      if (step1TimerSec <= 0) {
+        clearInterval(step1Interval);
+        step1Interval = null;
+        step1TimerSec = 0;
+        playAlarmSound();
+        if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+        completeStep1();
+      }
+      updateStep1Display();
+    }, 1000);
+    if (btn) {
+      btn.innerHTML = "⏸️ 停止";
+      btn.className = "step-action-btn running";
+    }
+  }
+}
+
+function updateStep1Display() {
+  const m = String(Math.floor(step1TimerSec / 60)).padStart(2, "0");
+  const s = String(step1TimerSec % 60).padStart(2, "0");
+  const disp = document.getElementById("step1-timer-display");
+  if (disp) disp.innerText = `${m}:${s}`;
+}
+
+function completeStep1() {
+  step1Done = true;
+  const statusEl = document.getElementById("step1-status");
+  const card = document.getElementById("step1-card");
+  const checkBtn = document.getElementById("step1-check-btn");
+  const timerBtn = document.getElementById("step1-timer-btn");
+
+  if (statusEl) {
+    statusEl.innerText = "✓ 完了";
+    statusEl.className = "step-status done";
+  }
+  if (card) card.classList.add("completed");
+  if (checkBtn) {
+    checkBtn.innerText = "✓ 完了済み";
+    checkBtn.className = "step-check-btn done";
+  }
+  if (timerBtn) {
+    timerBtn.innerHTML = "⏱️ 完了";
+    timerBtn.className = "step-action-btn";
+  }
+}
+
+// 雨の日 Step 2 (室内ジョグ) タイマー
+function toggleStep2Timer() {
+  const btn = document.getElementById("step2-timer-btn");
+  if (step2Interval) {
+    clearInterval(step2Interval);
+    step2Interval = null;
+    if (btn) {
+      btn.innerHTML = "⏱️ 再開";
+      btn.className = "step-action-btn";
+    }
+  } else {
+    step2Interval = setInterval(() => {
+      step2TimerSec--;
+      if (step2TimerSec <= 0) {
+        clearInterval(step2Interval);
+        step2Interval = null;
+        step2TimerSec = 0;
+        playAlarmSound();
+        if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+        const statusEl = document.getElementById("step2-status");
+        const card = document.getElementById("step2-card");
+        if (statusEl) {
+          statusEl.innerText = "✓ 完了";
+          statusEl.className = "step-status done";
+        }
+        if (card) card.classList.add("completed");
+      }
+      updateStep2Display();
+    }, 1000);
+    if (btn) {
+      btn.innerHTML = "⏸️ 停止";
+      btn.className = "step-action-btn running";
+    }
+  }
+}
+
+function updateStep2Display() {
+  const m = String(Math.floor(step2TimerSec / 60)).padStart(2, "0");
+  const s = String(step2TimerSec % 60).padStart(2, "0");
+  const disp = document.getElementById("step2-timer-display");
+  if (disp) disp.innerText = `${m}:${s}`;
+}
+
+function adjustStep2Duration(delta) {
+  rainyJogMinutes = Math.max(5, Math.min(60, rainyJogMinutes + delta));
+  step2TimerSec = rainyJogMinutes * 60;
+  updateStep2Display();
+  const el = document.getElementById("step2-duration-text");
+  if (el) el.innerText = rainyJogMinutes + "分";
+  const jogEl = document.getElementById("rainy-total-jog-min");
+  if (jogEl) jogEl.innerText = rainyJogMinutes;
+  const sumEl = document.getElementById("rainy-total-sum-min");
+  if (sumEl) sumEl.innerText = (4 + rainyJogMinutes);
+}
+
+function stopJogTimers() {
+  if (sunnyTimerInterval) {
+    clearInterval(sunnyTimerInterval);
+    sunnyTimerInterval = null;
+  }
+  if (step1Interval) {
+    clearInterval(step1Interval);
+    step1Interval = null;
+  }
+  if (step2Interval) {
+    clearInterval(step2Interval);
+    step2Interval = null;
+  }
+}
+
 </script>
 </body>
 </html>
