@@ -1187,8 +1187,8 @@
   </div>
 </div>
 
-<!-- RIR (余力・きつさ) Selector -->
-<div class="rir-card">
+<!-- RIR (筋トレ用 余力・きつさ) Selector -->
+<div class="rir-card" id="strength-rir-card">
   <div class="meta-label" style="margin-bottom:6px;">本日の余力・きつさ (RIR)</div>
   <div class="rir-options">
     <button type="button" class="rir-btn" id="rir-btn-2" onclick="setRIR(2)">
@@ -1202,6 +1202,25 @@
     <button type="button" class="rir-btn" id="rir-btn-0" onclick="setRIR(0)">
       <span class="rir-score">RIR 0</span>
       <span class="rir-desc">限界 (これ以上無理)</span>
+    </button>
+  </div>
+</div>
+
+<!-- RPE (有酸素用 きつさ・Zone 2判定) Selector -->
+<div class="rir-card" id="cardio-rpe-card" style="display:none;">
+  <div class="meta-label" style="margin-bottom:6px;">本日のきつさ・調子（Zone 2判定）</div>
+  <div class="rir-options">
+    <button type="button" class="rir-btn" id="rpe-btn-easy" onclick="setCardioRPE('easy')">
+      <span class="rir-score">😊 楽・快適</span>
+      <span class="rir-desc">回復・疲労抜き</span>
+    </button>
+    <button type="button" class="rir-btn active" id="rpe-btn-optimal" onclick="setCardioRPE('optimal')">
+      <span class="rir-score">👍 適正 (Zone 2)</span>
+      <span class="rir-desc">ニコニコ・鼻呼吸</span>
+    </button>
+    <button type="button" class="rir-btn" id="rpe-btn-hard" onclick="setCardioRPE('hard')">
+      <span class="rir-score">💦 ややきつい</span>
+      <span class="rir-desc">息が弾む・高め</span>
     </button>
   </div>
 </div>
@@ -1777,19 +1796,22 @@ function getActiveTargetKey() {
 function renderWorkout() {
   const container = document.getElementById("routine-container");
   const jogContainer = document.getElementById("jog-container");
-  const rirCard = document.querySelector(".rir-card");
+  const strengthRirCard = document.getElementById("strength-rir-card");
+  const cardioRpeCard = document.getElementById("cardio-rpe-card");
 
   if (currentRoutineKey === "jog") {
     if (container) container.style.display = "none";
     if (jogContainer) jogContainer.style.display = "block";
-    if (rirCard) rirCard.style.display = "none";
+    if (strengthRirCard) strengthRirCard.style.display = "none";
+    if (cardioRpeCard) cardioRpeCard.style.display = "block";
     renderJogView();
     return;
   }
 
   if (container) container.style.display = "block";
   if (jogContainer) jogContainer.style.display = "none";
-  if (rirCard) rirCard.style.display = "block";
+  if (strengthRirCard) strengthRirCard.style.display = "block";
+  if (cardioRpeCard) cardioRpeCard.style.display = "none";
 
   container.innerHTML = "";
   const pairs = ROUTINES[currentRoutineKey].pairs;
@@ -1984,6 +2006,7 @@ function updateTimerDisplay(remaining) {
 
 function startTimer(pairId) {
   stopTimer();
+  requestWakeLock();
   unlockAlarmAudio();
   const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
   activeTimer.pairId = pairId;
@@ -2041,6 +2064,9 @@ function stopTimer() {
     timerWorker.postMessage({ action: "stop" });
   }
   activeTimer.targetTime = null;
+  if (!checkAnyTimerRunning()) {
+    releaseWakeLock();
+  }
 }
 
 // 終了アラーム音再生（Audio要素でバックグラウンド対応、Web Audio APIをフォールバック）
@@ -2195,9 +2221,15 @@ function saveAndExport() {
     const isRain = (jogWeatherMode === "rainy");
     routineName = isRain ? "室内スロージョグ" : "ジョギング";
     duration = isRain ? (4 + rainyJogMinutes) : sunnyJogMinutes;
+    const rpeLabels = {
+      easy: "楽・快適 (Zone 1/回復)",
+      optimal: "適正 (Zone 2・ニコニコペース)",
+      hard: "ややきつい (Zone 3/高め)"
+    };
+    const rpeText = rpeLabels[currentCardioRPE] || "適正 (Zone 2)";
     const rainDetails = isRain 
-      ? `準備（フォームローラー・ぶら下がり）4分、室内スロージョグ${rainyJogMinutes}分。フォアフット接地。`
-      : `外ジョギング${duration}分。後からヘルスコネクト自動連携予定。`;
+      ? `準備4分＋室内スロージョグ${rainyJogMinutes}分。フォアフット接地。きつさ: ${rpeText}。`
+      : `外ジョギング${duration}分。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`;
     finalMemo = memoText ? `${memoText}（${rainDetails}）` : rainDetails;
 
     exercisesData.push({
@@ -2208,7 +2240,7 @@ function saveAndExport() {
       reps_total: 1,
       reps_details: `${duration}分`,
       target_rir: 1,
-      actual_rir: currentRIR,
+      actual_rir: currentCardioRPE === "easy" ? 2 : (currentCardioRPE === "optimal" ? 1 : 0),
       superset_group: "",
       notes: isRain ? "雨天室内モード" : "晴天外ジョグ"
     });
@@ -2221,6 +2253,8 @@ function saveAndExport() {
       routine_type: routineName,
       weather: isRain ? "rainy" : "sunny",
       duration_min: duration,
+      cardio_rpe: currentCardioRPE,
+      cardio_rpe_label: rpeText,
       exercises: exercisesData,
       memo: finalMemo
     };
@@ -2287,9 +2321,12 @@ function saveAndExport() {
       .withSuccessHandler(function(res) {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
+        const subInfo = currentRoutineKey === "jog"
+          ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動連携）`
+          : `（所要時間: 約${duration}分 / RIR: ${currentRIR}）`;
         document.getElementById("success-msg").innerHTML = `
           <strong>${res.filename}</strong> をGoogle Driveに直接保存しました！<br>
-          <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分 / RIR: ${currentRIR}）</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">${subInfo}</span>
         `;
         document.getElementById("success-modal").classList.add("open");
       })
@@ -2322,9 +2359,12 @@ function saveAndExport() {
   .then(() => {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
+    const subInfo = currentRoutineKey === "jog"
+      ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動補完）`
+      : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`;
     document.getElementById("success-msg").innerHTML = `
       <strong>Google Driveに直接保存しました！</strong><br>
-      <span style="font-size:0.75rem; color:var(--text-muted);">（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）</span>
+      <span style="font-size:0.75rem; color:var(--text-muted);">${subInfo}</span>
     `;
     document.getElementById("success-modal").classList.add("open");
   })
@@ -2444,8 +2484,12 @@ function closeSuccessModal() {
 
 function copySummaryText() {
   if (!lastExportData) return;
+  const isAerobic = lastExportData.activity_type === "aerobic";
+  const header = isAerobic
+    ? `【運動記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:約${lastExportData.duration_min}分`
+    : `【筋トレ記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:${lastExportData.duration_min}分`;
   const lines = [
-    `【筋トレ記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:${lastExportData.duration_min}分`,
+    header,
     ...lastExportData.exercises.map(e => `・${e.exercise} ${e.load_details} ${e.reps_details} (計${e.reps_total}回)`),
     lastExportData.memo ? `メモ: ${lastExportData.memo}` : ""
   ].filter(Boolean);
@@ -2462,19 +2506,82 @@ if (document.readyState === "loading") {
   initApp();
 }
 
-// ==================== ジョグ ＆ 有酸素 管理ロジック ====================
+// ==================== 画面消灯防止 (Wake Lock API) ＆ ジョグ管理ロジック ====================
+let wakeLockSentinel = null;
+
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      if (!wakeLockSentinel) {
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+        wakeLockSentinel.addEventListener('release', () => {
+          wakeLockSentinel = null;
+        });
+        console.log('Screen Wake Lock acquired');
+      }
+    } catch (e) {
+      console.warn('Wake Lock error:', e);
+    }
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLockSentinel) {
+    wakeLockSentinel.release().then(() => {
+      wakeLockSentinel = null;
+      console.log('Screen Wake Lock released');
+    }).catch(() => {});
+  }
+}
+
+function checkAnyTimerRunning() {
+  return (
+    (typeof activeTimer !== "undefined" && activeTimer && activeTimer.intervalId !== null) ||
+    sunnyTimerState.isRunning ||
+    step1TimerState.isRunning ||
+    step2TimerState.isRunning
+  );
+}
+
+// 有酸素用 Zone 2 きつさセレクター
+let currentCardioRPE = "optimal"; // easy | optimal | hard
+
+function setCardioRPE(val) {
+  currentCardioRPE = val;
+  ["easy", "optimal", "hard"].forEach(k => {
+    const btn = document.getElementById("rpe-btn-" + k);
+    if (btn) btn.className = "rir-btn " + (k === val ? "active" : "");
+  });
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
+// 状態変数（絶対時刻基準）
 let jogWeatherMode = localStorage.getItem("jog_weather_mode") || "sunny";
 let sunnyJogMinutes = 20;
-let sunnyTimerSec = 0;
-let sunnyTimerInterval = null;
 
-let step1TimerSec = 240; // 4分
-let step1Interval = null;
-let step1Done = false;
+let sunnyTimerState = {
+  isRunning: false,
+  startTime: null,
+  accumulatedSec: 0,
+  intervalId: null
+};
+
+let step1TimerState = {
+  isRunning: false,
+  targetEndTime: null,
+  remainingSec: 240, // 4分
+  intervalId: null,
+  done: false
+};
 
 let rainyJogMinutes = 16; // 16分
-let step2TimerSec = 16 * 60;
-let step2Interval = null;
+let step2TimerState = {
+  isRunning: false,
+  targetEndTime: null,
+  remainingSec: 16 * 60,
+  intervalId: null,
+  done: false
+};
 
 function renderJogView() {
   setJogWeather(jogWeatherMode, false);
@@ -2502,28 +2609,41 @@ function setJogWeather(mode, save = true) {
   }
 }
 
-// 晴れモードタイマー
+// 晴れモードタイマー（絶対時刻 Date.now() 基準）
+function getSunnyCurrentSec() {
+  if (!sunnyTimerState.isRunning || !sunnyTimerState.startTime) {
+    return sunnyTimerState.accumulatedSec;
+  }
+  return sunnyTimerState.accumulatedSec + Math.max(0, Math.floor((Date.now() - sunnyTimerState.startTime) / 1000));
+}
+
 function toggleSunnyTimer() {
   const btn = document.getElementById("sunny-timer-btn");
-  if (sunnyTimerInterval) {
+  if (sunnyTimerState.isRunning) {
     // 停止
-    clearInterval(sunnyTimerInterval);
-    sunnyTimerInterval = null;
+    sunnyTimerState.accumulatedSec = getSunnyCurrentSec();
+    sunnyTimerState.isRunning = false;
+    sunnyTimerState.startTime = null;
+    if (sunnyTimerState.intervalId) {
+      clearInterval(sunnyTimerState.intervalId);
+      sunnyTimerState.intervalId = null;
+    }
     if (btn) {
       btn.innerHTML = "⏱️ タイマー再開";
       btn.className = "jog-ctrl-btn btn-primary";
     }
     // 実測分数を反映（最低5分）
-    const elapsedM = Math.max(5, Math.round(sunnyTimerSec / 60));
+    const elapsedM = Math.max(5, Math.round(sunnyTimerState.accumulatedSec / 60));
     sunnyJogMinutes = elapsedM;
     const durText = document.getElementById("jog-duration-text");
     if (durText) durText.innerText = sunnyJogMinutes + "分";
+    if (!checkAnyTimerRunning()) releaseWakeLock();
   } else {
     // 開始
-    sunnyTimerInterval = setInterval(() => {
-      sunnyTimerSec++;
-      updateSunnyDisplay();
-    }, 1000);
+    sunnyTimerState.isRunning = true;
+    sunnyTimerState.startTime = Date.now();
+    requestWakeLock();
+    sunnyTimerState.intervalId = setInterval(updateSunnyDisplay, 500);
     if (btn) {
       btn.innerHTML = "⏸️ 一時停止";
       btn.className = "jog-ctrl-btn btn-primary running";
@@ -2532,22 +2652,26 @@ function toggleSunnyTimer() {
 }
 
 function resetSunnyTimer() {
-  if (sunnyTimerInterval) {
-    clearInterval(sunnyTimerInterval);
-    sunnyTimerInterval = null;
+  if (sunnyTimerState.intervalId) {
+    clearInterval(sunnyTimerState.intervalId);
+    sunnyTimerState.intervalId = null;
   }
-  sunnyTimerSec = 0;
+  sunnyTimerState.isRunning = false;
+  sunnyTimerState.startTime = null;
+  sunnyTimerState.accumulatedSec = 0;
   updateSunnyDisplay();
   const btn = document.getElementById("sunny-timer-btn");
   if (btn) {
     btn.innerHTML = "⏱️ タイマースタート";
     btn.className = "jog-ctrl-btn btn-primary";
   }
+  if (!checkAnyTimerRunning()) releaseWakeLock();
 }
 
 function updateSunnyDisplay() {
-  const m = String(Math.floor(sunnyTimerSec / 60)).padStart(2, "0");
-  const s = String(sunnyTimerSec % 60).padStart(2, "0");
+  const totalSec = getSunnyCurrentSec();
+  const m = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const s = String(totalSec % 60).padStart(2, "0");
   const disp = document.getElementById("sunny-timer-display");
   if (disp) disp.innerText = `${m}:${s}`;
 }
@@ -2558,29 +2682,50 @@ function adjustJogDuration(delta) {
   if (el) el.innerText = sunnyJogMinutes + "分";
 }
 
-// 雨の日 Step 1 (準備) タイマー
+// 雨の日 Step 1 (準備) タイマー（絶対時刻 Date.now() 基準）
+function checkStep1Tick() {
+  if (!step1TimerState.isRunning) return;
+  const rem = Math.max(0, Math.round((step1TimerState.targetEndTime - Date.now()) / 1000));
+  step1TimerState.remainingSec = rem;
+  updateStep1Display();
+
+  if (rem <= 0) {
+    if (step1TimerState.intervalId) {
+      clearInterval(step1TimerState.intervalId);
+      step1TimerState.intervalId = null;
+    }
+    step1TimerState.isRunning = false;
+    step1TimerState.targetEndTime = null;
+    playAlarmSound();
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+    completeStep1();
+    if (!checkAnyTimerRunning()) releaseWakeLock();
+  }
+}
+
 function toggleStep1Timer() {
   const btn = document.getElementById("step1-timer-btn");
-  if (step1Interval) {
-    clearInterval(step1Interval);
-    step1Interval = null;
+  if (step1TimerState.isRunning) {
+    // 一時停止
+    step1TimerState.remainingSec = Math.max(0, Math.round((step1TimerState.targetEndTime - Date.now()) / 1000));
+    step1TimerState.isRunning = false;
+    step1TimerState.targetEndTime = null;
+    if (step1TimerState.intervalId) {
+      clearInterval(step1TimerState.intervalId);
+      step1TimerState.intervalId = null;
+    }
     if (btn) {
       btn.innerHTML = "⏱️ 再開";
       btn.className = "step-action-btn";
     }
+    if (!checkAnyTimerRunning()) releaseWakeLock();
   } else {
-    step1Interval = setInterval(() => {
-      step1TimerSec--;
-      if (step1TimerSec <= 0) {
-        clearInterval(step1Interval);
-        step1Interval = null;
-        step1TimerSec = 0;
-        playAlarmSound();
-        if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
-        completeStep1();
-      }
-      updateStep1Display();
-    }, 1000);
+    // 開始
+    if (step1TimerState.remainingSec <= 0) step1TimerState.remainingSec = 240;
+    step1TimerState.isRunning = true;
+    step1TimerState.targetEndTime = Date.now() + step1TimerState.remainingSec * 1000;
+    requestWakeLock();
+    step1TimerState.intervalId = setInterval(checkStep1Tick, 500);
     if (btn) {
       btn.innerHTML = "⏸️ 停止";
       btn.className = "step-action-btn running";
@@ -2589,14 +2734,14 @@ function toggleStep1Timer() {
 }
 
 function updateStep1Display() {
-  const m = String(Math.floor(step1TimerSec / 60)).padStart(2, "0");
-  const s = String(step1TimerSec % 60).padStart(2, "0");
+  const m = String(Math.floor(step1TimerState.remainingSec / 60)).padStart(2, "0");
+  const s = String(step1TimerState.remainingSec % 60).padStart(2, "0");
   const disp = document.getElementById("step1-timer-display");
   if (disp) disp.innerText = `${m}:${s}`;
 }
 
 function completeStep1() {
-  step1Done = true;
+  step1TimerState.done = true;
   const statusEl = document.getElementById("step1-status");
   const card = document.getElementById("step1-card");
   const checkBtn = document.getElementById("step1-check-btn");
@@ -2617,35 +2762,62 @@ function completeStep1() {
   }
 }
 
-// 雨の日 Step 2 (室内ジョグ) タイマー
+// 雨の日 Step 2 (室内ジョグ) タイマー（絶対時刻 Date.now() 基準）
+function checkStep2Tick() {
+  if (!step2TimerState.isRunning) return;
+  const rem = Math.max(0, Math.round((step2TimerState.targetEndTime - Date.now()) / 1000));
+  step2TimerState.remainingSec = rem;
+  updateStep2Display();
+
+  if (rem <= 0) {
+    if (step2TimerState.intervalId) {
+      clearInterval(step2TimerState.intervalId);
+      step2TimerState.intervalId = null;
+    }
+    step2TimerState.isRunning = false;
+    step2TimerState.targetEndTime = null;
+    step2TimerState.done = true;
+    playAlarmSound();
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+    const statusEl = document.getElementById("step2-status");
+    const card = document.getElementById("step2-card");
+    const timerBtn = document.getElementById("step2-timer-btn");
+    if (statusEl) {
+      statusEl.innerText = "✓ 完了";
+      statusEl.className = "step-status done";
+    }
+    if (card) card.classList.add("completed");
+    if (timerBtn) {
+      timerBtn.innerHTML = "⏱️ 完了";
+      timerBtn.className = "step-action-btn";
+    }
+    if (!checkAnyTimerRunning()) releaseWakeLock();
+  }
+}
+
 function toggleStep2Timer() {
   const btn = document.getElementById("step2-timer-btn");
-  if (step2Interval) {
-    clearInterval(step2Interval);
-    step2Interval = null;
+  if (step2TimerState.isRunning) {
+    // 一時停止
+    step2TimerState.remainingSec = Math.max(0, Math.round((step2TimerState.targetEndTime - Date.now()) / 1000));
+    step2TimerState.isRunning = false;
+    step2TimerState.targetEndTime = null;
+    if (step2TimerState.intervalId) {
+      clearInterval(step2TimerState.intervalId);
+      step2TimerState.intervalId = null;
+    }
     if (btn) {
       btn.innerHTML = "⏱️ 再開";
       btn.className = "step-action-btn";
     }
+    if (!checkAnyTimerRunning()) releaseWakeLock();
   } else {
-    step2Interval = setInterval(() => {
-      step2TimerSec--;
-      if (step2TimerSec <= 0) {
-        clearInterval(step2Interval);
-        step2Interval = null;
-        step2TimerSec = 0;
-        playAlarmSound();
-        if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
-        const statusEl = document.getElementById("step2-status");
-        const card = document.getElementById("step2-card");
-        if (statusEl) {
-          statusEl.innerText = "✓ 完了";
-          statusEl.className = "step-status done";
-        }
-        if (card) card.classList.add("completed");
-      }
-      updateStep2Display();
-    }, 1000);
+    // 開始
+    if (step2TimerState.remainingSec <= 0) step2TimerState.remainingSec = rainyJogMinutes * 60;
+    step2TimerState.isRunning = true;
+    step2TimerState.targetEndTime = Date.now() + step2TimerState.remainingSec * 1000;
+    requestWakeLock();
+    step2TimerState.intervalId = setInterval(checkStep2Tick, 500);
     if (btn) {
       btn.innerHTML = "⏸️ 停止";
       btn.className = "step-action-btn running";
@@ -2654,16 +2826,18 @@ function toggleStep2Timer() {
 }
 
 function updateStep2Display() {
-  const m = String(Math.floor(step2TimerSec / 60)).padStart(2, "0");
-  const s = String(step2TimerSec % 60).padStart(2, "0");
+  const m = String(Math.floor(step2TimerState.remainingSec / 60)).padStart(2, "0");
+  const s = String(step2TimerState.remainingSec % 60).padStart(2, "0");
   const disp = document.getElementById("step2-timer-display");
   if (disp) disp.innerText = `${m}:${s}`;
 }
 
 function adjustStep2Duration(delta) {
   rainyJogMinutes = Math.max(5, Math.min(60, rainyJogMinutes + delta));
-  step2TimerSec = rainyJogMinutes * 60;
-  updateStep2Display();
+  if (!step2TimerState.isRunning) {
+    step2TimerState.remainingSec = rainyJogMinutes * 60;
+    updateStep2Display();
+  }
   const el = document.getElementById("step2-duration-text");
   if (el) el.innerText = rainyJogMinutes + "分";
   const jogEl = document.getElementById("rainy-total-jog-min");
@@ -2673,19 +2847,43 @@ function adjustStep2Duration(delta) {
 }
 
 function stopJogTimers() {
-  if (sunnyTimerInterval) {
-    clearInterval(sunnyTimerInterval);
-    sunnyTimerInterval = null;
+  if (sunnyTimerState.intervalId) {
+    clearInterval(sunnyTimerState.intervalId);
+    sunnyTimerState.intervalId = null;
   }
-  if (step1Interval) {
-    clearInterval(step1Interval);
-    step1Interval = null;
+  sunnyTimerState.isRunning = false;
+  sunnyTimerState.startTime = null;
+
+  if (step1TimerState.intervalId) {
+    clearInterval(step1TimerState.intervalId);
+    step1TimerState.intervalId = null;
   }
-  if (step2Interval) {
-    clearInterval(step2Interval);
-    step2Interval = null;
+  step1TimerState.isRunning = false;
+  step1TimerState.targetEndTime = null;
+
+  if (step2TimerState.intervalId) {
+    clearInterval(step2TimerState.intervalId);
+    step2TimerState.intervalId = null;
+  }
+  step2TimerState.isRunning = false;
+  step2TimerState.targetEndTime = null;
+
+  if (!checkAnyTimerRunning()) {
+    releaseWakeLock();
   }
 }
+
+// スリープ復帰時 (画面再表示時) の自動同期 ＆ Wake Lock 再取得
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible') {
+    if (sunnyTimerState.isRunning) updateSunnyDisplay();
+    if (step1TimerState.isRunning) checkStep1Tick();
+    if (step2TimerState.isRunning) checkStep2Tick();
+    if (checkAnyTimerRunning()) {
+      await requestWakeLock();
+    }
+  }
+});
 
 </script>
 </body>
