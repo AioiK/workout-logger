@@ -302,157 +302,62 @@
     text-align: center;
   }
 
-  .rainy-step-card {
-    background: var(--bg-card-sub);
-    border: 1px solid var(--border-card);
-    border-radius: var(--radius-md);
-    padding: 12px;
-    margin-bottom: 12px;
-    transition: all 0.2s;
-  }
-
-  .rainy-step-card.completed {
-    border-color: var(--accent-emerald);
-    background: rgba(16, 185, 129, 0.06);
-  }
-
-  .step-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-  }
-
-  .step-num {
-    background: var(--accent-indigo);
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-
-  .step-title {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    flex: 1;
-    margin-left: 8px;
-  }
-
-  .step-status {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .step-status.done {
-    color: var(--accent-emerald);
-    font-weight: 700;
-  }
-
-  .step-guide-list {
-    list-style: none;
-    padding-left: 0;
-    margin-bottom: 10px;
+  .foam-tips-box {
+    background: rgba(15, 23, 42, 0.7);
+    border-left: 3px solid var(--accent-indigo);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 14px;
     font-size: 0.8rem;
     color: var(--text-secondary);
     line-height: 1.5;
   }
 
-  .step-guide-list li {
-    margin-bottom: 5px;
-    position: relative;
-    padding-left: 14px;
-  }
-
-  .step-guide-list li::before {
-    content: "•";
-    position: absolute;
-    left: 0;
-    color: var(--accent-blue);
-  }
-
-  .step-timer-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: var(--bg-main);
-    border: 1px solid var(--border-card);
-    border-radius: var(--radius-sm);
-    padding: 8px 10px;
-  }
-
-  .step-timer-time {
-    font-size: 1.45rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .step-action-btn {
-    background: var(--accent-indigo);
-    color: #fff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-
-  .step-action-btn.running {
-    background: var(--accent-amber);
-    animation: timerPulse 1s infinite;
-  }
-
-  .step-check-btn {
-    background: transparent;
-    border: 1px solid var(--border-card);
-    color: var(--text-secondary);
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-
-  .step-check-btn.done {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: var(--accent-emerald);
-    color: var(--accent-emerald);
-  }
-
-  .foam-tips-box {
-    background: rgba(15, 23, 42, 0.7);
-    border-left: 3px solid var(--accent-blue);
-    padding: 8px 10px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    line-height: 1.45;
-  }
-
   .foam-tips-box ol {
-    padding-left: 16px;
-    margin-top: 4px;
+    padding-left: 18px;
+    margin-top: 6px;
+    margin-bottom: 2px;
   }
 
-  .rainy-total-box {
-    text-align: center;
-    font-size: 0.88rem;
-    color: var(--text-secondary);
+  .metronome-row {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 14px 0;
+  }
+
+  .metronome-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background: var(--bg-card-sub);
-    border: 1px dashed var(--border-card);
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+    padding: 11px 18px;
     border-radius: var(--radius-sm);
-    padding: 10px;
-    margin-top: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .metronome-btn strong {
+    color: var(--text-muted);
+  }
+
+  .metronome-btn.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(79, 70, 229, 0.35) 100%);
+    border-color: var(--accent-indigo);
+    color: #e0e7ff;
+    box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);
+  }
+
+  .metronome-btn.active strong {
+    color: #38bdf8;
+    text-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
   }
 
   /* Superset Container */
@@ -1117,71 +1022,46 @@
   <div id="jog-rainy-view" style="display:none;">
     <div class="jog-card">
       <div class="jog-header">
-        <span class="jog-badge rain">☔ 室内スロージョグ (雨天プログラム)</span>
-        <span class="jog-target-info">合計: 約20分 (Zone 2)</span>
+        <span class="jog-badge rain">☔ 室内スロージョグ</span>
+        <span class="jog-target-info" id="rainy-target-info">目標: 21分 (Zone 2)</span>
       </div>
       <div class="jog-notice">
-        筋トレ疲労を残さない超省力フォーム。丁寧な準備と一定ペースのスロージョグで構成されます。
+        筋トレ疲労を残さない超省力フォーム。天候に左右されず室内でできる21分間のスロージョグです。
       </div>
 
-      <!-- STEP 1: 準備 -->
-      <div class="rainy-step-card" id="step1-card">
-        <div class="step-header">
-          <div class="step-num">STEP 1</div>
-          <div class="step-title">準備フェーズ（約4分）</div>
-          <span class="step-status" id="step1-status">未完了</span>
-        </div>
-        <div class="step-body">
-          <ul class="step-guide-list">
-            <li><strong>フォームローラー（約3分）</strong>: 太もも前・お尻・ふくらはぎ・胸椎を各20〜30秒ほぐす</li>
-            <li><strong>懸垂スタンドぶら下がり（約1分）</strong>: 10〜15秒 × 2セットで背骨をリセット</li>
-          </ul>
-          <div class="step-timer-row">
-            <span class="step-timer-time" id="step1-timer-display">04:00</span>
-            <button type="button" class="step-action-btn" id="step1-timer-btn" onclick="toggleStep1Timer()">
-              ⏱️ 準備タイマー開始
-            </button>
-            <button type="button" class="step-check-btn" id="step1-check-btn" onclick="completeStep1()">
-              ✓ 準備完了
-            </button>
-          </div>
-        </div>
+      <div class="foam-tips-box">
+        <strong>💡 省力フォームの3原則:</strong>
+        <ol>
+          <li><strong>母趾球（フォアフット）接地</strong>: かかとをわずかに浮かせ、静かにトントン（静音＆衝撃1/3）</li>
+          <li><strong>ピッチ細かく（約180歩/分）</strong>: 跳ばずに脱力して優しく体重移動（メトロノームに合わせる）</li>
+          <li><strong>笑顔ペース（Zone 2）</strong>: 鼻呼吸ができる強度で筋疲労をリカバリー</li>
+        </ol>
       </div>
 
-      <!-- STEP 2: 室内スロージョグ -->
-      <div class="rainy-step-card" id="step2-card">
-        <div class="step-header">
-          <div class="step-num">STEP 2</div>
-          <div class="step-title">室内スロージョグ（16分）</div>
-          <span class="step-status" id="step2-status">未完了</span>
-        </div>
-        <div class="step-body">
-          <div class="foam-tips-box">
-            <strong>💡 省力フォームの3原則:</strong>
-            <ol>
-              <li><strong>母趾球（フォアフット）接地</strong>: かかとをわずかに浮かせ、静かにトントン（静音＆衝撃1/3）</li>
-              <li><strong>ピッチ細かく（約180歩/分）</strong>: 跳ばずに脱力して優しく体重移動</li>
-              <li><strong>笑顔ペース（Zone 2）</strong>: 鼻呼吸ができる強度で筋疲労をリカバリー</li>
-            </ol>
-          </div>
-          <div class="step-timer-row">
-            <span class="step-timer-time" id="step2-timer-display">16:00</span>
-            <button type="button" class="step-action-btn" id="step2-timer-btn" onclick="toggleStep2Timer()">
-              ⏱️ ジョグタイマー開始
-            </button>
-          </div>
-          <div class="jog-duration-box" style="margin-top:10px;">
-            <span class="jog-duration-label">ジョグ時間:</span>
-            <button type="button" class="stepper-btn" onclick="adjustStep2Duration(-1)">−</button>
-            <span class="jog-duration-val" id="step2-duration-text">16分</span>
-            <button type="button" class="stepper-btn" onclick="adjustStep2Duration(1)">＋</button>
-          </div>
-        </div>
+      <!-- タイマー / カウントダウン (デフォルト21分) -->
+      <div class="jog-timer-display" id="rainy-timer-display">21:00</div>
+      <div class="jog-timer-controls">
+        <button type="button" class="jog-ctrl-btn btn-primary" id="rainy-timer-btn" onclick="toggleRainyTimer()">
+          ⏱️ ジョグタイマー開始
+        </button>
+        <button type="button" class="jog-ctrl-btn btn-secondary" onclick="resetRainyTimer()">
+          🔄 リセット
+        </button>
       </div>
 
-      <!-- 合計時間表示 -->
-      <div class="rainy-total-box">
-        準備 4分 ＋ ジョグ <span id="rainy-total-jog-min">16</span>分 ＝ 合計 <strong id="rainy-total-sum-min" style="color:var(--accent-blue); font-size:1.1rem;">20</strong>分
+      <!-- BPM 180 メトロノーム -->
+      <div class="metronome-row">
+        <button type="button" class="metronome-btn" id="metronome-toggle-btn" onclick="toggleMetronome()">
+          🎵 BPM 180 メトロノーム: <strong>OFF</strong>
+        </button>
+      </div>
+
+      <!-- 手動時間調整 -->
+      <div class="jog-duration-box" style="margin-top:14px;">
+        <span class="jog-duration-label">ジョグ時間:</span>
+        <button type="button" class="stepper-btn" onclick="adjustRainyDuration(-1)">−</button>
+        <span class="jog-duration-val" id="rainy-duration-text">21分</span>
+        <button type="button" class="stepper-btn" onclick="adjustRainyDuration(1)">＋</button>
       </div>
     </div>
   </div>
@@ -2220,7 +2100,7 @@ function saveAndExport() {
   if (currentRoutineKey === "jog") {
     const isRain = (jogWeatherMode === "rainy");
     routineName = isRain ? "室内スロージョグ" : "ジョギング";
-    duration = isRain ? (4 + rainyJogMinutes) : sunnyJogMinutes;
+    duration = isRain ? rainyJogMinutes : sunnyJogMinutes;
     const rpeLabels = {
       easy: "楽・快適 (Zone 1/回復)",
       optimal: "適正 (Zone 2・ニコニコペース)",
@@ -2228,7 +2108,7 @@ function saveAndExport() {
     };
     const rpeText = rpeLabels[currentCardioRPE] || "適正 (Zone 2)";
     const rainDetails = isRain 
-      ? `準備4分＋室内スロージョグ${rainyJogMinutes}分。フォアフット接地。きつさ: ${rpeText}。`
+      ? `室内スロージョグ${rainyJogMinutes}分。ピッチ180・フォアフット接地。きつさ: ${rpeText}。`
       : `外ジョギング${duration}分。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`;
     finalMemo = memoText ? `${memoText}（${rainDetails}）` : rainDetails;
 
@@ -2538,8 +2418,8 @@ function checkAnyTimerRunning() {
   return (
     (typeof activeTimer !== "undefined" && activeTimer && activeTimer.intervalId !== null) ||
     sunnyTimerState.isRunning ||
-    step1TimerState.isRunning ||
-    step2TimerState.isRunning
+    rainyTimerState.isRunning ||
+    isMetronomeRunning
   );
 }
 
@@ -2555,6 +2435,105 @@ function setCardioRPE(val) {
   if (navigator.vibrate) navigator.vibrate(20);
 }
 
+// ==================== BPM 180 メトロノーム (Web Audio API 高精度スケジューラ) ====================
+let metronomeAudioCtx = null;
+let isMetronomeRunning = false;
+let metronomeNextTime = 0.0;
+let metronomeTimerId = null;
+const METRONOME_BPM = 180;
+const LOOKAHEAD_MS = 25.0;
+const SCHEDULE_AHEAD_TIME = 0.1;
+
+function getMetronomeAudioContext() {
+  if (!metronomeAudioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      metronomeAudioCtx = new AudioContextClass();
+    }
+  }
+  if (metronomeAudioCtx && metronomeAudioCtx.state === "suspended") {
+    metronomeAudioCtx.resume();
+  }
+  return metronomeAudioCtx;
+}
+
+function playMetronomeClick(time) {
+  const ctx = getMetronomeAudioContext();
+  if (!ctx) return;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(1000, time); // 1000Hz (聞き取りやすい軽快なウッドブロック音)
+
+  gain.gain.setValueAtTime(0.35, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.035);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(time);
+  osc.stop(time + 0.035);
+}
+
+function metronomeScheduler() {
+  if (!isMetronomeRunning) return;
+  const ctx = getMetronomeAudioContext();
+  if (!ctx) return;
+
+  while (metronomeNextTime < ctx.currentTime + SCHEDULE_AHEAD_TIME) {
+    playMetronomeClick(metronomeNextTime);
+    metronomeNextTime += 60.0 / METRONOME_BPM; // 60 / 180 = 0.3333...秒
+  }
+  metronomeTimerId = setTimeout(metronomeScheduler, LOOKAHEAD_MS);
+}
+
+function startMetronome() {
+  if (isMetronomeRunning) return;
+  const ctx = getMetronomeAudioContext();
+  if (!ctx) return;
+
+  isMetronomeRunning = true;
+  metronomeNextTime = ctx.currentTime + 0.05;
+  metronomeScheduler();
+  updateMetronomeUI();
+  requestWakeLock();
+}
+
+function stopMetronome() {
+  if (!isMetronomeRunning) return;
+  isMetronomeRunning = false;
+  if (metronomeTimerId) {
+    clearTimeout(metronomeTimerId);
+    metronomeTimerId = null;
+  }
+  updateMetronomeUI();
+  if (!checkAnyTimerRunning()) {
+    releaseWakeLock();
+  }
+}
+
+function toggleMetronome() {
+  if (isMetronomeRunning) {
+    stopMetronome();
+  } else {
+    startMetronome();
+  }
+}
+
+function updateMetronomeUI() {
+  const btn = document.getElementById("metronome-toggle-btn");
+  if (!btn) return;
+  if (isMetronomeRunning) {
+    btn.className = "metronome-btn active";
+    btn.innerHTML = '🔊 BPM 180 メトロノーム: <strong>ON</strong>';
+  } else {
+    btn.className = "metronome-btn";
+    btn.innerHTML = '🎵 BPM 180 メトロノーム: <strong>OFF</strong>';
+  }
+}
+
 // 状態変数（絶対時刻基準）
 let jogWeatherMode = localStorage.getItem("jog_weather_mode") || "sunny";
 let sunnyJogMinutes = 20;
@@ -2566,19 +2545,11 @@ let sunnyTimerState = {
   intervalId: null
 };
 
-let step1TimerState = {
+let rainyJogMinutes = 21; // デフォルト21分
+let rainyTimerState = {
   isRunning: false,
   targetEndTime: null,
-  remainingSec: 240, // 4分
-  intervalId: null,
-  done: false
-};
-
-let rainyJogMinutes = 16; // 16分
-let step2TimerState = {
-  isRunning: false,
-  targetEndTime: null,
-  remainingSec: 16 * 60,
+  remainingSec: 21 * 60,
   intervalId: null,
   done: false
 };
@@ -2588,6 +2559,9 @@ function renderJogView() {
 }
 
 function setJogWeather(mode, save = true) {
+  if (jogWeatherMode !== mode) {
+    stopJogTimers();
+  }
   jogWeatherMode = mode;
   if (save) localStorage.setItem("jog_weather_mode", mode);
 
@@ -2682,168 +2656,115 @@ function adjustJogDuration(delta) {
   if (el) el.innerText = sunnyJogMinutes + "分";
 }
 
-// 雨の日 Step 1 (準備) タイマー（絶対時刻 Date.now() 基準）
-function checkStep1Tick() {
-  if (!step1TimerState.isRunning) return;
-  const rem = Math.max(0, Math.round((step1TimerState.targetEndTime - Date.now()) / 1000));
-  step1TimerState.remainingSec = rem;
-  updateStep1Display();
+// ==================== 雨の日 (室内スロージョグ) タイマー（絶対時刻 Date.now() 基準） ====================
+function checkRainyTick() {
+  if (!rainyTimerState.isRunning) return;
+  const rem = Math.max(0, Math.round((rainyTimerState.targetEndTime - Date.now()) / 1000));
+  rainyTimerState.remainingSec = rem;
+  updateRainyDisplay();
 
   if (rem <= 0) {
-    if (step1TimerState.intervalId) {
-      clearInterval(step1TimerState.intervalId);
-      step1TimerState.intervalId = null;
+    if (rainyTimerState.intervalId) {
+      clearInterval(rainyTimerState.intervalId);
+      rainyTimerState.intervalId = null;
     }
-    step1TimerState.isRunning = false;
-    step1TimerState.targetEndTime = null;
+    rainyTimerState.isRunning = false;
+    rainyTimerState.targetEndTime = null;
+    rainyTimerState.done = true;
+    stopMetronome();
     playAlarmSound();
     if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
-    completeStep1();
-    if (!checkAnyTimerRunning()) releaseWakeLock();
-  }
-}
-
-function toggleStep1Timer() {
-  const btn = document.getElementById("step1-timer-btn");
-  if (step1TimerState.isRunning) {
-    // 一時停止
-    step1TimerState.remainingSec = Math.max(0, Math.round((step1TimerState.targetEndTime - Date.now()) / 1000));
-    step1TimerState.isRunning = false;
-    step1TimerState.targetEndTime = null;
-    if (step1TimerState.intervalId) {
-      clearInterval(step1TimerState.intervalId);
-      step1TimerState.intervalId = null;
-    }
-    if (btn) {
-      btn.innerHTML = "⏱️ 再開";
-      btn.className = "step-action-btn";
-    }
-    if (!checkAnyTimerRunning()) releaseWakeLock();
-  } else {
-    // 開始
-    if (step1TimerState.remainingSec <= 0) step1TimerState.remainingSec = 240;
-    step1TimerState.isRunning = true;
-    step1TimerState.targetEndTime = Date.now() + step1TimerState.remainingSec * 1000;
-    requestWakeLock();
-    step1TimerState.intervalId = setInterval(checkStep1Tick, 500);
-    if (btn) {
-      btn.innerHTML = "⏸️ 停止";
-      btn.className = "step-action-btn running";
-    }
-  }
-}
-
-function updateStep1Display() {
-  const m = String(Math.floor(step1TimerState.remainingSec / 60)).padStart(2, "0");
-  const s = String(step1TimerState.remainingSec % 60).padStart(2, "0");
-  const disp = document.getElementById("step1-timer-display");
-  if (disp) disp.innerText = `${m}:${s}`;
-}
-
-function completeStep1() {
-  step1TimerState.done = true;
-  const statusEl = document.getElementById("step1-status");
-  const card = document.getElementById("step1-card");
-  const checkBtn = document.getElementById("step1-check-btn");
-  const timerBtn = document.getElementById("step1-timer-btn");
-
-  if (statusEl) {
-    statusEl.innerText = "✓ 完了";
-    statusEl.className = "step-status done";
-  }
-  if (card) card.classList.add("completed");
-  if (checkBtn) {
-    checkBtn.innerText = "✓ 完了済み";
-    checkBtn.className = "step-check-btn done";
-  }
-  if (timerBtn) {
-    timerBtn.innerHTML = "⏱️ 完了";
-    timerBtn.className = "step-action-btn";
-  }
-}
-
-// 雨の日 Step 2 (室内ジョグ) タイマー（絶対時刻 Date.now() 基準）
-function checkStep2Tick() {
-  if (!step2TimerState.isRunning) return;
-  const rem = Math.max(0, Math.round((step2TimerState.targetEndTime - Date.now()) / 1000));
-  step2TimerState.remainingSec = rem;
-  updateStep2Display();
-
-  if (rem <= 0) {
-    if (step2TimerState.intervalId) {
-      clearInterval(step2TimerState.intervalId);
-      step2TimerState.intervalId = null;
-    }
-    step2TimerState.isRunning = false;
-    step2TimerState.targetEndTime = null;
-    step2TimerState.done = true;
-    playAlarmSound();
-    if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
-    const statusEl = document.getElementById("step2-status");
-    const card = document.getElementById("step2-card");
-    const timerBtn = document.getElementById("step2-timer-btn");
-    if (statusEl) {
-      statusEl.innerText = "✓ 完了";
-      statusEl.className = "step-status done";
-    }
-    if (card) card.classList.add("completed");
+    const timerBtn = document.getElementById("rainy-timer-btn");
     if (timerBtn) {
       timerBtn.innerHTML = "⏱️ 完了";
-      timerBtn.className = "step-action-btn";
+      timerBtn.className = "jog-ctrl-btn btn-primary";
     }
     if (!checkAnyTimerRunning()) releaseWakeLock();
   }
 }
 
-function toggleStep2Timer() {
-  const btn = document.getElementById("step2-timer-btn");
-  if (step2TimerState.isRunning) {
+function toggleRainyTimer() {
+  const btn = document.getElementById("rainy-timer-btn");
+  if (rainyTimerState.isRunning) {
     // 一時停止
-    step2TimerState.remainingSec = Math.max(0, Math.round((step2TimerState.targetEndTime - Date.now()) / 1000));
-    step2TimerState.isRunning = false;
-    step2TimerState.targetEndTime = null;
-    if (step2TimerState.intervalId) {
-      clearInterval(step2TimerState.intervalId);
-      step2TimerState.intervalId = null;
+    rainyTimerState.remainingSec = Math.max(0, Math.round((rainyTimerState.targetEndTime - Date.now()) / 1000));
+    rainyTimerState.isRunning = false;
+    rainyTimerState.targetEndTime = null;
+    if (rainyTimerState.intervalId) {
+      clearInterval(rainyTimerState.intervalId);
+      rainyTimerState.intervalId = null;
     }
     if (btn) {
       btn.innerHTML = "⏱️ 再開";
-      btn.className = "step-action-btn";
+      btn.className = "jog-ctrl-btn btn-primary";
+    }
+    if (isMetronomeRunning) {
+      stopMetronome();
     }
     if (!checkAnyTimerRunning()) releaseWakeLock();
   } else {
     // 開始
-    if (step2TimerState.remainingSec <= 0) step2TimerState.remainingSec = rainyJogMinutes * 60;
-    step2TimerState.isRunning = true;
-    step2TimerState.targetEndTime = Date.now() + step2TimerState.remainingSec * 1000;
+    if (rainyTimerState.remainingSec <= 0 || rainyTimerState.done) {
+      rainyTimerState.remainingSec = rainyJogMinutes * 60;
+      rainyTimerState.done = false;
+    }
+    rainyTimerState.isRunning = true;
+    rainyTimerState.targetEndTime = Date.now() + rainyTimerState.remainingSec * 1000;
     requestWakeLock();
-    step2TimerState.intervalId = setInterval(checkStep2Tick, 500);
+    rainyTimerState.intervalId = setInterval(checkRainyTick, 500);
     if (btn) {
-      btn.innerHTML = "⏸️ 停止";
-      btn.className = "step-action-btn running";
+      btn.innerHTML = "⏸️ 一時停止";
+      btn.className = "jog-ctrl-btn btn-primary running";
+    }
+    // タイマー開始時はメトロノームも連動してスタート
+    if (!isMetronomeRunning) {
+      startMetronome();
     }
   }
 }
 
-function updateStep2Display() {
-  const m = String(Math.floor(step2TimerState.remainingSec / 60)).padStart(2, "0");
-  const s = String(step2TimerState.remainingSec % 60).padStart(2, "0");
-  const disp = document.getElementById("step2-timer-display");
+function resetRainyTimer() {
+  if (rainyTimerState.intervalId) {
+    clearInterval(rainyTimerState.intervalId);
+    rainyTimerState.intervalId = null;
+  }
+  rainyTimerState.isRunning = false;
+  rainyTimerState.targetEndTime = null;
+  rainyTimerState.done = false;
+  rainyTimerState.remainingSec = rainyJogMinutes * 60;
+  updateRainyDisplay();
+  stopMetronome();
+  const btn = document.getElementById("rainy-timer-btn");
+  if (btn) {
+    btn.innerHTML = "⏱️ ジョグタイマー開始";
+    btn.className = "jog-ctrl-btn btn-primary";
+  }
+  if (!checkAnyTimerRunning()) releaseWakeLock();
+}
+
+function updateRainyDisplay() {
+  const m = String(Math.floor(rainyTimerState.remainingSec / 60)).padStart(2, "0");
+  const s = String(rainyTimerState.remainingSec % 60).padStart(2, "0");
+  const disp = document.getElementById("rainy-timer-display");
   if (disp) disp.innerText = `${m}:${s}`;
 }
 
-function adjustStep2Duration(delta) {
-  rainyJogMinutes = Math.max(5, Math.min(60, rainyJogMinutes + delta));
-  if (!step2TimerState.isRunning) {
-    step2TimerState.remainingSec = rainyJogMinutes * 60;
-    updateStep2Display();
+function adjustRainyDuration(delta) {
+  rainyJogMinutes = Math.max(5, Math.min(120, rainyJogMinutes + delta));
+  if (!rainyTimerState.isRunning) {
+    rainyTimerState.remainingSec = rainyJogMinutes * 60;
+    rainyTimerState.done = false;
+    updateRainyDisplay();
+    const btn = document.getElementById("rainy-timer-btn");
+    if (btn) {
+      btn.innerHTML = "⏱️ ジョグタイマー開始";
+      btn.className = "jog-ctrl-btn btn-primary";
+    }
   }
-  const el = document.getElementById("step2-duration-text");
+  const el = document.getElementById("rainy-duration-text");
   if (el) el.innerText = rainyJogMinutes + "分";
-  const jogEl = document.getElementById("rainy-total-jog-min");
-  if (jogEl) jogEl.innerText = rainyJogMinutes;
-  const sumEl = document.getElementById("rainy-total-sum-min");
-  if (sumEl) sumEl.innerText = (4 + rainyJogMinutes);
+  const targetInfo = document.getElementById("rainy-target-info");
+  if (targetInfo) targetInfo.innerText = `目標: ${rainyJogMinutes}分 (Zone 2)`;
 }
 
 function stopJogTimers() {
@@ -2854,19 +2775,14 @@ function stopJogTimers() {
   sunnyTimerState.isRunning = false;
   sunnyTimerState.startTime = null;
 
-  if (step1TimerState.intervalId) {
-    clearInterval(step1TimerState.intervalId);
-    step1TimerState.intervalId = null;
+  if (rainyTimerState.intervalId) {
+    clearInterval(rainyTimerState.intervalId);
+    rainyTimerState.intervalId = null;
   }
-  step1TimerState.isRunning = false;
-  step1TimerState.targetEndTime = null;
+  rainyTimerState.isRunning = false;
+  rainyTimerState.targetEndTime = null;
 
-  if (step2TimerState.intervalId) {
-    clearInterval(step2TimerState.intervalId);
-    step2TimerState.intervalId = null;
-  }
-  step2TimerState.isRunning = false;
-  step2TimerState.targetEndTime = null;
+  stopMetronome();
 
   if (!checkAnyTimerRunning()) {
     releaseWakeLock();
@@ -2877,14 +2793,12 @@ function stopJogTimers() {
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'visible') {
     if (sunnyTimerState.isRunning) updateSunnyDisplay();
-    if (step1TimerState.isRunning) checkStep1Tick();
-    if (step2TimerState.isRunning) checkStep2Tick();
+    if (rainyTimerState.isRunning) checkRainyTick();
     if (checkAnyTimerRunning()) {
       await requestWakeLock();
     }
   }
 });
-
 </script>
 </body>
 </html>
