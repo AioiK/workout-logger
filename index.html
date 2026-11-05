@@ -1007,14 +1007,6 @@
           🔄 リセット
         </button>
       </div>
-
-      <!-- 手動時間調整 -->
-      <div class="jog-duration-box">
-        <span class="jog-duration-label">記録時間:</span>
-        <button type="button" class="stepper-btn" onclick="adjustJogDuration(-1)">−</button>
-        <span class="jog-duration-val" id="jog-duration-text">20分</span>
-        <button type="button" class="stepper-btn" onclick="adjustJogDuration(1)">＋</button>
-      </div>
     </div>
   </div>
 
@@ -2100,7 +2092,8 @@ function saveAndExport() {
   if (currentRoutineKey === "jog") {
     const isRain = (jogWeatherMode === "rainy");
     routineName = isRain ? "室内スロージョグ" : "ジョギング";
-    duration = isRain ? rainyJogMinutes : sunnyJogMinutes;
+    const measuredSunnyMin = Math.round(sunnyTimerState.accumulatedSec / 60);
+    duration = isRain ? rainyJogMinutes : (measuredSunnyMin > 0 ? measuredSunnyMin : 0);
     const rpeLabels = {
       easy: "楽・快適 (Zone 1/回復)",
       optimal: "適正 (Zone 2・ニコニコペース)",
@@ -2109,7 +2102,9 @@ function saveAndExport() {
     const rpeText = rpeLabels[currentCardioRPE] || "適正 (Zone 2)";
     const rainDetails = isRain 
       ? `室内スロージョグ${rainyJogMinutes}分。ピッチ180・フォアフット接地。きつさ: ${rpeText}。`
-      : `外ジョギング${duration}分。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`;
+      : (duration > 0 
+          ? `外ジョギング${duration}分。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`
+          : `外ジョギング。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`);
     finalMemo = memoText ? `${memoText}（${rainDetails}）` : rainDetails;
 
     exercisesData.push({
@@ -2118,7 +2113,7 @@ function saveAndExport() {
       load_details: "自重",
       sets: 1,
       reps_total: 1,
-      reps_details: `${duration}分`,
+      reps_details: duration > 0 ? `${duration}分` : "Mi Band連携",
       target_rir: 1,
       actual_rir: currentCardioRPE === "easy" ? 2 : (currentCardioRPE === "optimal" ? 1 : 0),
       superset_group: "",
@@ -2648,12 +2643,6 @@ function updateSunnyDisplay() {
   const s = String(totalSec % 60).padStart(2, "0");
   const disp = document.getElementById("sunny-timer-display");
   if (disp) disp.innerText = `${m}:${s}`;
-}
-
-function adjustJogDuration(delta) {
-  sunnyJogMinutes = Math.max(5, Math.min(180, sunnyJogMinutes + delta));
-  const el = document.getElementById("jog-duration-text");
-  if (el) el.innerText = sunnyJogMinutes + "分";
 }
 
 // ==================== 雨の日 (室内スロージョグ) タイマー（絶対時刻 Date.now() 基準） ====================

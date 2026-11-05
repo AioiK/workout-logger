@@ -8,7 +8,7 @@ Write-Host "New Version: $ver" -ForegroundColor Green
 
 # 2. git add, commit, push
 git add index.html workout_logger.html version.json deploy.ps1
-git commit -m "feat: add BPM180 metronome, remove prep phase, and set indoor slow jog default to 21min ($ver)"
+git commit -m "feat: remove sunny jog duration stepper and link with Mi Band ($ver)"
 git push origin main
 
 Write-Host "Deploy completed! GitHub Pages updated." -ForegroundColor Cyan
