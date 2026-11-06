@@ -1058,8 +1058,9 @@
 
 <!-- RIR (筋トレ用 余力・きつさ) Selector -->
 <div class="rir-card" id="strength-rir-card">
-  <div class="meta-label" style="margin-bottom:6px;">本日の余力・きつさ (RIR)</div>
-  <div class="rir-options">
+  <div class="meta-label" id="strength-rir-label" style="margin-bottom:6px;">本日の余力・きつさ (目標: RIR 1)</div>
+  <!-- メイン用 RIR (目標RIR1中心) -->
+  <div class="rir-options" id="rir-options-main">
     <button type="button" class="rir-btn" id="rir-btn-2" onclick="setRIR(2)">
       <span class="rir-score">RIR 2</span>
       <span class="rir-desc">余裕あり (+2回可能)</span>
@@ -1071,6 +1072,21 @@
     <button type="button" class="rir-btn" id="rir-btn-0" onclick="setRIR(0)">
       <span class="rir-score">RIR 0</span>
       <span class="rir-desc">限界 (これ以上無理)</span>
+    </button>
+  </div>
+  <!-- 補助用 RIR (目標RIR3中心) -->
+  <div class="rir-options" id="rir-options-sub" style="display:none;">
+    <button type="button" class="rir-btn" id="rir-btn-4" onclick="setRIR(4)">
+      <span class="rir-score">RIR 4</span>
+      <span class="rir-desc">余裕あり (+4回可能)</span>
+    </button>
+    <button type="button" class="rir-btn active" id="rir-btn-3" onclick="setRIR(3)">
+      <span class="rir-score">RIR 3</span>
+      <span class="rir-desc">適正 (目標・あと3回)</span>
+    </button>
+    <button type="button" class="rir-btn" id="rir-btn-2-sub" onclick="setRIR(2)">
+      <span class="rir-score">RIR 2</span>
+      <span class="rir-desc">追い込み (あと2回限界)</span>
     </button>
   </div>
 </div>
@@ -1326,6 +1342,13 @@ function setRIR(val, shouldSave = true) {
       }
     }
   });
+  const btn4 = document.getElementById("rir-btn-4");
+  const btn3 = document.getElementById("rir-btn-3");
+  const btn2Sub = document.getElementById("rir-btn-2-sub");
+  if (btn4) btn4.classList.toggle("active", val === 4);
+  if (btn3) btn3.classList.toggle("active", val === 3);
+  if (btn2Sub) btn2Sub.classList.toggle("active", val === 2);
+
   if (shouldSave) {
     draftModified = true;
     saveDraftToStorage();
@@ -1751,8 +1774,8 @@ function archiveForgottenDraftIfNeeded(draft) {
           sets: 3,
           reps_total: repsTotal,
           reps_details: repsDetails,
-          target_rir: 1,
-          actual_rir: draft.currentRIR !== undefined ? draft.currentRIR : 1,
+          target_rir: currentRoutineKey === "sub" ? 3 : 1,
+          actual_rir: draft.currentRIR !== undefined ? draft.currentRIR : (currentRoutineKey === "sub" ? 3 : 1),
           superset_group: symbol,
           notes: ""
         });
@@ -2106,6 +2129,30 @@ function renderWorkout() {
   if (jogContainer) jogContainer.style.display = "none";
   if (strengthRirCard) strengthRirCard.style.display = "block";
   if (cardioRpeCard) cardioRpeCard.style.display = "none";
+
+  const rirOptionsMain = document.getElementById("rir-options-main");
+  const rirOptionsSub = document.getElementById("rir-options-sub");
+  const rirLabel = document.getElementById("strength-rir-label");
+
+  if (currentRoutineKey === "sub") {
+    if (rirOptionsMain) rirOptionsMain.style.display = "none";
+    if (rirOptionsSub) rirOptionsSub.style.display = "flex";
+    if (rirLabel) rirLabel.textContent = "本日の余力・きつさ (目標: RIR 3)";
+    if (currentRIR === 0 || currentRIR === 1) {
+      setRIR(3, false);
+    } else {
+      setRIR(currentRIR, false);
+    }
+  } else {
+    if (rirOptionsMain) rirOptionsMain.style.display = "flex";
+    if (rirOptionsSub) rirOptionsSub.style.display = "none";
+    if (rirLabel) rirLabel.textContent = "本日の余力・きつさ (目標: RIR 1)";
+    if (currentRIR === 3 || currentRIR === 4) {
+      setRIR(1, false);
+    } else {
+      setRIR(currentRIR, false);
+    }
+  }
 
   container.innerHTML = "";
   const pairs = ROUTINES[currentRoutineKey].pairs;
@@ -2597,7 +2644,7 @@ function saveAndExport() {
           sets: 3,
           reps_total: repsTotal,
           reps_details: repsDetails,
-          target_rir: 1,
+          target_rir: currentRoutineKey === "sub" ? 3 : 1,
           actual_rir: currentRIR,
           superset_group: symbol,
           notes: ""
