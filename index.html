@@ -943,9 +943,6 @@
   <button class="settings-btn" onclick="openSettingsModal()" title="設定">⚙️</button>
 </header>
 
-<!-- バックグラウンドスリープ防止用無音オーディオ -->
-<audio id="timer-alarm-audio" preload="auto" src="data:audio/wav;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="></audio>
-
 <div class="meta-bar">
   <div class="meta-field">
     <div class="meta-label">日付</div>
@@ -1154,12 +1151,13 @@
       </span>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed #334155;">
-      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">アプリの自動更新</label>
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">アプリの自動更新・入力リセット</label>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <span style="font-size:0.8rem; color:var(--text-secondary);">現在のバージョン:</span>
         <span id="app-version-display" style="font-size:0.8rem; font-weight:700; color:var(--accent-blue);">確認中...</span>
       </div>
-      <button type="button" class="modal-close-btn" style="background:#1e293b; border:1px solid #475569;" onclick="manualUpdateCheck()">🔄 今すぐ更新をチェック</button>
+      <button type="button" class="modal-close-btn" style="background:#1e293b; border:1px solid #475569; margin-bottom:8px;" onclick="manualUpdateCheck()">🔄 今すぐ更新をチェック</button>
+      <button type="button" class="modal-close-btn" style="background:#1e293b; border:1px solid #475569; color:var(--text-secondary); font-size:0.8rem; padding:9px;" onclick="resetTodayDraftManual()">🧹 本日の入力・チェックを初期状態に戻す</button>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed #334155;">
       <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">直近の保存ログ（端末内バックアップ）</label>
@@ -1277,13 +1275,46 @@ const ROUTINES = {
 
 let currentRoutineKey = "main";
 let currentRIR = 1;
+let currentCardioRPE = "optimal"; // easy | optimal | hard
 let lastSavedReps = {}; // { [exKey]: [r1, r2, r3] }
 let workoutState = {}; // { [exKey]: { weight: number, reps: [r1, r2, r3], mode: string } }
 let completedSets = {}; // { [`${exKey}_${setIdx}`]: boolean }
 let activeModalExKey = null;
 let workoutStartTime = null;
+let isDraftSavedToCloud = false;
+let draftModified = false;
+let pendingAppUpdateVersion = null;
+let wakeLockSentinel = null;
 
-function setRIR(val) {
+// ジョグ・メトロノーム用状態変数（絶対時刻基準・TDZ防止のため最上部で宣言）
+let metronomeAudioCtx = null;
+let isMetronomeRunning = false;
+let metronomeNextTime = 0.0;
+let metronomeTimerId = null;
+const METRONOME_BPM = 180;
+const LOOKAHEAD_MS = 25.0;
+const SCHEDULE_AHEAD_TIME = 0.1;
+
+let jogWeatherMode = localStorage.getItem("jog_weather_mode") || "sunny";
+let sunnyJogMinutes = 20;
+
+let sunnyTimerState = {
+  isRunning: false,
+  startTime: null,
+  accumulatedSec: 0,
+  intervalId: null
+};
+
+let rainyJogMinutes = 21; // デフォルト21分
+let rainyTimerState = {
+  isRunning: false,
+  targetEndTime: null,
+  remainingSec: 21 * 60,
+  intervalId: null,
+  done: false
+};
+
+function setRIR(val, shouldSave = true) {
   currentRIR = val;
   [0, 1, 2].forEach(v => {
     const btn = document.getElementById(`rir-btn-${v}`);
@@ -1295,6 +1326,10 @@ function setRIR(val) {
       }
     }
   });
+  if (shouldSave) {
+    draftModified = true;
+    saveDraftToStorage();
+  }
 }
 
 // インターバルタイマー管理 & Web Worker
@@ -1447,22 +1482,19 @@ async function testNotification() {
   }
 }
 
-// オーディオのタップ時事前アンロック（音楽の邪魔をしないよう一瞬極小音量で認証確立）
-function unlockAlarmAudio() {
-  try {
-    const audio = document.getElementById("timer-alarm-audio");
-    if (audio) {
-      audio.volume = 0.001;
-      audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 1.0;
-      }).catch(() => {});
-    }
-  } catch (e) {}
+// 入力中またはトレーニング進行中かどうかを判定（自動リロード抑止用）
+function hasActiveWorkoutProgress() {
+  if (draftModified && !isDraftSavedToCloud) return true;
+  if (!isDraftSavedToCloud && Object.values(completedSets).some(Boolean)) return true;
+  const memoEl = document.getElementById("input-memo");
+  if (!isDraftSavedToCloud && memoEl && memoEl.value.trim().length > 0) return true;
+  if (checkAnyTimerRunning()) return true;
+  if (!isDraftSavedToCloud && sunnyTimerState && sunnyTimerState.accumulatedSec > 0) return true;
+  if (!isDraftSavedToCloud && rainyTimerState && rainyTimerState.remainingSec < rainyJogMinutes * 60) return true;
+  return false;
 }
 
-// アプリ自動更新システム
+// アプリ自動更新システム（入力中の勝手なリロードによるデータ消失を完全防止）
 async function checkForAppUpdate(isManual = false) {
   if (!navigator.onLine) {
     if (isManual) alert("オフラインのため更新を確認できませんでした。");
@@ -1485,6 +1517,16 @@ async function checkForAppUpdate(isManual = false) {
       }
 
       if (storedVer !== latestVer) {
+        // 常に最新の下書き状態をストレージへ退避
+        saveDraftToStorage();
+
+        // 自動チェック時、もしトレーニング入力中ならリロードを保留して作業を絶対に中断させない
+        if (!isManual && hasActiveWorkoutProgress()) {
+          pendingAppUpdateVersion = latestVer;
+          console.log("Update deferred until workout finishes:", latestVer);
+          return;
+        }
+
         showUpdateToast(`🎉 最新バージョン (v${latestVer}) を検出しました。更新中...`);
         localStorage.setItem("workout_app_version", latestVer);
 
@@ -1496,8 +1538,9 @@ async function checkForAppUpdate(isManual = false) {
         }
 
         setTimeout(() => {
-          window.location.reload(true);
-        }, 1000);
+          saveDraftToStorage();
+          window.location.reload();
+        }, 800);
       } else {
         if (isManual) alert(`お使いのアプリは最新バージョンです (v${latestVer})`);
       }
@@ -1538,54 +1581,358 @@ function showUpdateToast(msg) {
   toast.innerText = msg;
 }
 
-// 画面復帰時のチェック（バックグラウンドズレ即時解消 ＆ アプリ自動更新チェック）
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    checkForAppUpdate(false);
-  }
-  if (!document.hidden && activeTimer.intervalId) {
-    checkTimerTick();
-  }
-});
+function getTodayDateString() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getDefaultRoutineByDay(dateObj = new Date()) {
+  const dayOfWeek = dateObj.getDay(); // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
+  if (dayOfWeek === 0 || dayOfWeek === 4) return "jog";
+  if (dayOfWeek === 2 || dayOfWeek === 6) return "sub";
+  return "main";
+}
 
 // 初期化
 function initApp() {
+  // ブラウザのストレージ自動削除を防止 (Persistent Storage)
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
+
   const dateInput = document.getElementById("input-date");
   if (dateInput && !dateInput.value) {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    dateInput.value = `${yyyy}-${mm}-${dd}`;
-
-    // 曜日に応じてタブ自動選択 (木・日ならジョグ、火・土なら補助、月・水・金ならメイン)
-    const dayOfWeek = today.getDay(); // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
-    if (dayOfWeek === 0 || dayOfWeek === 4) {
-      currentRoutineKey = "jog";
-    } else if (dayOfWeek === 2 || dayOfWeek === 6) {
-      currentRoutineKey = "sub";
-    } else {
-      currentRoutineKey = "main";
-    }
+    dateInput.value = getTodayDateString();
+    currentRoutineKey = getDefaultRoutineByDay(new Date());
   }
 
   workoutStartTime = new Date();
   initNotificationService();
   initTimerWorker();
   loadStateFromStorage();
+  bindInputPersistenceListeners();
   updateTabUI();
   renderWorkout();
   checkForAppUpdate(false);
 }
 
+// メモ欄・日付欄・画面遷移時のリアルタイム自動保存リスナー
+function bindInputPersistenceListeners() {
+  const memoEl = document.getElementById("input-memo");
+  if (memoEl) {
+    memoEl.addEventListener("input", () => {
+      draftModified = true;
+      isDraftSavedToCloud = false;
+      saveDraftToStorage();
+    });
+    memoEl.addEventListener("change", () => {
+      draftModified = true;
+      isDraftSavedToCloud = false;
+      saveDraftToStorage();
+    });
+  }
+  const dateEl = document.getElementById("input-date");
+  if (dateEl) {
+    dateEl.addEventListener("input", () => {
+      saveDraftToStorage();
+    });
+    dateEl.addEventListener("change", () => {
+      saveDraftToStorage();
+    });
+  }
+  window.addEventListener("pagehide", () => {
+    saveDraftToStorage();
+  });
+  window.addEventListener("beforeunload", () => {
+    saveDraftToStorage();
+  });
+  window.addEventListener("blur", () => {
+    saveDraftToStorage();
+  });
+  window.addEventListener("storage", (e) => {
+    // 別タブ等で更新された場合にも最新の下書きを同期
+    if (e.key === "workout_draft_v1" && e.newValue && document.visibilityState === "visible") {
+      try {
+        const externalDraft = JSON.parse(e.newValue);
+        if (externalDraft && externalDraft.updatedAt) {
+          applyDraftObject(externalDraft);
+          updateTabUI();
+          renderWorkout();
+        }
+      } catch (err) {}
+    }
+  });
+}
+
+// 入力中の全状態（回数・チェック状態・RIR・メモ・タブ・稼働中タイマー）を即座に永続化
+function saveDraftToStorage() {
+  try {
+    const dateEl = document.getElementById("input-date");
+    const memoEl = document.getElementById("input-memo");
+    const todayStr = getTodayDateString();
+    const draft = {
+      version: 1,
+      todayDate: todayStr,
+      inputDate: (dateEl && dateEl.value) ? dateEl.value : todayStr,
+      updatedAt: Date.now(),
+      isSaved: isDraftSavedToCloud,
+      draftModified: draftModified,
+      currentRoutineKey: currentRoutineKey,
+      currentRIR: currentRIR,
+      currentCardioRPE: currentCardioRPE,
+      memo: memoEl ? memoEl.value : "",
+      workoutStartTime: workoutStartTime ? workoutStartTime.getTime() : Date.now(),
+      workoutState: workoutState,
+      completedSets: completedSets,
+      jogWeatherMode: jogWeatherMode,
+      sunnyJogMinutes: sunnyJogMinutes,
+      rainyJogMinutes: rainyJogMinutes,
+      activeTimer: {
+        pairId: activeTimer.pairId,
+        targetTime: activeTimer.targetTime,
+        remainingSec: activeTimer.remainingSec,
+        wasFinished: activeTimer.wasFinished,
+        isRunning: !!activeTimer.intervalId
+      },
+      sunnyTimerState: {
+        isRunning: sunnyTimerState.isRunning,
+        startTime: sunnyTimerState.startTime,
+        accumulatedSec: getSunnyCurrentSec()
+      },
+      rainyTimerState: {
+        isRunning: rainyTimerState.isRunning,
+        targetEndTime: rainyTimerState.targetEndTime,
+        remainingSec: rainyTimerState.remainingSec,
+        done: rainyTimerState.done
+      }
+    };
+    const serialized = JSON.stringify(draft);
+    localStorage.setItem("workout_draft_v1", serialized);
+    try {
+      sessionStorage.setItem("workout_draft_v1", serialized);
+    } catch (se) {}
+  } catch (e) {
+    console.warn("Draft save error:", e);
+  }
+}
+
+// 前日以前に保存ボタンを押し忘れた未保存ドラフトがあれば端末内バックアップ履歴へ救出
+function archiveForgottenDraftIfNeeded(draft) {
+  try {
+    if (!draft || draft.isSaved) return;
+    const hasChecked = draft.completedSets && Object.values(draft.completedSets).some(Boolean);
+    if (!hasChecked || !draft.workoutState) return;
+    const rKey = (draft.currentRoutineKey === "sub") ? "sub" : "main";
+    const routine = ROUTINES[rKey];
+    if (!routine || !routine.pairs.length) return;
+    const exercisesData = [];
+    routine.pairs.forEach((pair, pIdx) => {
+      const symbol = rKey === "main" ? (pIdx === 0 ? "①" : "②") : (pIdx === 0 ? "③" : "④");
+      [pair.exA, pair.exB].forEach(exDef => {
+        const s = draft.workoutState[exDef.key];
+        if (!s) return;
+        const repsTotal = s.reps.reduce((a, b) => a + b, 0);
+        const repsDetails = s.reps.join("/");
+        let loadKg = s.weight;
+        let loadDetails = `${s.weight}kg`;
+        if (s.isPullup) {
+          loadDetails = s.weight === 0 ? "自重" : `自重+${s.weight}kg`;
+        } else if (s.mode === "×2") {
+          loadKg = s.weight * 2;
+          loadDetails = `${s.weight}kg×2`;
+        }
+        exercisesData.push({
+          exercise: s.name,
+          load_kg: loadKg,
+          load_details: loadDetails,
+          sets: 3,
+          reps_total: repsTotal,
+          reps_details: repsDetails,
+          target_rir: 1,
+          actual_rir: draft.currentRIR !== undefined ? draft.currentRIR : 1,
+          superset_group: symbol,
+          notes: ""
+        });
+      });
+    });
+    if (exercisesData.length > 0) {
+      saveToLocalHistory({
+        version: 1,
+        date: draft.inputDate || draft.todayDate,
+        created_at: new Date(draft.updatedAt || Date.now()).toISOString(),
+        routine_type: routine.name,
+        duration_min: 25,
+        exercises: exercisesData,
+        memo: draft.memo ? `${draft.memo} (自動救出バックアップ)` : "(未送信データの自動救出バックアップ)"
+      });
+    }
+  } catch (e) {
+    console.warn("Archive forgotten draft error:", e);
+  }
+}
+
+function applyDraftObject(draft) {
+  isDraftSavedToCloud = !!draft.isSaved;
+  draftModified = !!draft.draftModified;
+
+  if (draft.currentRoutineKey && ROUTINES[draft.currentRoutineKey]) {
+    currentRoutineKey = draft.currentRoutineKey;
+  }
+  if (draft.currentRIR !== undefined) {
+    setRIR(draft.currentRIR, false);
+  }
+  if (draft.currentCardioRPE) {
+    setCardioRPE(draft.currentCardioRPE, false);
+  }
+
+  const dateInput = document.getElementById("input-date");
+  if (dateInput && draft.inputDate) {
+    dateInput.value = draft.inputDate;
+  }
+  const memoInput = document.getElementById("input-memo");
+  if (memoInput && draft.memo !== undefined) {
+    memoInput.value = draft.memo;
+  }
+  if (draft.workoutStartTime) {
+    workoutStartTime = new Date(draft.workoutStartTime);
+  }
+
+  if (draft.workoutState && typeof draft.workoutState === "object") {
+    for (const exKey in workoutState) {
+      const ds = draft.workoutState[exKey];
+      if (ds) {
+        if (ds.weight !== undefined) {
+          workoutState[exKey].weight = ds.weight;
+        }
+        if (Array.isArray(ds.reps) && ds.reps.length === 3) {
+          workoutState[exKey].reps = [...ds.reps];
+        }
+      }
+    }
+  }
+
+  if (draft.completedSets && typeof draft.completedSets === "object") {
+    completedSets = { ...draft.completedSets };
+  }
+
+  if (draft.jogWeatherMode) {
+    jogWeatherMode = draft.jogWeatherMode;
+  }
+  if (draft.sunnyJogMinutes) {
+    sunnyJogMinutes = draft.sunnyJogMinutes;
+  }
+  if (draft.rainyJogMinutes) {
+    rainyJogMinutes = draft.rainyJogMinutes;
+    const el = document.getElementById("rainy-duration-text");
+    if (el) el.innerText = rainyJogMinutes + "分";
+    const targetInfo = document.getElementById("rainy-target-info");
+    if (targetInfo) targetInfo.innerText = `目標: ${rainyJogMinutes}分 (Zone 2)`;
+  }
+
+  // 稼働中だった筋トレ休憩タイマーの復元
+  if (draft.activeTimer && draft.activeTimer.pairId) {
+    if (draft.activeTimer.isRunning && draft.activeTimer.targetTime) {
+      const rem = Math.max(0, Math.round((draft.activeTimer.targetTime - Date.now()) / 1000));
+      if (rem > 0) {
+        activeTimer.pairId = draft.activeTimer.pairId;
+        activeTimer.remainingSec = rem;
+        activeTimer.targetTime = draft.activeTimer.targetTime;
+        activeTimer.wasFinished = false;
+        requestWakeLock();
+        if (timerWorker) {
+          timerWorker.postMessage({ action: "start", targetTime: activeTimer.targetTime });
+        }
+        if (activeTimer.intervalId) clearInterval(activeTimer.intervalId);
+        activeTimer.intervalId = setInterval(() => {
+          checkTimerTick();
+        }, 1000);
+      } else {
+        activeTimer.pairId = draft.activeTimer.pairId;
+        activeTimer.remainingSec = 0;
+        activeTimer.targetTime = null;
+        activeTimer.wasFinished = true;
+      }
+    } else if (draft.activeTimer.wasFinished) {
+      activeTimer.pairId = draft.activeTimer.pairId;
+      activeTimer.remainingSec = 0;
+      activeTimer.targetTime = null;
+      activeTimer.wasFinished = true;
+    }
+  }
+
+  // 晴れジョグタイマーの復元
+  if (draft.sunnyTimerState) {
+    sunnyTimerState.accumulatedSec = draft.sunnyTimerState.accumulatedSec || 0;
+    if (draft.sunnyTimerState.isRunning) {
+      sunnyTimerState.isRunning = true;
+      sunnyTimerState.startTime = Date.now();
+      requestWakeLock();
+      if (sunnyTimerState.intervalId) clearInterval(sunnyTimerState.intervalId);
+      sunnyTimerState.intervalId = setInterval(updateSunnyDisplay, 500);
+      const btn = document.getElementById("sunny-timer-btn");
+      if (btn) {
+        btn.innerHTML = "⏸️ 一時停止";
+        btn.className = "jog-ctrl-btn btn-primary running";
+      }
+    } else if (sunnyTimerState.accumulatedSec > 0) {
+      const btn = document.getElementById("sunny-timer-btn");
+      if (btn) {
+        btn.innerHTML = "⏱️ タイマー再開";
+        btn.className = "jog-ctrl-btn btn-primary";
+      }
+    }
+    updateSunnyDisplay();
+  }
+
+  // 雨天室内スロージョグタイマーの復元
+  if (draft.rainyTimerState) {
+    rainyTimerState.done = !!draft.rainyTimerState.done;
+    rainyTimerState.remainingSec = draft.rainyTimerState.remainingSec !== undefined
+      ? draft.rainyTimerState.remainingSec
+      : rainyJogMinutes * 60;
+    if (draft.rainyTimerState.isRunning && draft.rainyTimerState.targetEndTime) {
+      const rem = Math.max(0, Math.round((draft.rainyTimerState.targetEndTime - Date.now()) / 1000));
+      if (rem > 0) {
+        rainyTimerState.remainingSec = rem;
+        rainyTimerState.isRunning = true;
+        rainyTimerState.targetEndTime = draft.rainyTimerState.targetEndTime;
+        requestWakeLock();
+        if (rainyTimerState.intervalId) clearInterval(rainyTimerState.intervalId);
+        rainyTimerState.intervalId = setInterval(checkRainyTick, 500);
+        const btn = document.getElementById("rainy-timer-btn");
+        if (btn) {
+          btn.innerHTML = "⏸️ 一時停止";
+          btn.className = "jog-ctrl-btn btn-primary running";
+        }
+      } else {
+        rainyTimerState.remainingSec = 0;
+        rainyTimerState.isRunning = false;
+        rainyTimerState.targetEndTime = null;
+        rainyTimerState.done = true;
+      }
+    }
+    updateRainyDisplay();
+  }
+}
+
 function loadStateFromStorage() {
-  const savedWeights = localStorage.getItem("workout_weights_v1");
-  const parsedWeights = savedWeights ? JSON.parse(savedWeights) : {};
+  let parsedWeights = {};
+  try {
+    const savedWeights = localStorage.getItem("workout_weights_v1");
+    parsedWeights = savedWeights ? JSON.parse(savedWeights) : {};
+  } catch (e) {}
 
-  const savedReps = localStorage.getItem("workout_last_reps_v1");
-  lastSavedReps = savedReps ? JSON.parse(savedReps) : {};
+  try {
+    const savedReps = localStorage.getItem("workout_last_reps_v1");
+    lastSavedReps = savedReps ? JSON.parse(savedReps) : {};
+  } catch (e) {
+    lastSavedReps = {};
+  }
 
-  // 全種目の状態を構築
+  // 全種目の基準状態を構築
   ["main", "sub"].forEach(rKey => {
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
@@ -1601,8 +1948,45 @@ function loadStateFromStorage() {
       });
     });
   });
+
+  // 進行中または当日の下書きデータ (workout_draft_v1) があれば完全復元
+  try {
+    const rawDraft = localStorage.getItem("workout_draft_v1") || sessionStorage.getItem("workout_draft_v1");
+    if (rawDraft) {
+      const draft = JSON.parse(rawDraft);
+      const todayStr = getTodayDateString();
+      const ageMs = Date.now() - (draft.updatedAt || 0);
+      const isSameDay = (draft.todayDate === todayStr || draft.inputDate === todayStr);
+      const hasUnsavedWork = !draft.isSaved && (
+        draft.draftModified ||
+        (draft.completedSets && Object.values(draft.completedSets).some(Boolean)) ||
+        (draft.memo && draft.memo.trim().length > 0)
+      );
+      // 当日のデータ、または18時間以内の未保存データは完全復元（深夜跨ぎや別ブラウザ閲覧後の復帰に対応）
+      if (isSameDay || (hasUnsavedWork && ageMs < 18 * 3600 * 1000)) {
+        applyDraftObject(draft);
+      } else {
+        // 前日以前の未保存データがあれば履歴バックアップへ自動救出してから新セッション開始
+        archiveForgottenDraftIfNeeded(draft);
+        localStorage.removeItem("workout_draft_v1");
+        try { sessionStorage.removeItem("workout_draft_v1"); } catch (se) {}
+      }
+    }
+  } catch (e) {
+    console.warn("Draft load error:", e);
+  }
 }
 
+// 重量のみ永続化（種目別重量変更時：前回回数バッジ lastSavedReps を上書きしない）
+function saveWeightsToStorage() {
+  const weightsOnly = {};
+  for (let k in workoutState) {
+    weightsOnly[k] = workoutState[k].weight;
+  }
+  localStorage.setItem("workout_weights_v1", JSON.stringify(weightsOnly));
+}
+
+// トレーニング完了・保存時の基準値更新
 function saveStateToStorage() {
   const weightsOnly = {};
   const repsOnly = {};
@@ -1612,12 +1996,50 @@ function saveStateToStorage() {
   }
   localStorage.setItem("workout_weights_v1", JSON.stringify(weightsOnly));
   localStorage.setItem("workout_last_reps_v1", JSON.stringify(repsOnly));
+  lastSavedReps = JSON.parse(JSON.stringify(repsOnly));
+}
+
+// 設定画面から本日の入力・チェック状態を手動リセットする機能
+function resetTodayDraftManual() {
+  if (!confirm("本日の完了チェック（✓）や入力中の回数を初期状態（前回値）にリセットしますか？")) {
+    return;
+  }
+  stopTimer();
+  stopJogTimers();
+  completedSets = {};
+  isDraftSavedToCloud = false;
+  draftModified = false;
+  workoutStartTime = new Date();
+  const memoEl = document.getElementById("input-memo");
+  if (memoEl) memoEl.value = "";
+  const dateEl = document.getElementById("input-date");
+  if (dateEl) dateEl.value = getTodayDateString();
+  setRIR(1, false);
+  setCardioRPE("optimal", false);
+
+  ["main", "sub"].forEach(rKey => {
+    ROUTINES[rKey].pairs.forEach(p => {
+      [p.exA, p.exB].forEach(ex => {
+        const lastR = lastSavedReps[ex.key];
+        if (workoutState[ex.key]) {
+          workoutState[ex.key].reps = (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps];
+        }
+      });
+    });
+  });
+
+  localStorage.removeItem("workout_draft_v1");
+  try { sessionStorage.removeItem("workout_draft_v1"); } catch (se) {}
+  saveDraftToStorage();
+  renderWorkout();
+  closeSettingsModal();
 }
 
 function switchRoutine(routineKey) {
   currentRoutineKey = routineKey;
   stopTimer();
   stopJogTimers();
+  saveDraftToStorage();
   updateTabUI();
   renderWorkout();
 }
@@ -1814,14 +2236,15 @@ function toggleCheck(exKey, setIdx, pairId, isLastExercise) {
   const key = `${exKey}_${setIdx}`;
   const nowDone = !completedSets[key];
   completedSets[key] = nowDone;
+  draftModified = true;
+  isDraftSavedToCloud = false;
 
   if (navigator.vibrate) navigator.vibrate(25);
 
-  // 初回チェック時に通知許可をリクエスト & オーディオ再生権限を事前アンロック
+  // 初回チェック時に通知許可をリクエスト（オーディオは一切再生せず他アプリの音楽音量を維持）
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
-  unlockAlarmAudio();
 
   // 各セットの最後の種目（exB）を完了（ON）にした時だけタイマーを自動スタート
   if (nowDone && isLastExercise && pairId) {
@@ -1833,9 +2256,11 @@ function toggleCheck(exKey, setIdx, pairId, isLastExercise) {
 
     if (!isWorkoutFinished) {
       startTimer(pairId);
+      return;
     }
   }
 
+  saveDraftToStorage();
   renderWorkout();
 }
 
@@ -1849,6 +2274,7 @@ function adjustTimerDuration(delta) {
     activeTimer.remainingSec = next * 60;
     activeTimer.wasFinished = false;
   }
+  saveDraftToStorage();
   renderWorkout();
 }
 
@@ -1857,6 +2283,7 @@ function toggleTimer(pairId) {
   if (activeTimer.intervalId) {
     if (activeTimer.pairId === pairId) {
       stopTimer();
+      saveDraftToStorage();
       renderWorkout();
       return;
     } else {
@@ -1879,7 +2306,6 @@ function updateTimerDisplay(remaining) {
 function startTimer(pairId) {
   stopTimer();
   requestWakeLock();
-  unlockAlarmAudio();
   const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
   activeTimer.pairId = pairId;
   activeTimer.remainingSec = mins * 60;
@@ -1901,6 +2327,7 @@ function startTimer(pairId) {
     checkTimerTick();
   }, 1000);
 
+  saveDraftToStorage();
   renderWorkout();
 }
 
@@ -1921,9 +2348,11 @@ function checkTimerTick() {
 function onTimerFinished() {
   stopTimer();
   activeTimer.wasFinished = true;
+  activeTimer.remainingSec = 0;
   playAlarmSound();
   if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
   triggerPopupNotification();
+  saveDraftToStorage();
   renderWorkout();
 }
 
@@ -1941,62 +2370,57 @@ function stopTimer() {
   }
 }
 
-// 終了アラーム音再生（Audio要素でバックグラウンド対応、Web Audio APIをフォールバック）
+// 終了アラーム音再生（音楽プレイヤーの邪魔をしないWeb Audio API短音再生＋即座にAudioContextを破棄）
 function playAlarmSound() {
-  let played = false;
-  try {
-    const audio = document.getElementById("timer-alarm-audio");
-    if (audio) {
-      audio.volume = 1.0;
-      audio.currentTime = 0;
-      const promise = audio.play();
-      if (promise !== undefined) {
-        promise.then(() => {
-          played = true;
-        }).catch(() => {
-          playBeepWebAudio();
-        });
-      }
-    } else {
-      playBeepWebAudio();
-    }
-  } catch (e) {
-    playBeepWebAudio();
-  }
-  setTimeout(() => {
-    if (!played) playBeepWebAudio();
-  }, 350);
+  playBeepWebAudio();
 }
 
 function playBeepWebAudio() {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume();
+    // 音楽アプリとのミキシング指定（対応ブラウザでAudio Ducking/停止を防止）
+    if (navigator.audioSession) {
+      try { navigator.audioSession.type = "ambient"; } catch (e) {}
     }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.25);
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audioCtx = new AudioContextClass();
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume().catch(() => {});
+    }
 
-    setTimeout(() => {
-      try {
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(1174.66, audioCtx.currentTime); // D6
-        gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + 0.35);
-      } catch (e) {}
-    }, 280);
+    const now = audioCtx.currentTime;
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(880, now); // A5
+    gain1.gain.setValueAtTime(0.25, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+    osc1.start(now);
+    osc1.stop(now + 0.25);
+
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(1174.66, now + 0.28); // D6
+    gain2.gain.setValueAtTime(0.001, now);
+    gain2.gain.setValueAtTime(0.25, now + 0.28);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.62);
+    osc2.start(now + 0.28);
+    osc2.stop(now + 0.63);
+
+    // 再生終了後に即座にAudioContextをcloseしてOSのオーディオフォーカス・ストリームを完全解放
+    let closed = false;
+    const closeCtx = () => {
+      if (closed) return;
+      closed = true;
+      try { audioCtx.close().catch(() => {}); } catch (e) {}
+    };
+    osc2.onended = closeCtx;
+    setTimeout(closeCtx, 700);
   } catch (e) {
     console.log("Web Audio play error", e);
   }
@@ -2007,6 +2431,9 @@ function adjustReps(exKey, setIdx, delta) {
   let cur = workoutState[exKey].reps[setIdx];
   let next = Math.max(0, cur + delta);
   workoutState[exKey].reps[setIdx] = next;
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveDraftToStorage();
   renderWorkout();
 }
 
@@ -2017,6 +2444,9 @@ function promptReps(exKey, setIdx) {
     const val = parseInt(input, 10);
     if (!isNaN(val) && val >= 0) {
       workoutState[exKey].reps[setIdx] = val;
+      draftModified = true;
+      isDraftSavedToCloud = false;
+      saveDraftToStorage();
       renderWorkout();
     }
   }
@@ -2057,7 +2487,10 @@ function openWeightModal(exKey) {
 function selectWeight(weight) {
   if (activeModalExKey) {
     workoutState[activeModalExKey].weight = weight;
-    saveStateToStorage();
+    draftModified = true;
+    isDraftSavedToCloud = false;
+    saveWeightsToStorage();
+    saveDraftToStorage();
     renderWorkout();
   }
   closeWeightModal();
@@ -2072,7 +2505,7 @@ function closeWeightModal() {
 let lastExportData = null;
 
 function saveAndExport() {
-  const dateStr = document.getElementById("input-date").value || new Date().toISOString().slice(0, 10);
+  const dateStr = document.getElementById("input-date").value || getTodayDateString();
   
   // 経過時間を自動計算（最低5分以上なら実測、それ未満なら標準25分）
   const elapsedMin = workoutStartTime ? Math.round((new Date() - workoutStartTime) / 60000) : 0;
@@ -2083,6 +2516,8 @@ function saveAndExport() {
   saveStateToStorage();
   stopTimer();
   stopJogTimers();
+  isDraftSavedToCloud = true;
+  saveDraftToStorage();
 
   const routine = ROUTINES[currentRoutineKey];
   const exercisesData = [];
@@ -2375,14 +2810,7 @@ function copySummaryText() {
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
-}
-
 // ==================== 画面消灯防止 (Wake Lock API) ＆ ジョグ管理ロジック ====================
-let wakeLockSentinel = null;
 
 async function requestWakeLock() {
   if ('wakeLock' in navigator) {
@@ -2419,27 +2847,25 @@ function checkAnyTimerRunning() {
 }
 
 // 有酸素用 Zone 2 きつさセレクター
-let currentCardioRPE = "optimal"; // easy | optimal | hard
-
-function setCardioRPE(val) {
+function setCardioRPE(val, shouldSave = true) {
   currentCardioRPE = val;
   ["easy", "optimal", "hard"].forEach(k => {
     const btn = document.getElementById("rpe-btn-" + k);
     if (btn) btn.className = "rir-btn " + (k === val ? "active" : "");
   });
-  if (navigator.vibrate) navigator.vibrate(20);
+  if (shouldSave) {
+    if (navigator.vibrate) navigator.vibrate(20);
+    draftModified = true;
+    isDraftSavedToCloud = false;
+    saveDraftToStorage();
+  }
 }
 
 // ==================== BPM 180 メトロノーム (Web Audio API 高精度スケジューラ) ====================
-let metronomeAudioCtx = null;
-let isMetronomeRunning = false;
-let metronomeNextTime = 0.0;
-let metronomeTimerId = null;
-const METRONOME_BPM = 180;
-const LOOKAHEAD_MS = 25.0;
-const SCHEDULE_AHEAD_TIME = 0.1;
-
 function getMetronomeAudioContext() {
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "ambient"; } catch (e) {}
+  }
   if (!metronomeAudioCtx) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
@@ -2447,7 +2873,7 @@ function getMetronomeAudioContext() {
     }
   }
   if (metronomeAudioCtx && metronomeAudioCtx.state === "suspended") {
-    metronomeAudioCtx.resume();
+    metronomeAudioCtx.resume().catch(() => {});
   }
   return metronomeAudioCtx;
 }
@@ -2497,11 +2923,14 @@ function startMetronome() {
 }
 
 function stopMetronome() {
-  if (!isMetronomeRunning) return;
   isMetronomeRunning = false;
   if (metronomeTimerId) {
     clearTimeout(metronomeTimerId);
     metronomeTimerId = null;
+  }
+  if (metronomeAudioCtx) {
+    try { metronomeAudioCtx.close().catch(() => {}); } catch (e) {}
+    metronomeAudioCtx = null;
   }
   updateMetronomeUI();
   if (!checkAnyTimerRunning()) {
@@ -2529,26 +2958,6 @@ function updateMetronomeUI() {
   }
 }
 
-// 状態変数（絶対時刻基準）
-let jogWeatherMode = localStorage.getItem("jog_weather_mode") || "sunny";
-let sunnyJogMinutes = 20;
-
-let sunnyTimerState = {
-  isRunning: false,
-  startTime: null,
-  accumulatedSec: 0,
-  intervalId: null
-};
-
-let rainyJogMinutes = 21; // デフォルト21分
-let rainyTimerState = {
-  isRunning: false,
-  targetEndTime: null,
-  remainingSec: 21 * 60,
-  intervalId: null,
-  done: false
-};
-
 function renderJogView() {
   setJogWeather(jogWeatherMode, false);
 }
@@ -2558,7 +2967,10 @@ function setJogWeather(mode, save = true) {
     stopJogTimers();
   }
   jogWeatherMode = mode;
-  if (save) localStorage.setItem("jog_weather_mode", mode);
+  if (save) {
+    localStorage.setItem("jog_weather_mode", mode);
+    saveDraftToStorage();
+  }
 
   const sunnyBtn = document.getElementById("weather-sunny-btn");
   const rainyBtn = document.getElementById("weather-rainy-btn");
@@ -2618,6 +3030,9 @@ function toggleSunnyTimer() {
       btn.className = "jog-ctrl-btn btn-primary running";
     }
   }
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveDraftToStorage();
 }
 
 function resetSunnyTimer() {
@@ -2635,6 +3050,7 @@ function resetSunnyTimer() {
     btn.className = "jog-ctrl-btn btn-primary";
   }
   if (!checkAnyTimerRunning()) releaseWakeLock();
+  saveDraftToStorage();
 }
 
 function updateSunnyDisplay() {
@@ -2669,6 +3085,7 @@ function checkRainyTick() {
       timerBtn.className = "jog-ctrl-btn btn-primary";
     }
     if (!checkAnyTimerRunning()) releaseWakeLock();
+    saveDraftToStorage();
   }
 }
 
@@ -2710,6 +3127,9 @@ function toggleRainyTimer() {
       startMetronome();
     }
   }
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveDraftToStorage();
 }
 
 function resetRainyTimer() {
@@ -2729,6 +3149,7 @@ function resetRainyTimer() {
     btn.className = "jog-ctrl-btn btn-primary";
   }
   if (!checkAnyTimerRunning()) releaseWakeLock();
+  saveDraftToStorage();
 }
 
 function updateRainyDisplay() {
@@ -2754,6 +3175,7 @@ function adjustRainyDuration(delta) {
   if (el) el.innerText = rainyJogMinutes + "分";
   const targetInfo = document.getElementById("rainy-target-info");
   if (targetInfo) targetInfo.innerText = `目標: ${rainyJogMinutes}分 (Zone 2)`;
+  saveDraftToStorage();
 }
 
 function stopJogTimers() {
@@ -2778,16 +3200,26 @@ function stopJogTimers() {
   }
 }
 
-// スリープ復帰時 (画面再表示時) の自動同期 ＆ Wake Lock 再取得
-document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'visible') {
+// 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "hidden") {
+    saveDraftToStorage();
+  } else if (document.visibilityState === "visible") {
+    if (activeTimer.intervalId) checkTimerTick();
     if (sunnyTimerState.isRunning) updateSunnyDisplay();
     if (rainyTimerState.isRunning) checkRainyTick();
     if (checkAnyTimerRunning()) {
       await requestWakeLock();
     }
+    checkForAppUpdate(false);
   }
 });
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 </script>
 </body>
 </html>
