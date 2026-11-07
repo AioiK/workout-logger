@@ -109,7 +109,7 @@
 
   .tab-btn {
     flex: 1;
-    padding: 8px 2px;
+    padding: 8px 1px;
     border: none;
     background: transparent;
     color: var(--text-secondary);
@@ -121,24 +121,35 @@
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
+    min-width: 0;
   }
 
   .tab-btn .tab-title {
-    font-size: 0.95rem;
+    font-size: 0.84rem;
     font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .tab-btn .tab-days {
-    font-size: 0.65rem;
+    font-size: 0.58rem;
     font-weight: 500;
-    opacity: 0.8;
+    opacity: 0.85;
     margin-top: 2px;
+    white-space: nowrap;
   }
 
   .tab-btn.active {
     background: var(--accent-indigo);
     color: #fff;
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  }
+
+  .tab-btn.stretch-active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.45);
   }
 
   /* Jog & Cardio Styles */
@@ -934,6 +945,412 @@
     font-size: 0.7rem;
     cursor: pointer;
   }
+
+  /* ==================== 夜ストレッチ専用スタイル ==================== */
+  .stretch-quick-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 100%);
+    border: 1px solid #4338ca;
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px rgba(30, 27, 75, 0.4);
+  }
+
+  .stretch-quick-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .stretch-badge-moon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(168, 85, 247, 0.2);
+    color: #d8b4fe;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+  }
+
+  .stretch-status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--text-secondary);
+    border: 1px solid #475569;
+  }
+
+  .stretch-status-badge.completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border-color: #059669;
+  }
+
+  .stretch-metronome-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+  }
+
+  .stretch-metro-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid #475569;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+
+  .stretch-metro-btn.active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-color: #a855f7;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+  }
+
+  .breathe-guide-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 90px;
+  }
+
+  .breathe-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #c084fc 0%, #6366f1 100%);
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+    opacity: 0.7;
+    transition: transform 0.2s;
+  }
+
+  .breathe-circle.animated {
+    animation: breatheCycle 10s ease-in-out infinite;
+  }
+
+  @keyframes breatheCycle {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1.35); opacity: 1; filter: drop-shadow(0 0 12px #c084fc); }
+    100% { transform: scale(0.8); opacity: 0.5; }
+  }
+
+  .breathe-label {
+    font-size: 0.65rem;
+    color: #a5b4fc;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* プレイヤーカード */
+  .stretch-card {
+    background: var(--bg-card);
+    border: 1px solid #3730a3;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stretch-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #a855f7, #6366f1, #38bdf8);
+  }
+
+  .stretch-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .stretch-step-idx {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #a855f7;
+    letter-spacing: 0.5px;
+  }
+
+  .stretch-phase-tag {
+    font-size: 0.72rem;
+    background: rgba(99, 102, 241, 0.15);
+    color: #c7d2fe;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .stretch-ex-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 4px;
+  }
+
+  .stretch-target-desc {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 12px;
+  }
+
+  /* 左右インジケーター */
+  .stretch-side-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .side-chip {
+    flex: 1;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    color: var(--text-muted);
+    transition: all 0.2s;
+  }
+
+  .side-chip.active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-color: #a855f7;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+  }
+
+  /* タイマー数値 */
+  .stretch-timer-display {
+    font-size: 3.4rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: #f8fafc;
+    margin: 8px 0 4px 0;
+    letter-spacing: 2px;
+  }
+
+  .stretch-timer-display.interval-mode {
+    color: #f59e0b;
+    animation: timerPulse 0.8s infinite;
+  }
+
+  .stretch-interval-notice {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fbbf24;
+    margin-bottom: 10px;
+  }
+
+  /* コントロールボタン群 */
+  .stretch-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    margin: 14px 0;
+  }
+
+  .stretch-ctrl-main {
+    flex: 2;
+    padding: 13px 18px;
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+
+  .stretch-ctrl-main.running {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  }
+
+  .stretch-ctrl-sub {
+    flex: 1;
+    padding: 13px 8px;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-weight: 700;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+
+  .stretch-ctrl-sub:active, .stretch-ctrl-main:active {
+    transform: scale(0.97);
+  }
+
+  .stretch-next-preview {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid #334155;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    color: #a5b4fc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .stretch-instruction-box {
+    background: rgba(30, 41, 59, 0.7);
+    border-left: 3px solid #8b5cf6;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    line-height: 1.45;
+  }
+
+  /* シークエンス一覧 */
+  .stretch-list-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .stretch-list-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-card);
+  }
+
+  .stretch-total-time {
+    font-size: 0.75rem;
+    color: #818cf8;
+    font-weight: 600;
+  }
+
+  .stretch-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stretch-list-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg-card-sub);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+  }
+
+  .stretch-list-row.active {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: #8b5cf6;
+  }
+
+  .stretch-list-row.completed {
+    opacity: 0.75;
+  }
+
+  .stretch-row-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .stretch-check-mark {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: transparent;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .stretch-list-row.completed .stretch-check-mark {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+    font-weight: 800;
+  }
+
+  .stretch-row-name-wrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .stretch-row-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stretch-row-meta {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .stretch-row-duration {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -963,6 +1380,10 @@
   <button class="tab-btn" id="tab-jog" onclick="switchRoutine('jog')">
     <span class="tab-title">ジョグ</span>
     <span class="tab-days">木・日</span>
+  </button>
+  <button class="tab-btn" id="tab-stretch" onclick="switchRoutine('stretch')">
+    <span class="tab-title">夜ストレッチ</span>
+    <span class="tab-days">毎日・就寝前</span>
   </button>
 </div>
 
@@ -1052,6 +1473,79 @@
         <span class="jog-duration-val" id="rainy-duration-text">21分</span>
         <button type="button" class="stepper-btn" onclick="adjustRainyDuration(1)">＋</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stretch Container (夜ストレッチ用) -->
+<div id="stretch-container" style="display:none;">
+  <!-- クイックバー：メトロノーム＆呼吸サークル -->
+  <div class="stretch-quick-card">
+    <div class="stretch-quick-header">
+      <div class="stretch-badge-moon">🌙 就寝前リセット（約10〜12分）</div>
+      <div id="stretch-status-badge" class="stretch-status-badge">未実施</div>
+    </div>
+    <div class="stretch-metronome-box">
+      <button type="button" class="stretch-metro-btn" id="stretch-metro-toggle-btn" onclick="toggleStretchMetronome()">
+        <span class="metro-icon">🎵</span>
+        <span class="metro-text">BPM 60 メトロノーム: <strong id="stretch-metro-status">OFF</strong></span>
+      </button>
+      <div class="breathe-guide-wrap">
+        <div class="breathe-circle" id="breathe-circle"></div>
+        <div class="breathe-label" id="breathe-label">吸う(4秒) / 吐く(6秒)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- プレイヤーカード -->
+  <div class="stretch-card" id="stretch-player-card">
+    <div class="stretch-card-top">
+      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/8</span>
+      <span class="stretch-phase-tag" id="stretch-phase-tag">四つん這い</span>
+    </div>
+
+    <div class="stretch-ex-name" id="stretch-ex-name">キャット＆カウ</div>
+    <div class="stretch-target-desc" id="stretch-target-desc">脊柱全体・自律神経のリセット</div>
+
+    <!-- 左右インジケーター（左右がある種目のみ表示） -->
+    <div class="stretch-side-indicator" id="stretch-side-indicator" style="display:none;">
+      <span class="side-chip" id="side-chip-left">LEFT 左側</span>
+      <span class="side-chip" id="side-chip-right">RIGHT 右側</span>
+    </div>
+
+    <!-- タイマーディスプレイ -->
+    <div class="stretch-timer-display" id="stretch-timer-display">00:40</div>
+    <div class="stretch-interval-notice" id="stretch-interval-notice" style="display:none;">
+      🔔 準備・体勢を整えてください
+    </div>
+
+    <!-- コントロールボタン群 -->
+    <div class="stretch-controls">
+      <button type="button" class="stretch-ctrl-sub" onclick="prevStretchStep()" title="前の種目へ">⏮ 前へ</button>
+      <button type="button" class="stretch-ctrl-main" id="stretch-play-btn" onclick="toggleStretchPlay()">
+        ▶ スタート
+      </button>
+      <button type="button" class="stretch-ctrl-sub" onclick="nextStretchStep()" title="次の種目へ">次へ ⏭</button>
+      <button type="button" class="stretch-ctrl-sub" onclick="resetStretchPlayer()" title="最初からリセット" style="flex:0.6;">↺</button>
+    </div>
+
+    <div class="stretch-next-preview" id="stretch-next-preview">
+      <span>NEXT:</span> <span id="stretch-next-name">ローランジ (片膝立ち)</span>
+    </div>
+
+    <div class="stretch-instruction-box" id="stretch-instruction-box">
+      四つん這いで息を吐きながら背中を丸め、吸いながら軽く反らす。背骨を1骨ずつ動かす意識。
+    </div>
+  </div>
+
+  <!-- 全8種目シークエンス・リスト -->
+  <div class="stretch-list-card">
+    <div class="stretch-list-title">
+      <span>全身ストレッチ シークエンス</span>
+      <span class="stretch-total-time">全8種目 / 姿勢移行1回</span>
+    </div>
+    <div class="stretch-items-container" id="stretch-items-container">
+      <!-- JSで動的に一覧描画 -->
     </div>
   </div>
 </div>
@@ -1192,6 +1686,10 @@ const WEIGHT_STEPS = [5, 9, 14, 18, 23, 27, 32, 37, 42];
 
 // ルーティン定義 (8種目)
 const ROUTINES = {
+  stretch: {
+    name: "夜ストレッチ",
+    pairs: []
+  },
   jog: {
     name: "ジョグ",
     pairs: []
@@ -2062,6 +2560,7 @@ function switchRoutine(routineKey) {
   currentRoutineKey = routineKey;
   stopTimer();
   stopJogTimers();
+  stopStretchTimers();
   saveDraftToStorage();
   updateTabUI();
   renderWorkout();
@@ -2072,11 +2571,15 @@ function updateTabUI() {
   document.getElementById("tab-sub").className = "tab-btn " + (currentRoutineKey === "sub" ? "active" : "");
   const tabJog = document.getElementById("tab-jog");
   if (tabJog) tabJog.className = "tab-btn " + (currentRoutineKey === "jog" ? "active" : "");
+  const tabStretch = document.getElementById("tab-stretch");
+  if (tabStretch) tabStretch.className = "tab-btn " + (currentRoutineKey === "stretch" ? "stretch-active" : "");
 
   const saveBtn = document.getElementById("main-save-btn") || document.querySelector(".save-btn");
   if (saveBtn) {
     if (currentRoutineKey === "jog") {
       saveBtn.innerHTML = "💾 ジョグ記録保存";
+    } else if (currentRoutineKey === "stretch") {
+      saveBtn.innerHTML = "💾 夜ストレッチ保存";
     } else {
       saveBtn.innerHTML = "💾 筋トレ保存";
     }
@@ -2113,12 +2616,24 @@ function getActiveTargetKey() {
 function renderWorkout() {
   const container = document.getElementById("routine-container");
   const jogContainer = document.getElementById("jog-container");
+  const stretchContainer = document.getElementById("stretch-container");
   const strengthRirCard = document.getElementById("strength-rir-card");
   const cardioRpeCard = document.getElementById("cardio-rpe-card");
+
+  if (currentRoutineKey === "stretch") {
+    if (container) container.style.display = "none";
+    if (jogContainer) jogContainer.style.display = "none";
+    if (stretchContainer) stretchContainer.style.display = "block";
+    if (strengthRirCard) strengthRirCard.style.display = "none";
+    if (cardioRpeCard) cardioRpeCard.style.display = "none";
+    renderStretchView();
+    return;
+  }
 
   if (currentRoutineKey === "jog") {
     if (container) container.style.display = "none";
     if (jogContainer) jogContainer.style.display = "block";
+    if (stretchContainer) stretchContainer.style.display = "none";
     if (strengthRirCard) strengthRirCard.style.display = "none";
     if (cardioRpeCard) cardioRpeCard.style.display = "block";
     renderJogView();
@@ -2127,6 +2642,7 @@ function renderWorkout() {
 
   if (container) container.style.display = "block";
   if (jogContainer) jogContainer.style.display = "none";
+  if (stretchContainer) stretchContainer.style.display = "none";
   if (strengthRirCard) strengthRirCard.style.display = "block";
   if (cardioRpeCard) cardioRpeCard.style.display = "none";
 
@@ -2563,6 +3079,7 @@ function saveAndExport() {
   saveStateToStorage();
   stopTimer();
   stopJogTimers();
+  stopStretchTimers();
   isDraftSavedToCloud = true;
   saveDraftToStorage();
 
@@ -2571,7 +3088,41 @@ function saveAndExport() {
   let routineName = routine.name;
   let finalMemo = memoText;
 
-  if (currentRoutineKey === "jog") {
+  if (currentRoutineKey === "stretch") {
+    routineName = "夜ストレッチ";
+    const elapsedStretchMin = Math.round(stretchState.totalElapsedSec / 60);
+    duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 12.0;
+    const completedCount = Object.keys(stretchState.completedExIds).length;
+    const details = `夜ストレッチ${duration}分（全8種目中 ${completedCount}種目完了・BPM60）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・4の字・ハムストリングス・ワニ・胸開き。`;
+    finalMemo = memoText ? `${memoText}（${details}）` : details;
+
+    exercisesData.push({
+      exercise: "夜ストレッチ",
+      load_kg: 0,
+      load_details: "自重",
+      sets: 1,
+      reps_total: 8,
+      reps_details: `${completedCount}/8種目`,
+      target_rir: 0,
+      actual_rir: 0,
+      superset_group: "",
+      notes: "就寝前全身静的ストレッチ・副交感神経誘導"
+    });
+
+    lastExportData = {
+      version: 1,
+      date: dateStr,
+      created_at: new Date().toISOString(),
+      activity_type: "stretch",
+      routine_type: routineName,
+      duration_min: duration,
+      exercises: exercisesData,
+      memo: finalMemo
+    };
+
+    localStorage.setItem("stretch_last_completed_date", dateStr);
+    updateStretchStatusBadge();
+  } else if (currentRoutineKey === "jog") {
     const isRain = (jogWeatherMode === "rainy");
     routineName = isRain ? "室内スロージョグ" : "ジョギング";
     const measuredSunnyMin = Math.round(sunnyTimerState.accumulatedSec / 60);
@@ -2678,9 +3229,11 @@ function saveAndExport() {
       .withSuccessHandler(function(res) {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
-        const subInfo = currentRoutineKey === "jog"
-          ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動連携）`
-          : `（所要時間: 約${duration}分 / RIR: ${currentRIR}）`;
+        const subInfo = currentRoutineKey === "stretch"
+          ? `（夜ストレッチ: 約${duration}分 / 全8種目BPM60）`
+          : (currentRoutineKey === "jog"
+              ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動連携）`
+              : `（所要時間: 約${duration}分 / RIR: ${currentRIR}）`);
         document.getElementById("success-msg").innerHTML = `
           <strong>${res.filename}</strong> をGoogle Driveに直接保存しました！<br>
           <span style="font-size:0.75rem; color:var(--text-muted);">${subInfo}</span>
@@ -2716,9 +3269,11 @@ function saveAndExport() {
   .then(() => {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
-    const subInfo = currentRoutineKey === "jog"
-      ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動補完）`
-      : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`;
+    const subInfo = currentRoutineKey === "stretch"
+      ? `（夜ストレッチ: 約${duration}分 / 全8種目BPM60 / マイドライブへ同期完了）`
+      : (currentRoutineKey === "jog"
+          ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動補完）`
+          : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`);
     document.getElementById("success-msg").innerHTML = `
       <strong>Google Driveに直接保存しました！</strong><br>
       <span style="font-size:0.75rem; color:var(--text-muted);">${subInfo}</span>
@@ -2841,13 +3396,16 @@ function closeSuccessModal() {
 
 function copySummaryText() {
   if (!lastExportData) return;
+  const isStretch = lastExportData.activity_type === "stretch";
   const isAerobic = lastExportData.activity_type === "aerobic";
-  const header = isAerobic
-    ? `【運動記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:約${lastExportData.duration_min}分`
-    : `【筋トレ記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:${lastExportData.duration_min}分`;
+  const header = isStretch
+    ? `【ストレッチ記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:約${lastExportData.duration_min}分`
+    : (isAerobic
+        ? `【運動記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:約${lastExportData.duration_min}分`
+        : `【筋トレ記録】${lastExportData.date} (${lastExportData.routine_type}) 所要:${lastExportData.duration_min}分`);
   const lines = [
     header,
-    ...lastExportData.exercises.map(e => `・${e.exercise} ${e.load_details} ${e.reps_details} (計${e.reps_total}回)`),
+    ...lastExportData.exercises.map(e => isStretch ? `・${e.exercise} (${e.reps_details})` : `・${e.exercise} ${e.load_details} ${e.reps_details} (計${e.reps_total}回)`),
     lastExportData.memo ? `メモ: ${lastExportData.memo}` : ""
   ].filter(Boolean);
 
@@ -2889,7 +3447,9 @@ function checkAnyTimerRunning() {
     (typeof activeTimer !== "undefined" && activeTimer && activeTimer.intervalId !== null) ||
     sunnyTimerState.isRunning ||
     rainyTimerState.isRunning ||
-    isMetronomeRunning
+    isMetronomeRunning ||
+    (typeof stretchState !== "undefined" && stretchState && stretchState.isRunning) ||
+    (typeof isStretchMetronomeRunning !== "undefined" && isStretchMetronomeRunning)
   );
 }
 
@@ -3247,6 +3807,562 @@ function stopJogTimers() {
   }
 }
 
+// ==================== 夜ストレッチ管理ロジック ＆ BPM 60 メトロノーム ====================
+
+const STRETCH_EXERCISES = [
+  {
+    id: "cat_cow",
+    name: "キャット＆カウ",
+    phase: "四つん這い",
+    target: "脊柱・自律神経のリセット",
+    durationSec: 40,
+    hasSides: false,
+    desc: "四つん這いで息を吐きながら背中を丸め、吸いながら軽く反らす。背骨を1骨ずつ動かす意識。",
+    tips: "呼気優位・吸う4秒 / 吐く6秒"
+  },
+  {
+    id: "low_lunge",
+    name: "ローランジ",
+    phase: "片膝立ち",
+    target: "股関節前側・腸腰筋",
+    durationSec: 30,
+    hasSides: true,
+    desc: "片足を前に大きく踏み出し、後ろ脚の股関節前面を心地よく伸ばす。骨盤を立てる。",
+    tips: "反り腰に注意・骨盤後傾を意識"
+  },
+  {
+    id: "frog",
+    name: "仙骨割り（カエル）",
+    phase: "四つん這い・肘つき",
+    target: "股関節横・内転筋・仙骨",
+    durationSec: 45,
+    hasSides: false,
+    desc: "両膝を左右に開き肘をつく。息を吐きながらお尻を後ろへじんわり引いて脱力。",
+    tips: "痛気持ちいい手前・微小に揺らす"
+  },
+  {
+    id: "child",
+    name: "チャイルドポーズ",
+    phase: "正座・脱力",
+    target: "背中・広背筋・肩甲骨",
+    durationSec: 35,
+    hasSides: false,
+    desc: "両足の親指を合わせお尻をかかとに落とす。両手を前へ伸ばして完全脱力。",
+    tips: "胸をマットへ預けて深呼吸"
+  },
+  {
+    id: "figure4",
+    name: "4の字お尻ストレッチ",
+    phase: "仰向け・膝立て",
+    target: "殿筋群・梨状筋",
+    durationSec: 30,
+    hasSides: true,
+    desc: "仰向けで片足を反対の太ももに乗せ「4」の字に。立てた膝を胸へ引いてお尻を伸ばす。",
+    tips: "首・肩の力を抜いてリラックス"
+  },
+  {
+    id: "hamstring",
+    name: "仰向けハムストリングス",
+    phase: "仰向け・片脚上げ",
+    target: "太もも裏・膝裏",
+    durationSec: 30,
+    hasSides: true,
+    desc: "太もも裏を手で支え、膝を心地よい程度に天井へ伸ばす。膝は軽く曲がってOK。",
+    tips: "無理に伸ばさず心地よさ優先"
+  },
+  {
+    id: "spine_twist",
+    name: "ワニのポーズ（ねじり）",
+    phase: "仰向け・体幹回旋",
+    target: "腰背部・肋骨・腹斜筋",
+    durationSec: 30,
+    hasSides: true,
+    desc: "片膝を曲げて反対側へパタンと倒す。顔は反対向き、両肩は床につけたまま。",
+    tips: "息を吐きながら全身脱力"
+  },
+  {
+    id: "chest_open",
+    name: "胸開きリラクゼーション",
+    phase: "仰向け・大の字",
+    target: "大胸筋・胸郭（呼吸筋）",
+    durationSec: 60,
+    hasSides: false,
+    desc: "腕を広げて胸郭を解放（フォームローラーを背骨に縦に敷くと効果倍増）。深呼吸で終了。",
+    tips: "そのまま寝落ちしてもOK"
+  }
+];
+
+let stretchState = {
+  isRunning: false,
+  currentExIdx: 0,
+  currentSide: "left",
+  isInterval: false,
+  remainingSec: 40,
+  targetEndTime: null,
+  timerIntervalId: null,
+  totalElapsedSec: 0,
+  completedExIds: {}
+};
+
+// --- BPM 60 メトロノーム (Web Audio API) ---
+let isStretchMetronomeRunning = false;
+let stretchMetronomeAudioCtx = null;
+let stretchMetronomeTimerId = null;
+let stretchMetronomeNextTime = 0;
+let stretchMetronomeBeat = 0;
+
+function getStretchAudioContext() {
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "ambient"; } catch (e) {}
+  }
+  if (!stretchMetronomeAudioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      stretchMetronomeAudioCtx = new AudioContextClass();
+    }
+  }
+  if (stretchMetronomeAudioCtx && stretchMetronomeAudioCtx.state === "suspended") {
+    stretchMetronomeAudioCtx.resume().catch(() => {});
+  }
+  return stretchMetronomeAudioCtx;
+}
+
+function playStretchMetronomeClick(time, isAccent = false) {
+  const ctx = getStretchAudioContext();
+  if (!ctx) return;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(isAccent ? 320 : 240, time);
+
+  gain.gain.setValueAtTime(0.22, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.045);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(time);
+  osc.stop(time + 0.045);
+}
+
+function stretchMetronomeScheduler() {
+  if (!isStretchMetronomeRunning) return;
+  const ctx = getStretchAudioContext();
+  if (!ctx) return;
+
+  while (stretchMetronomeNextTime < ctx.currentTime + 0.1) {
+    const isAccent = (stretchMetronomeBeat % 4 === 0);
+    playStretchMetronomeClick(stretchMetronomeNextTime, isAccent);
+    stretchMetronomeBeat++;
+    stretchMetronomeNextTime += 1.0; // BPM 60 = 1.0秒ごと
+  }
+  stretchMetronomeTimerId = setTimeout(stretchMetronomeScheduler, 25);
+}
+
+function startStretchMetronome() {
+  if (isStretchMetronomeRunning) return;
+  const ctx = getStretchAudioContext();
+  if (!ctx) return;
+
+  isStretchMetronomeRunning = true;
+  stretchMetronomeBeat = 0;
+  stretchMetronomeNextTime = ctx.currentTime + 0.05;
+  stretchMetronomeScheduler();
+  updateStretchMetronomeUI();
+  requestWakeLock();
+}
+
+function stopStretchMetronome() {
+  isStretchMetronomeRunning = false;
+  if (stretchMetronomeTimerId) {
+    clearTimeout(stretchMetronomeTimerId);
+    stretchMetronomeTimerId = null;
+  }
+  if (stretchMetronomeAudioCtx) {
+    try { stretchMetronomeAudioCtx.close().catch(() => {}); } catch (e) {}
+    stretchMetronomeAudioCtx = null;
+  }
+  updateStretchMetronomeUI();
+  if (!checkAnyTimerRunning()) {
+    releaseWakeLock();
+  }
+}
+
+function toggleStretchMetronome() {
+  if (isStretchMetronomeRunning) {
+    stopStretchMetronome();
+  } else {
+    startStretchMetronome();
+  }
+}
+
+function updateStretchMetronomeUI() {
+  const btn = document.getElementById("stretch-metro-toggle-btn");
+  const statusEl = document.getElementById("stretch-metro-status");
+  const breatheCircle = document.getElementById("breathe-circle");
+  if (!btn || !statusEl) return;
+
+  if (isStretchMetronomeRunning) {
+    btn.className = "stretch-metro-btn active";
+    statusEl.textContent = "ON";
+    if (breatheCircle) breatheCircle.classList.add("animated");
+  } else {
+    btn.className = "stretch-metro-btn";
+    statusEl.textContent = "OFF";
+    if (breatheCircle) breatheCircle.classList.remove("animated");
+  }
+}
+
+// 優しいベル音・チャイム音
+function playStretchSound(type) {
+  const ctx = getStretchAudioContext();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+
+  if (type === "countdown") {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(440, now);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  } else if (type === "switch") {
+    [523.25, 659.25].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+      gain.gain.setValueAtTime(0.18, now + idx * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.8);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.05);
+      osc.stop(now + idx * 0.05 + 0.8);
+    });
+  } else if (type === "finish") {
+    [523.25, 659.25, 783.99].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+      gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 1.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.1);
+      osc.stop(now + idx * 0.1 + 1.4);
+    });
+  }
+}
+
+// --- ストレッチ シーケンス タイマー ---
+
+function initStretchState() {
+  stretchState.currentExIdx = 0;
+  stretchState.isInterval = false;
+  stretchState.currentSide = STRETCH_EXERCISES[0].hasSides ? "left" : null;
+  stretchState.remainingSec = STRETCH_EXERCISES[0].durationSec;
+  stretchState.totalElapsedSec = 0;
+  stretchState.completedExIds = {};
+}
+initStretchState();
+
+function renderStretchView() {
+  updateStretchPlayerUI();
+  renderStretchList();
+  updateStretchStatusBadge();
+  updateStretchMetronomeUI();
+}
+
+function updateStretchStatusBadge() {
+  const badge = document.getElementById("stretch-status-badge");
+  if (!badge) return;
+  const lastDate = localStorage.getItem("stretch_last_completed_date");
+  const todayStr = getTodayDateString();
+  if (lastDate === todayStr) {
+    badge.className = "stretch-status-badge completed";
+    badge.innerHTML = "✨ 本日完了";
+  } else {
+    badge.className = "stretch-status-badge";
+    badge.innerHTML = "未実施";
+  }
+}
+
+function updateStretchPlayerUI() {
+  const ex = STRETCH_EXERCISES[stretchState.currentExIdx];
+  if (!ex) return;
+
+  const stepIdxEl = document.getElementById("stretch-step-idx");
+  const phaseTagEl = document.getElementById("stretch-phase-tag");
+  const exNameEl = document.getElementById("stretch-ex-name");
+  const targetDescEl = document.getElementById("stretch-target-desc");
+  const sideIndicatorEl = document.getElementById("stretch-side-indicator");
+  const chipLeft = document.getElementById("side-chip-left");
+  const chipRight = document.getElementById("side-chip-right");
+  const timerDisplayEl = document.getElementById("stretch-timer-display");
+  const intervalNoticeEl = document.getElementById("stretch-interval-notice");
+  const nextNameEl = document.getElementById("stretch-next-name");
+  const instructionBoxEl = document.getElementById("stretch-instruction-box");
+  const playBtn = document.getElementById("stretch-play-btn");
+
+  if (stepIdxEl) stepIdxEl.textContent = `STEP ${stretchState.currentExIdx + 1}/${STRETCH_EXERCISES.length}`;
+  if (phaseTagEl) phaseTagEl.textContent = ex.phase;
+  if (exNameEl) exNameEl.textContent = ex.name;
+  if (targetDescEl) targetDescEl.textContent = `${ex.target} ・ ${ex.tips}`;
+
+  // 左右チップ
+  if (sideIndicatorEl) {
+    if (ex.hasSides) {
+      sideIndicatorEl.style.display = "flex";
+      if (chipLeft) chipLeft.className = "side-chip " + (stretchState.currentSide === "left" ? "active" : "");
+      if (chipRight) chipRight.className = "side-chip " + (stretchState.currentSide === "right" ? "active" : "");
+    } else {
+      sideIndicatorEl.style.display = "none";
+    }
+  }
+
+  // タイマー表示
+  const m = Math.floor(stretchState.remainingSec / 60);
+  const s = stretchState.remainingSec % 60;
+  const timeStr = `${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
+
+  if (timerDisplayEl) {
+    timerDisplayEl.textContent = timeStr;
+    if (stretchState.isInterval) {
+      timerDisplayEl.classList.add("interval-mode");
+    } else {
+      timerDisplayEl.classList.remove("interval-mode");
+    }
+  }
+
+  if (intervalNoticeEl) {
+    if (stretchState.isInterval) {
+      intervalNoticeEl.style.display = "block";
+      intervalNoticeEl.textContent = stretchState.currentSide === "right" 
+        ? "🔔 準備: 右側へ切り替えます" 
+        : "🔔 準備: 次の種目の体勢を整えてください";
+    } else {
+      intervalNoticeEl.style.display = "none";
+    }
+  }
+
+  // 次の種目プレビュー
+  if (nextNameEl) {
+    const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx + 1];
+    if (nextEx) {
+      nextNameEl.textContent = `${nextEx.name} (${nextEx.phase})`;
+    } else {
+      nextNameEl.textContent = "全種目終了・そのまま就寝";
+    }
+  }
+
+  // 解説文
+  if (instructionBoxEl) {
+    instructionBoxEl.textContent = ex.desc;
+  }
+
+  // 再生ボタン
+  if (playBtn) {
+    if (stretchState.isRunning) {
+      playBtn.className = "stretch-ctrl-main running";
+      playBtn.innerHTML = "⏸ 一時停止";
+    } else {
+      playBtn.className = "stretch-ctrl-main";
+      playBtn.innerHTML = "▶ スタート";
+    }
+  }
+}
+
+function renderStretchList() {
+  const container = document.getElementById("stretch-items-container");
+  if (!container) return;
+
+  let html = "";
+  STRETCH_EXERCISES.forEach((ex, idx) => {
+    const isActive = (idx === stretchState.currentExIdx);
+    const isCompleted = !!stretchState.completedExIds[ex.id];
+    const durationLabel = ex.hasSides ? `左右各${ex.durationSec}秒` : `${ex.durationSec}秒`;
+
+    html += `
+      <div class="stretch-list-row ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" onclick="jumpToStretchExercise(${idx})">
+        <div class="stretch-row-left">
+          <div class="stretch-check-mark">${isCompleted ? '✓' : ''}</div>
+          <div class="stretch-row-name-wrap">
+            <span class="stretch-row-name">${idx + 1}. ${ex.name}</span>
+            <span class="stretch-row-meta">${ex.phase} / ${ex.target}</span>
+          </div>
+        </div>
+        <div class="stretch-row-duration">${durationLabel}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function toggleStretchPlay() {
+  if (stretchState.isRunning) {
+    pauseStretchPlayer();
+  } else {
+    startStretchPlayer();
+  }
+}
+
+function startStretchPlayer() {
+  if (stretchState.isRunning) return;
+
+  stretchState.isRunning = true;
+  stretchState.targetEndTime = Date.now() + stretchState.remainingSec * 1000;
+
+  // BPM60メトロノームも連動開始
+  if (!isStretchMetronomeRunning) {
+    startStretchMetronome();
+  }
+
+  if (stretchState.timerIntervalId) clearInterval(stretchState.timerIntervalId);
+  stretchState.timerIntervalId = setInterval(checkStretchTick, 1000);
+
+  updateStretchPlayerUI();
+  requestWakeLock();
+}
+
+function pauseStretchPlayer() {
+  stretchState.isRunning = false;
+  if (stretchState.timerIntervalId) {
+    clearInterval(stretchState.timerIntervalId);
+    stretchState.timerIntervalId = null;
+  }
+  updateStretchPlayerUI();
+  if (!checkAnyTimerRunning()) {
+    releaseWakeLock();
+  }
+}
+
+function checkStretchTick() {
+  if (!stretchState.isRunning) return;
+
+  stretchState.remainingSec--;
+  stretchState.totalElapsedSec++;
+
+  // カウント音（残り3, 2, 1秒）
+  if (stretchState.remainingSec <= 3 && stretchState.remainingSec > 0) {
+    playStretchSound("countdown");
+  }
+
+  // 秒数終了時の遷移
+  if (stretchState.remainingSec <= 0) {
+    handleStretchStepCompletion();
+  }
+
+  updateStretchPlayerUI();
+}
+
+function handleStretchStepCompletion() {
+  const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+
+  // 1. インターバル終了時 ➔ 本運動開始
+  if (stretchState.isInterval) {
+    stretchState.isInterval = false;
+    stretchState.remainingSec = currentEx.durationSec;
+    playStretchSound("switch");
+    return;
+  }
+
+  // 2. 左右種目で「左」が終了した時 ➔ 「右」の準備インターバルへ
+  if (currentEx.hasSides && stretchState.currentSide === "left") {
+    stretchState.currentSide = "right";
+    stretchState.isInterval = true;
+    stretchState.remainingSec = 5; // 左右切り替えインターバル5秒
+    playStretchSound("switch");
+    return;
+  }
+
+  // 3. 種目完了（右側または左右なし）
+  stretchState.completedExIds[currentEx.id] = true;
+
+  // 次の種目があるか確認
+  if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
+    stretchState.currentExIdx++;
+    const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+    stretchState.currentSide = nextEx.hasSides ? "left" : null;
+    stretchState.isInterval = true;
+    stretchState.remainingSec = 5; // 種目間準備インターバル5秒
+    playStretchSound("switch");
+    renderStretchList();
+  } else {
+    // 全8種目完了！
+    finishAllStretch();
+  }
+}
+
+function finishAllStretch() {
+  pauseStretchPlayer();
+  playStretchSound("finish");
+
+  const todayStr = getTodayDateString();
+  localStorage.setItem("stretch_last_completed_date", todayStr);
+  updateStretchStatusBadge();
+  renderStretchList();
+
+  alert("🌙 全身ストレッチ完了！お疲れさまでした。\n副交感神経が整いました。深呼吸のままゆっくりお休みください。");
+}
+
+function nextStretchStep() {
+  if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
+    stretchState.currentExIdx++;
+    const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+    stretchState.currentSide = nextEx.hasSides ? "left" : null;
+    stretchState.isInterval = false;
+    stretchState.remainingSec = nextEx.durationSec;
+    playStretchSound("switch");
+    updateStretchPlayerUI();
+    renderStretchList();
+  }
+}
+
+function prevStretchStep() {
+  if (stretchState.currentExIdx > 0) {
+    stretchState.currentExIdx--;
+    const prevEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+    stretchState.currentSide = prevEx.hasSides ? "left" : null;
+    stretchState.isInterval = false;
+    stretchState.remainingSec = prevEx.durationSec;
+    updateStretchPlayerUI();
+    renderStretchList();
+  }
+}
+
+function jumpToStretchExercise(idx) {
+  if (idx < 0 || idx >= STRETCH_EXERCISES.length) return;
+  stretchState.currentExIdx = idx;
+  const ex = STRETCH_EXERCISES[idx];
+  stretchState.currentSide = ex.hasSides ? "left" : null;
+  stretchState.isInterval = false;
+  stretchState.remainingSec = ex.durationSec;
+  updateStretchPlayerUI();
+  renderStretchList();
+  if (!stretchState.isRunning) {
+    startStretchPlayer();
+  }
+}
+
+function resetStretchPlayer() {
+  pauseStretchPlayer();
+  initStretchState();
+  updateStretchPlayerUI();
+  renderStretchList();
+}
+
+function stopStretchTimers() {
+  pauseStretchPlayer();
+  stopStretchMetronome();
+}
+
 // 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState === "hidden") {
@@ -3255,6 +4371,7 @@ document.addEventListener("visibilitychange", async () => {
     if (activeTimer.intervalId) checkTimerTick();
     if (sunnyTimerState.isRunning) updateSunnyDisplay();
     if (rainyTimerState.isRunning) checkRainyTick();
+    if (stretchState && stretchState.isRunning) checkStretchTick();
     if (checkAnyTimerRunning()) {
       await requestWakeLock();
     }
