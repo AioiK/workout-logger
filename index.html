@@ -3014,7 +3014,7 @@ function saveAndExport() {
     const elapsedStretchMin = Math.round(stretchState.totalElapsedSec / 60);
     duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 12.0;
     const completedCount = Object.keys(stretchState.completedExIds).length;
-    const details = `夜ストレッチ${duration}分（全8種目中 ${completedCount}種目完了・BPM60）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・4の字・ハムストリングス・ワニ・胸開き。`;
+    const details = `夜ストレッチ${duration}分（全8種目中 ${completedCount}種目完了）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・4の字・ハムストリングス・ワニ・胸開き。`;
     finalMemo = memoText ? `${memoText}（${details}）` : details;
 
     exercisesData.push({
@@ -3151,7 +3151,7 @@ function saveAndExport() {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
         const subInfo = currentRoutineKey === "stretch"
-          ? `（夜ストレッチ: 約${duration}分 / 全8種目BPM60）`
+          ? `（夜ストレッチ: 約${duration}分 / 全8種目完了）`
           : (currentRoutineKey === "jog"
               ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動連携）`
               : `（所要時間: 約${duration}分 / RIR: ${currentRIR}）`);
@@ -3191,7 +3191,7 @@ function saveAndExport() {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
     const subInfo = currentRoutineKey === "stretch"
-      ? `（夜ストレッチ: 約${duration}分 / 全8種目BPM60 / マイドライブへ同期完了）`
+      ? `（夜ストレッチ: 約${duration}分 / 全8種目完了 / マイドライブへ同期完了）`
       : (currentRoutineKey === "jog"
           ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動補完）`
           : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`);
@@ -3727,7 +3727,7 @@ function stopJogTimers() {
   }
 }
 
-// ==================== 夜ストレッチ管理ロジック ＆ BPM 60 メトロノーム ====================
+// ==================== 夜ストレッチ管理ロジック ====================
 
 const STRETCH_EXERCISES = [
   {
@@ -3738,7 +3738,7 @@ const STRETCH_EXERCISES = [
     durationSec: 40,
     hasSides: false,
     desc: "四つん這いで息を吐きながら背中を丸め、吸いながら軽く反らす。背骨を1骨ずつ動かす意識。",
-    tips: "呼気優位・吸う4秒 / 吐く6秒"
+    tips: "呼気優位・吐く息を長めに深呼吸"
   },
   {
     id: "low_lunge",
