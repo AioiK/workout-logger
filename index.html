@@ -2220,8 +2220,13 @@ function applyDraftObject(draft) {
   }
 
   const dateInput = document.getElementById("input-date");
-  if (dateInput && draft.inputDate) {
-    dateInput.value = draft.inputDate;
+  if (dateInput) {
+    const todayStr = getTodayDateString();
+    if (draft.isSaved && draft.inputDate !== todayStr) {
+      dateInput.value = todayStr;
+    } else if (draft.inputDate) {
+      dateInput.value = draft.inputDate;
+    }
   }
   const memoInput = document.getElementById("input-memo");
   if (memoInput && draft.memo !== undefined) {
@@ -4193,6 +4198,19 @@ document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState === "hidden") {
     saveDraftToStorage();
   } else if (document.visibilityState === "visible") {
+    // 日付またぎの自動同期（保存済み、または未入力のまま翌日を迎えた場合に今日の日付へ更新）
+    const todayStr = getTodayDateString();
+    const dateInput = document.getElementById("input-date");
+    if (dateInput && dateInput.value !== todayStr) {
+      const hasUnsavedChecks = completedSets && Object.values(completedSets).some(Boolean);
+      if (isDraftSavedToCloud || !hasUnsavedChecks) {
+        dateInput.value = todayStr;
+        currentRoutineKey = getDefaultRoutineByDay(new Date());
+        updateRoutineNav();
+        renderWorkout();
+        saveDraftToStorage();
+      }
+    }
     if (activeTimer.intervalId) checkTimerTick();
     if (rainyTimerState.isRunning) checkRainyTick();
     if (stretchState && stretchState.isRunning) checkStretchTick();
