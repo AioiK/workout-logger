@@ -1449,11 +1449,11 @@
     </div>
   </div>
 
-  <!-- 全8種目シークエンス・リスト -->
+  <!-- 全9種目シークエンス・リスト -->
   <div class="stretch-list-card">
     <div class="stretch-list-title">
       <span>全身ストレッチ シークエンス</span>
-      <span class="stretch-total-time">全8種目 / 姿勢移行1回</span>
+      <span class="stretch-total-time">全9種目 / 姿勢移行スムーズ</span>
     </div>
     <div class="stretch-items-container" id="stretch-items-container">
       <!-- JSで動的に一覧描画 -->
@@ -2981,7 +2981,7 @@ function saveAndExport() {
     const elapsedStretchMin = Math.round(stretchState.totalElapsedSec / 60);
     duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 12.0;
     const completedCount = Object.keys(stretchState.completedExIds).length;
-    const details = `夜ストレッチ${duration}分（全8種目中 ${completedCount}種目完了）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・4の字・ハムストリングス・ワニ・胸開き。`;
+    const details = `夜ストレッチ${duration}分（全9種目中 ${completedCount}種目完了）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・90/90・4の字・ハムストリングス・ワニ・胸開き。`;
     finalMemo = memoText ? `${memoText}（${details}）` : details;
 
     exercisesData.push({
@@ -2989,8 +2989,8 @@ function saveAndExport() {
       load_kg: 0,
       load_details: "自重",
       sets: 1,
-      reps_total: 8,
-      reps_details: `${completedCount}/8種目`,
+      reps_total: 9,
+      reps_details: `${completedCount}/9種目`,
       target_rir: 0,
       actual_rir: 0,
       superset_group: "",
@@ -3115,7 +3115,7 @@ function saveAndExport() {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
         const subInfo = currentRoutineKey === "stretch"
-          ? `（夜ストレッチ: 約${duration}分 / 全8種目完了）`
+          ? `（夜ストレッチ: 約${duration}分 / 全9種目完了）`
           : (currentRoutineKey === "jog"
               ? (isRain 
                   ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"}）`
@@ -3157,7 +3157,7 @@ function saveAndExport() {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
     const subInfo = currentRoutineKey === "stretch"
-      ? `（夜ストレッチ: 約${duration}分 / 全8種目完了 / マイドライブへ同期完了）`
+      ? `（夜ストレッチ: 約${duration}分 / 全9種目完了 / マイドライブへ同期完了）`
       : (currentRoutineKey === "jog"
           ? (isRain 
               ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
@@ -3742,6 +3742,16 @@ const STRETCH_EXERCISES = [
     tips: "胸をマットへ預けて深呼吸"
   },
   {
+    id: "hip_90_90",
+    name: "90/90ヒップストレッチ",
+    phase: "床座位・Shin Box",
+    target: "殿筋群・股関節回旋",
+    durationSec: 30,
+    hasSides: true,
+    desc: "両膝を90度に曲げて座る。背筋を伸ばし、おへそを前脚のすねに向けてゆっくり前傾。",
+    tips: "手で床を支えてOK・骨盤から前傾"
+  },
+  {
     id: "figure4",
     name: "4の字お尻ストレッチ",
     phase: "仰向け・膝立て",
@@ -3749,7 +3759,7 @@ const STRETCH_EXERCISES = [
     durationSec: 30,
     hasSides: true,
     desc: "仰向けで片足を反対の太ももに乗せ「4」の字に。立てた膝を胸へ引いてお尻を伸ばす。",
-    tips: "首・肩の力を抜いてリラックス"
+    tips: "首・肩の力を抜く・キツい時は壁を活用"
   },
   {
     id: "hamstring",
@@ -3778,7 +3788,7 @@ const STRETCH_EXERCISES = [
     target: "大胸筋・胸郭（呼吸筋）",
     durationSec: 60,
     hasSides: false,
-    desc: "腕を広げて胸郭を解放（フォームローラーを背骨に縦に敷くと効果倍増）。深呼吸で終了。",
+    desc: "腕を広げて胸郭を解放。深呼吸で全身脱力して終了。",
     tips: "そのまま寝落ちしてもOK"
   }
 ];
@@ -4111,7 +4121,7 @@ function handleStretchStepCompletion() {
     updateStretchPlayerUI();
     renderStretchList();
   } else {
-    // 全8種目完了！
+    // 全9種目完了！
     finishAllStretch();
   }
 }
