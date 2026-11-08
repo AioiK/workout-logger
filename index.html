@@ -1340,21 +1340,11 @@
     <div class="jog-card">
       <div class="jog-header">
         <span class="jog-badge">🏃 外ジョギング</span>
-        <span class="jog-target-info">目標: 約20分 (Zone 2)</span>
+        <span class="jog-target-info">⌚ 腕時計で管理 (Zone 2)</span>
       </div>
-      <div class="jog-notice">
-        ℹ️ 心拍数・距離・ペース等の詳細は、後からヘルスコネクトの同期により正本CSVへ自動反映されます。
-      </div>
-
-      <!-- タイマー / 時間計測 -->
-      <div class="jog-timer-display" id="sunny-timer-display">00:00</div>
-      <div class="jog-timer-controls">
-        <button type="button" class="jog-ctrl-btn btn-primary" id="sunny-timer-btn" onclick="toggleSunnyTimer()">
-          ⏱️ タイマースタート
-        </button>
-        <button type="button" class="jog-ctrl-btn btn-secondary" onclick="resetSunnyTimer()">
-          🔄 リセット
-        </button>
+      <div class="jog-notice" style="margin-bottom:0;">
+        ⌚ 時間・距離・心拍数は腕時計で管理・計測されます。<br>
+        外ジョグ終了後、下の<strong>「本日のきつさ」</strong>と<strong>「メモ」</strong>を選択・入力してそのまま送信してください。
       </div>
     </div>
   </div>
@@ -1931,7 +1921,6 @@ function hasActiveWorkoutProgress() {
   const memoEl = document.getElementById("input-memo");
   if (!isDraftSavedToCloud && memoEl && memoEl.value.trim().length > 0) return true;
   if (checkAnyTimerRunning()) return true;
-  if (!isDraftSavedToCloud && sunnyTimerState && sunnyTimerState.accumulatedSec > 0) return true;
   if (!isDraftSavedToCloud && rainyTimerState && rainyTimerState.remainingSec < rainyJogMinutes * 60) return true;
   return false;
 }
@@ -2305,29 +2294,7 @@ function applyDraftObject(draft) {
     }
   }
 
-  // 晴れジョグタイマーの復元
-  if (draft.sunnyTimerState) {
-    sunnyTimerState.accumulatedSec = draft.sunnyTimerState.accumulatedSec || 0;
-    if (draft.sunnyTimerState.isRunning) {
-      sunnyTimerState.isRunning = true;
-      sunnyTimerState.startTime = Date.now();
-      requestWakeLock();
-      if (sunnyTimerState.intervalId) clearInterval(sunnyTimerState.intervalId);
-      sunnyTimerState.intervalId = setInterval(updateSunnyDisplay, 500);
-      const btn = document.getElementById("sunny-timer-btn");
-      if (btn) {
-        btn.innerHTML = "⏸️ 一時停止";
-        btn.className = "jog-ctrl-btn btn-primary running";
-      }
-    } else if (sunnyTimerState.accumulatedSec > 0) {
-      const btn = document.getElementById("sunny-timer-btn");
-      if (btn) {
-        btn.innerHTML = "⏱️ タイマー再開";
-        btn.className = "jog-ctrl-btn btn-primary";
-      }
-    }
-    updateSunnyDisplay();
-  }
+  // 晴れジョグは腕時計管理のためタイマー復元不要
 
   // 雨天室内スロージョグタイマーの復元
   if (draft.rainyTimerState) {
@@ -2498,7 +2465,7 @@ function updateTabUI() {
   const saveBtn = document.getElementById("main-save-btn") || document.querySelector(".save-btn");
   if (saveBtn) {
     if (currentRoutineKey === "jog") {
-      saveBtn.innerHTML = "💾 ジョグ記録保存";
+      saveBtn.innerHTML = (jogWeatherMode === "sunny") ? "💾 外ジョグ記録を送信" : "💾 室内ジョグ保存";
     } else if (currentRoutineKey === "stretch") {
       saveBtn.innerHTML = "💾 夜ストレッチ保存";
     } else {
@@ -3046,20 +3013,17 @@ function saveAndExport() {
   } else if (currentRoutineKey === "jog") {
     const isRain = (jogWeatherMode === "rainy");
     routineName = isRain ? "室内スロージョグ" : "ジョギング";
-    const measuredSunnyMin = Math.round(sunnyTimerState.accumulatedSec / 60);
-    duration = isRain ? rainyJogMinutes : (measuredSunnyMin > 0 ? measuredSunnyMin : 0);
+    duration = isRain ? rainyJogMinutes : 0; // 晴れ外ジョグは腕時計で計測、ヘルスコネクトで確定
     const rpeLabels = {
       easy: "楽・快適 (Zone 1/回復)",
       optimal: "適正 (Zone 2・ニコニコペース)",
       hard: "ややきつい (Zone 3/高め)"
     };
     const rpeText = rpeLabels[currentCardioRPE] || "適正 (Zone 2)";
-    const rainDetails = isRain 
+    const jogDetails = isRain 
       ? `室内スロージョグ${rainyJogMinutes}分。ピッチ180・フォアフット接地。きつさ: ${rpeText}。`
-      : (duration > 0 
-          ? `外ジョギング${duration}分。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`
-          : `外ジョギング。きつさ: ${rpeText}。後からヘルスコネクト自動連携予定。`);
-    finalMemo = memoText ? `${memoText}（${rainDetails}）` : rainDetails;
+      : `外ジョギング。きつさ: ${rpeText}。腕時計計測（ヘルスコネクト自動連携予定）。`;
+    finalMemo = memoText ? `${memoText}（${jogDetails}）` : jogDetails;
 
     exercisesData.push({
       exercise: routineName,
@@ -3067,7 +3031,7 @@ function saveAndExport() {
       load_details: "自重",
       sets: 1,
       reps_total: 1,
-      reps_details: duration > 0 ? `${duration}分` : "Mi Band連携",
+      reps_details: isRain ? `${rainyJogMinutes}分` : "腕時計計測",
       target_rir: 1,
       actual_rir: currentCardioRPE === "easy" ? 2 : (currentCardioRPE === "optimal" ? 1 : 0),
       superset_group: "",
@@ -3153,7 +3117,9 @@ function saveAndExport() {
         const subInfo = currentRoutineKey === "stretch"
           ? `（夜ストレッチ: 約${duration}分 / 全8種目完了）`
           : (currentRoutineKey === "jog"
-              ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動連携）`
+              ? (isRain 
+                  ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"}）`
+                  : `（外ジョグ送信完了 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動連携）`)
               : `（所要時間: 約${duration}分 / RIR: ${currentRIR}）`);
         document.getElementById("success-msg").innerHTML = `
           <strong>${res.filename}</strong> をGoogle Driveに直接保存しました！<br>
@@ -3193,7 +3159,9 @@ function saveAndExport() {
     const subInfo = currentRoutineKey === "stretch"
       ? `（夜ストレッチ: 約${duration}分 / 全8種目完了 / マイドライブへ同期完了）`
       : (currentRoutineKey === "jog"
-          ? `（所要時間: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / 後からヘルスコネクト自動補完）`
+          ? (isRain 
+              ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
+              : `（外ジョグ送信完了 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`)
           : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`);
     document.getElementById("success-msg").innerHTML = `
       <strong>Google Driveに直接保存しました！</strong><br>
@@ -3366,7 +3334,6 @@ function releaseWakeLock() {
 function checkAnyTimerRunning() {
   return (
     (typeof activeTimer !== "undefined" && activeTimer && activeTimer.intervalId !== null) ||
-    sunnyTimerState.isRunning ||
     rainyTimerState.isRunning ||
     isMetronomeRunning ||
     (typeof stretchState !== "undefined" && stretchState && stretchState.isRunning)
@@ -3514,6 +3481,10 @@ function setJogWeather(mode, save = true) {
     if (rainyBtn) rainyBtn.className = "weather-btn active rain";
     if (sunnyView) sunnyView.style.display = "none";
     if (rainyView) rainyView.style.display = "block";
+  }
+  const saveBtn = document.getElementById("main-save-btn");
+  if (saveBtn && currentRoutineKey === "jog") {
+    saveBtn.innerHTML = (mode === "sunny") ? "💾 外ジョグ記録を送信" : "💾 室内ジョグ保存";
   }
 }
 
@@ -4213,7 +4184,6 @@ document.addEventListener("visibilitychange", async () => {
     saveDraftToStorage();
   } else if (document.visibilityState === "visible") {
     if (activeTimer.intervalId) checkTimerTick();
-    if (sunnyTimerState.isRunning) updateSunnyDisplay();
     if (rainyTimerState.isRunning) checkRainyTick();
     if (stretchState && stretchState.isRunning) checkStretchTick();
     if (checkAnyTimerRunning()) {
