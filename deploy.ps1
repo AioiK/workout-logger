@@ -1,4 +1,7 @@
 # deploy.ps1
+param (
+    [string]$msg = "feat: update stretch sequence timer (manual start with 3s prep) and remove metronome"
+)
 Set-Location $PSScriptRoot
 
 # 1. version.json 更新
@@ -8,7 +11,7 @@ Write-Host "New Version: $ver" -ForegroundColor Green
 
 # 2. git add, commit, push
 git add index.html workout_logger.html version.json deploy.ps1
-git commit -m "feat: remove sunny jog duration stepper and link with Mi Band ($ver)"
+git commit -m "$msg ($ver)"
 git push origin main
 
 Write-Host "Deploy completed! GitHub Pages updated." -ForegroundColor Cyan

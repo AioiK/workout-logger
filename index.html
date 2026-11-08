@@ -992,76 +992,6 @@
     border-color: #059669;
   }
 
-  .stretch-metronome-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid #334155;
-    border-radius: var(--radius-md);
-    padding: 10px 12px;
-  }
-
-  .stretch-metro-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: 1px solid #475569;
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: all 0.2s;
-    touch-action: manipulation;
-  }
-
-  .stretch-metro-btn.active {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-    border-color: #a855f7;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
-  }
-
-  .breathe-guide-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    min-width: 90px;
-  }
-
-  .breathe-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #c084fc 0%, #6366f1 100%);
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
-    opacity: 0.7;
-    transition: transform 0.2s;
-  }
-
-  .breathe-circle.animated {
-    animation: breatheCycle 10s ease-in-out infinite;
-  }
-
-  @keyframes breatheCycle {
-    0% { transform: scale(0.8); opacity: 0.5; }
-    40% { transform: scale(1.35); opacity: 1; filter: drop-shadow(0 0 12px #c084fc); }
-    100% { transform: scale(0.8); opacity: 0.5; }
-  }
-
-  .breathe-label {
-    font-size: 0.65rem;
-    color: #a5b4fc;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
   /* プレイヤーカード */
   .stretch-card {
     background: var(--bg-card);
@@ -1159,7 +1089,8 @@
     letter-spacing: 2px;
   }
 
-  .stretch-timer-display.interval-mode {
+  .stretch-timer-display.interval-mode,
+  .stretch-timer-display.prep-mode {
     color: #f59e0b;
     animation: timerPulse 0.8s infinite;
   }
@@ -1479,21 +1410,11 @@
 
 <!-- Stretch Container (夜ストレッチ用) -->
 <div id="stretch-container" style="display:none;">
-  <!-- クイックバー：メトロノーム＆呼吸サークル -->
+  <!-- ステータスバー -->
   <div class="stretch-quick-card">
-    <div class="stretch-quick-header">
+    <div class="stretch-quick-header" style="margin-bottom:0;">
       <div class="stretch-badge-moon">🌙 就寝前リセット（約10〜12分）</div>
       <div id="stretch-status-badge" class="stretch-status-badge">未実施</div>
-    </div>
-    <div class="stretch-metronome-box">
-      <button type="button" class="stretch-metro-btn" id="stretch-metro-toggle-btn" onclick="toggleStretchMetronome()">
-        <span class="metro-icon">🎵</span>
-        <span class="metro-text">BPM 60 メトロノーム: <strong id="stretch-metro-status">OFF</strong></span>
-      </button>
-      <div class="breathe-guide-wrap">
-        <div class="breathe-circle" id="breathe-circle"></div>
-        <div class="breathe-label" id="breathe-label">吸う(4秒) / 吐く(6秒)</div>
-      </div>
     </div>
   </div>
 
@@ -1515,8 +1436,8 @@
 
     <!-- タイマーディスプレイ -->
     <div class="stretch-timer-display" id="stretch-timer-display">00:40</div>
-    <div class="stretch-interval-notice" id="stretch-interval-notice" style="display:none;">
-      🔔 準備・体勢を整えてください
+    <div class="stretch-interval-notice" id="stretch-interval-notice">
+      🔔 体勢を整えてスタートを押してください (3秒準備)
     </div>
 
     <!-- コントロールボタン群 -->
@@ -3448,8 +3369,7 @@ function checkAnyTimerRunning() {
     sunnyTimerState.isRunning ||
     rainyTimerState.isRunning ||
     isMetronomeRunning ||
-    (typeof stretchState !== "undefined" && stretchState && stretchState.isRunning) ||
-    (typeof isStretchMetronomeRunning !== "undefined" && isStretchMetronomeRunning)
+    (typeof stretchState !== "undefined" && stretchState && stretchState.isRunning)
   );
 }
 
@@ -3894,9 +3814,10 @@ const STRETCH_EXERCISES = [
 
 let stretchState = {
   isRunning: false,
+  isPrep: false,
+  prepRemainingSec: 3,
   currentExIdx: 0,
   currentSide: "left",
-  isInterval: false,
   remainingSec: 40,
   targetEndTime: null,
   timerIntervalId: null,
@@ -3904,115 +3825,23 @@ let stretchState = {
   completedExIds: {}
 };
 
-// --- BPM 60 メトロノーム (Web Audio API) ---
-let isStretchMetronomeRunning = false;
-let stretchMetronomeAudioCtx = null;
-let stretchMetronomeTimerId = null;
-let stretchMetronomeNextTime = 0;
-let stretchMetronomeBeat = 0;
+// --- ストレッチ用オーディオ (Web Audio API) ---
+let stretchAudioCtx = null;
 
 function getStretchAudioContext() {
   if (navigator.audioSession) {
     try { navigator.audioSession.type = "ambient"; } catch (e) {}
   }
-  if (!stretchMetronomeAudioCtx) {
+  if (!stretchAudioCtx) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
-      stretchMetronomeAudioCtx = new AudioContextClass();
+      stretchAudioCtx = new AudioContextClass();
     }
   }
-  if (stretchMetronomeAudioCtx && stretchMetronomeAudioCtx.state === "suspended") {
-    stretchMetronomeAudioCtx.resume().catch(() => {});
+  if (stretchAudioCtx && stretchAudioCtx.state === "suspended") {
+    stretchAudioCtx.resume().catch(() => {});
   }
-  return stretchMetronomeAudioCtx;
-}
-
-function playStretchMetronomeClick(time, isAccent = false) {
-  const ctx = getStretchAudioContext();
-  if (!ctx) return;
-
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(isAccent ? 320 : 240, time);
-
-  gain.gain.setValueAtTime(0.22, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.045);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start(time);
-  osc.stop(time + 0.045);
-}
-
-function stretchMetronomeScheduler() {
-  if (!isStretchMetronomeRunning) return;
-  const ctx = getStretchAudioContext();
-  if (!ctx) return;
-
-  while (stretchMetronomeNextTime < ctx.currentTime + 0.1) {
-    const isAccent = (stretchMetronomeBeat % 4 === 0);
-    playStretchMetronomeClick(stretchMetronomeNextTime, isAccent);
-    stretchMetronomeBeat++;
-    stretchMetronomeNextTime += 1.0; // BPM 60 = 1.0秒ごと
-  }
-  stretchMetronomeTimerId = setTimeout(stretchMetronomeScheduler, 25);
-}
-
-function startStretchMetronome() {
-  if (isStretchMetronomeRunning) return;
-  const ctx = getStretchAudioContext();
-  if (!ctx) return;
-
-  isStretchMetronomeRunning = true;
-  stretchMetronomeBeat = 0;
-  stretchMetronomeNextTime = ctx.currentTime + 0.05;
-  stretchMetronomeScheduler();
-  updateStretchMetronomeUI();
-  requestWakeLock();
-}
-
-function stopStretchMetronome() {
-  isStretchMetronomeRunning = false;
-  if (stretchMetronomeTimerId) {
-    clearTimeout(stretchMetronomeTimerId);
-    stretchMetronomeTimerId = null;
-  }
-  if (stretchMetronomeAudioCtx) {
-    try { stretchMetronomeAudioCtx.close().catch(() => {}); } catch (e) {}
-    stretchMetronomeAudioCtx = null;
-  }
-  updateStretchMetronomeUI();
-  if (!checkAnyTimerRunning()) {
-    releaseWakeLock();
-  }
-}
-
-function toggleStretchMetronome() {
-  if (isStretchMetronomeRunning) {
-    stopStretchMetronome();
-  } else {
-    startStretchMetronome();
-  }
-}
-
-function updateStretchMetronomeUI() {
-  const btn = document.getElementById("stretch-metro-toggle-btn");
-  const statusEl = document.getElementById("stretch-metro-status");
-  const breatheCircle = document.getElementById("breathe-circle");
-  if (!btn || !statusEl) return;
-
-  if (isStretchMetronomeRunning) {
-    btn.className = "stretch-metro-btn active";
-    statusEl.textContent = "ON";
-    if (breatheCircle) breatheCircle.classList.add("animated");
-  } else {
-    btn.className = "stretch-metro-btn";
-    statusEl.textContent = "OFF";
-    if (breatheCircle) breatheCircle.classList.remove("animated");
-  }
+  return stretchAudioCtx;
 }
 
 // 優しいベル音・チャイム音
@@ -4026,19 +3855,19 @@ function playStretchSound(type) {
     const gain = ctx.createGain();
     osc.type = "sine";
     osc.frequency.setValueAtTime(440, now);
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.04);
+    osc.stop(now + 0.06);
   } else if (type === "switch") {
     [523.25, 659.25].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, now + idx * 0.05);
-      gain.gain.setValueAtTime(0.18, now + idx * 0.05);
+      gain.gain.setValueAtTime(0.2, now + idx * 0.05);
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.8);
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -4051,7 +3880,7 @@ function playStretchSound(type) {
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, now + idx * 0.1);
-      gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+      gain.gain.setValueAtTime(0.22, now + idx * 0.1);
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 1.4);
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -4065,7 +3894,8 @@ function playStretchSound(type) {
 
 function initStretchState() {
   stretchState.currentExIdx = 0;
-  stretchState.isInterval = false;
+  stretchState.isPrep = false;
+  stretchState.prepRemainingSec = 3;
   stretchState.currentSide = STRETCH_EXERCISES[0].hasSides ? "left" : null;
   stretchState.remainingSec = STRETCH_EXERCISES[0].durationSec;
   stretchState.totalElapsedSec = 0;
@@ -4077,7 +3907,6 @@ function renderStretchView() {
   updateStretchPlayerUI();
   renderStretchList();
   updateStretchStatusBadge();
-  updateStretchMetronomeUI();
 }
 
 function updateStretchStatusBadge() {
@@ -4128,25 +3957,30 @@ function updateStretchPlayerUI() {
   }
 
   // タイマー表示
-  const m = Math.floor(stretchState.remainingSec / 60);
-  const s = stretchState.remainingSec % 60;
-  const timeStr = `${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
-
   if (timerDisplayEl) {
-    timerDisplayEl.textContent = timeStr;
-    if (stretchState.isInterval) {
-      timerDisplayEl.classList.add("interval-mode");
+    if (stretchState.isPrep) {
+      timerDisplayEl.textContent = `00:0${stretchState.prepRemainingSec}`;
+      timerDisplayEl.classList.add("prep-mode");
     } else {
-      timerDisplayEl.classList.remove("interval-mode");
+      const m = Math.floor(stretchState.remainingSec / 60);
+      const s = stretchState.remainingSec % 60;
+      timerDisplayEl.textContent = `${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
+      timerDisplayEl.classList.remove("prep-mode");
     }
   }
 
+  // 案内表示 (notice)
   if (intervalNoticeEl) {
-    if (stretchState.isInterval) {
+    if (stretchState.isPrep) {
       intervalNoticeEl.style.display = "block";
-      intervalNoticeEl.textContent = stretchState.currentSide === "right" 
-        ? "🔔 準備: 右側へ切り替えます" 
-        : "🔔 準備: 次の種目の体勢を整えてください";
+      intervalNoticeEl.textContent = `🔔 準備中... 体勢を整えてください (${stretchState.prepRemainingSec}秒)`;
+    } else if (!stretchState.isRunning) {
+      intervalNoticeEl.style.display = "block";
+      if (ex.hasSides && stretchState.currentSide === "right") {
+        intervalNoticeEl.textContent = "👉 右側の体勢を整えてスタートを押してください (3秒準備)";
+      } else {
+        intervalNoticeEl.textContent = "👉 体勢を整えてスタートを押してください (3秒準備)";
+      }
     } else {
       intervalNoticeEl.style.display = "none";
     }
@@ -4217,12 +4051,10 @@ function startStretchPlayer() {
   if (stretchState.isRunning) return;
 
   stretchState.isRunning = true;
-  stretchState.targetEndTime = Date.now() + stretchState.remainingSec * 1000;
+  stretchState.isPrep = true;
+  stretchState.prepRemainingSec = 3;
 
-  // BPM60メトロノームも連動開始
-  if (!isStretchMetronomeRunning) {
-    startStretchMetronome();
-  }
+  playStretchSound("countdown");
 
   if (stretchState.timerIntervalId) clearInterval(stretchState.timerIntervalId);
   stretchState.timerIntervalId = setInterval(checkStretchTick, 1000);
@@ -4233,6 +4065,7 @@ function startStretchPlayer() {
 
 function pauseStretchPlayer() {
   stretchState.isRunning = false;
+  stretchState.isPrep = false;
   if (stretchState.timerIntervalId) {
     clearInterval(stretchState.timerIntervalId);
     stretchState.timerIntervalId = null;
@@ -4246,6 +4079,21 @@ function pauseStretchPlayer() {
 function checkStretchTick() {
   if (!stretchState.isRunning) return;
 
+  // 1. 3秒の準備時間カウントダウン
+  if (stretchState.isPrep) {
+    stretchState.prepRemainingSec--;
+    if (stretchState.prepRemainingSec > 0) {
+      playStretchSound("countdown");
+    } else {
+      // 準備終了 ➔ 種目本番タイマースタート！
+      stretchState.isPrep = false;
+      playStretchSound("switch");
+    }
+    updateStretchPlayerUI();
+    return;
+  }
+
+  // 2. 本運動カウントダウン
   stretchState.remainingSec--;
   stretchState.totalElapsedSec++;
 
@@ -4254,9 +4102,10 @@ function checkStretchTick() {
     playStretchSound("countdown");
   }
 
-  // 秒数終了時の遷移
+  // 秒数終了時の処理
   if (stretchState.remainingSec <= 0) {
     handleStretchStepCompletion();
+    return;
   }
 
   updateStretchPlayerUI();
@@ -4265,34 +4114,30 @@ function checkStretchTick() {
 function handleStretchStepCompletion() {
   const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
 
-  // 1. インターバル終了時 ➔ 本運動開始
-  if (stretchState.isInterval) {
-    stretchState.isInterval = false;
+  // 1. 左右種目で「左」が終了した時 ➔ 「右」へ切り替えてタイマー停止（自動進行せず待機）
+  if (currentEx.hasSides && stretchState.currentSide === "left") {
+    pauseStretchPlayer();
+    stretchState.currentSide = "right";
+    stretchState.isPrep = false;
     stretchState.remainingSec = currentEx.durationSec;
     playStretchSound("switch");
+    updateStretchPlayerUI();
     return;
   }
 
-  // 2. 左右種目で「左」が終了した時 ➔ 「右」の準備インターバルへ
-  if (currentEx.hasSides && stretchState.currentSide === "left") {
-    stretchState.currentSide = "right";
-    stretchState.isInterval = true;
-    stretchState.remainingSec = 5; // 左右切り替えインターバル5秒
-    playStretchSound("switch");
-    return;
-  }
-
-  // 3. 種目完了（右側または左右なし）
+  // 2. 種目完了（右側または左右なし）
   stretchState.completedExIds[currentEx.id] = true;
 
   // 次の種目があるか確認
   if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
+    pauseStretchPlayer();
     stretchState.currentExIdx++;
     const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
     stretchState.currentSide = nextEx.hasSides ? "left" : null;
-    stretchState.isInterval = true;
-    stretchState.remainingSec = 5; // 種目間準備インターバル5秒
+    stretchState.isPrep = false;
+    stretchState.remainingSec = nextEx.durationSec;
     playStretchSound("switch");
+    updateStretchPlayerUI();
     renderStretchList();
   } else {
     // 全8種目完了！
@@ -4314,10 +4159,11 @@ function finishAllStretch() {
 
 function nextStretchStep() {
   if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
+    pauseStretchPlayer();
     stretchState.currentExIdx++;
     const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
     stretchState.currentSide = nextEx.hasSides ? "left" : null;
-    stretchState.isInterval = false;
+    stretchState.isPrep = false;
     stretchState.remainingSec = nextEx.durationSec;
     playStretchSound("switch");
     updateStretchPlayerUI();
@@ -4327,10 +4173,11 @@ function nextStretchStep() {
 
 function prevStretchStep() {
   if (stretchState.currentExIdx > 0) {
+    pauseStretchPlayer();
     stretchState.currentExIdx--;
     const prevEx = STRETCH_EXERCISES[stretchState.currentExIdx];
     stretchState.currentSide = prevEx.hasSides ? "left" : null;
-    stretchState.isInterval = false;
+    stretchState.isPrep = false;
     stretchState.remainingSec = prevEx.durationSec;
     updateStretchPlayerUI();
     renderStretchList();
@@ -4339,16 +4186,14 @@ function prevStretchStep() {
 
 function jumpToStretchExercise(idx) {
   if (idx < 0 || idx >= STRETCH_EXERCISES.length) return;
+  pauseStretchPlayer();
   stretchState.currentExIdx = idx;
   const ex = STRETCH_EXERCISES[idx];
   stretchState.currentSide = ex.hasSides ? "left" : null;
-  stretchState.isInterval = false;
+  stretchState.isPrep = false;
   stretchState.remainingSec = ex.durationSec;
   updateStretchPlayerUI();
   renderStretchList();
-  if (!stretchState.isRunning) {
-    startStretchPlayer();
-  }
 }
 
 function resetStretchPlayer() {
@@ -4360,7 +4205,6 @@ function resetStretchPlayer() {
 
 function stopStretchTimers() {
   pauseStretchPlayer();
-  stopStretchMetronome();
 }
 
 // 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
