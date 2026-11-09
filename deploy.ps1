@@ -10,7 +10,7 @@ $ver = Get-Date -Format "yyyy.MM.dd.HHmm"
 Write-Host "New Version: $ver" -ForegroundColor Green
 
 # 2. git add, commit, push
-git add index.html workout_logger.html version.json deploy.ps1
+git add index.html workout_logger.html version.json deploy.ps1 .gitignore routine_archive.json
 git commit -m "$msg ($ver)"
 git push origin main
 

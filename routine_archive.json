@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "archived_at": "2026-11-09T10:55:00+09:00",
+  "description": "2026-11-09のメニュー構成見直し（月水金をメイン筋トレ、火木土日をジョグに再編し腰の疲労回復を図る）に伴いアプリから退避・アーカイブされた補助筋トレルーティン定義",
+  "routines": {
+    "sub": {
+      "key": "sub",
+      "name": "補助",
+      "target_rir": 3,
+      "pairs": [
+        {
+          "id": "pair3",
+          "label": "スーパーセット③",
+          "exA": {
+            "key": "row",
+            "name": "ダンベルロー",
+            "isDumbbell": true,
+            "mode": "片手",
+            "defaultWeight": 18,
+            "defaultReps": [12, 12, 12],
+            "notes": "広背筋・上背部。ワンハンド上体支持で実施"
+          },
+          "exB": {
+            "key": "crunch",
+            "name": "ダンベルクランチ",
+            "isDumbbell": true,
+            "mode": "1個",
+            "defaultWeight": 5,
+            "defaultReps": [15, 15, 15],
+            "notes": "腹直筋。ダンベル胸前保持"
+          }
+        },
+        {
+          "id": "pair4",
+          "label": "スーパーセット④",
+          "exA": {
+            "key": "sidebend",
+            "name": "ダンベルサイドベント",
+            "isDumbbell": true,
+            "mode": "片手",
+            "defaultWeight": 14,
+            "defaultReps": [15, 15, 15],
+            "notes": "腹斜筋・腰方形筋"
+          },
+          "exB": {
+            "key": "calfraise",
+            "name": "ダンベルカーフレイズ",
+            "isDumbbell": true,
+            "mode": "×2",
+            "defaultWeight": 18,
+            "defaultReps": [20, 20, 20],
+            "notes": "下腿三頭筋（カーフ）"
+          }
+        }
+      ]
+    }
+  }
+}

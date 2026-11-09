@@ -1304,13 +1304,9 @@
     <span class="tab-title">メイン</span>
     <span class="tab-days">月・水・金</span>
   </button>
-  <button class="tab-btn" id="tab-sub" onclick="switchRoutine('sub')">
-    <span class="tab-title">補助</span>
-    <span class="tab-days">火・土</span>
-  </button>
   <button class="tab-btn" id="tab-jog" onclick="switchRoutine('jog')">
     <span class="tab-title">ジョグ</span>
-    <span class="tab-days">木・日</span>
+    <span class="tab-days">火・木・土・日</span>
   </button>
   <button class="tab-btn" id="tab-stretch" onclick="switchRoutine('stretch')">
     <span class="tab-title">夜ストレッチ</span>
@@ -1650,9 +1646,14 @@ const ROUTINES = {
         }
       }
     ]
-  },
+  }
+};
+
+// --- アーカイブ: 補助筋トレ定義 (2026-11-09 メニュー再編に伴いアプリ表示から退避。routine_archive.jsonにも永続化) ---
+const ROUTINES_ARCHIVE = {
   sub: {
     name: "補助",
+    target_rir: 3,
     pairs: [
       {
         id: "pair3",
@@ -1670,7 +1671,7 @@ const ROUTINES = {
           name: "ダンベルクランチ",
           isDumbbell: true,
           mode: "1個",
-          defaultWeight: 9,
+          defaultWeight: 5,
           defaultReps: [15, 15, 15]
         }
       },
@@ -1682,7 +1683,7 @@ const ROUTINES = {
           name: "ダンベルサイドベント",
           isDumbbell: true,
           mode: "片手",
-          defaultWeight: 18,
+          defaultWeight: 14,
           defaultReps: [15, 15, 15]
         },
         exB: {
@@ -2022,9 +2023,9 @@ function getTodayDateString() {
 
 function getDefaultRoutineByDay(dateObj = new Date()) {
   const dayOfWeek = dateObj.getDay(); // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
-  if (dayOfWeek === 0 || dayOfWeek === 4) return "jog";
-  if (dayOfWeek === 2 || dayOfWeek === 6) return "sub";
-  return "main";
+  // 月(1)・水(3)・金(5)はメイン筋トレ、その他（火2・木4・土6・日0）はジョグ
+  if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) return "main";
+  return "jog";
 }
 
 // 初期化
@@ -2157,7 +2158,7 @@ function archiveForgottenDraftIfNeeded(draft) {
     const hasChecked = draft.completedSets && Object.values(draft.completedSets).some(Boolean);
     if (!hasChecked || !draft.workoutState) return;
     const rKey = (draft.currentRoutineKey === "sub") ? "sub" : "main";
-    const routine = ROUTINES[rKey];
+    const routine = ROUTINES[rKey] || (typeof ROUTINES_ARCHIVE !== "undefined" ? ROUTINES_ARCHIVE[rKey] : null);
     if (!routine || !routine.pairs.length) return;
     const exercisesData = [];
     routine.pairs.forEach((pair, pIdx) => {
@@ -2347,7 +2348,8 @@ function loadStateFromStorage() {
   }
 
   // 全種目の基準状態を構築
-  ["main", "sub"].forEach(rKey => {
+  ["main"].forEach(rKey => {
+    if (!ROUTINES[rKey] || !ROUTINES[rKey].pairs) return;
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
         const savedW = parsedWeights[ex.key];
@@ -2431,7 +2433,8 @@ function resetTodayDraftManual() {
   setRIR(1, false);
   setCardioRPE("optimal", false);
 
-  ["main", "sub"].forEach(rKey => {
+  ["main"].forEach(rKey => {
+    if (!ROUTINES[rKey] || !ROUTINES[rKey].pairs) return;
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
         const lastR = lastSavedReps[ex.key];
@@ -2460,8 +2463,10 @@ function switchRoutine(routineKey) {
 }
 
 function updateTabUI() {
-  document.getElementById("tab-main").className = "tab-btn " + (currentRoutineKey === "main" ? "active" : "");
-  document.getElementById("tab-sub").className = "tab-btn " + (currentRoutineKey === "sub" ? "active" : "");
+  const tabMain = document.getElementById("tab-main");
+  if (tabMain) tabMain.className = "tab-btn " + (currentRoutineKey === "main" ? "active" : "");
+  const tabSub = document.getElementById("tab-sub");
+  if (tabSub) tabSub.className = "tab-btn " + (currentRoutineKey === "sub" ? "active" : "");
   const tabJog = document.getElementById("tab-jog");
   if (tabJog) tabJog.className = "tab-btn " + (currentRoutineKey === "jog" ? "active" : "");
   const tabStretch = document.getElementById("tab-stretch");
@@ -4206,7 +4211,7 @@ document.addEventListener("visibilitychange", async () => {
       if (isDraftSavedToCloud || !hasUnsavedChecks) {
         dateInput.value = todayStr;
         currentRoutineKey = getDefaultRoutineByDay(new Date());
-        updateRoutineNav();
+        updateTabUI();
         renderWorkout();
         saveDraftToStorage();
       }

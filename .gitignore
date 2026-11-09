@@ -12,7 +12,8 @@ desktop.ini
 Thumbs.db
 .DS_Store
 
-# 筋トレ実績ログJSON（※ただし manifest.json と version.json はアプリ配信用に許可）
+# 筋トレ実績ログJSON（※ただし manifest.json, version.json, routine_archive.json はアプリ配信用に許可）
 *.json
 !manifest.json
 !version.json
+!routine_archive.json
