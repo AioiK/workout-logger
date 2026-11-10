@@ -16,25 +16,87 @@
 <title>筋トレログ | 記録ツール</title>
 <style>
   :root {
-    /* 背景・カード（漆黒〜チャコール） */
-    --bg-main: #101012;         /* オブシディアン・ブラック */
-    --bg-card: #1a1a1e;         /* マットチャコール */
-    --bg-card-sub: #202026;     /* サブ枠・セット枠 */
-    --bg-input: #26262c;        /* 入力欄背景 */
-    --border-card: #2f2f38;     /* 境界線 */
+    /* ========================================================
+       1. ベース・サーフェス（Obsidian Dark: 漆黒〜マットチャコール）
+       - ジムの照明や夜間でも見やすく集中を促す階層的ダークパレット
+       ======================================================== */
+    --bg-main: #101012;         /* アプリ背景：オブシディアン・ブラック */
+    --bg-card: #18181c;         /* カード背景：引き締まったチャコール */
+    --bg-card-sub: #202026;     /* サブ枠・セット枠・ウィジェット背景 */
+    --bg-input: #26262e;        /* 入力欄・ステッパー背景 */
+    --border-card: #2f2f38;     /* 境界線・区切り線 */
+    --bg-glass: rgba(16, 16, 18, 0.92); /* 下部バー等グラスモーフィズム */
 
-    /* テキスト */
-    --text-primary: #ffffff;    /* クリーンホワイト */
-    --text-secondary: #a1a1aa;  /* 落ち着いたグレー */
-    --text-muted: #71717a;      /* 控えめテキスト */
+    /* ========================================================
+       2. テキスト・階層（Clean White & Functional Neutral）
+       ======================================================== */
+    --text-primary: #ffffff;    /* 主要テキスト・レップ数値・見出し */
+    --text-secondary: #a1a1aa;  /* ラベル・補助説明文・メタ情報 */
+    --text-muted: #71717a;      /* 単位・プレースホルダー・非活性 */
 
-    /* アクセント（ブレイズ・オレンジ ＆ シルバー） */
-    --accent-blue: #f97316;     /* メインアクセント：鮮烈オレンジ */
-    --accent-emerald: #fb923c;  /* 完了・ハイライト：オレンジ系 */
-    --accent-amber: #f59e0b;    /* 補助アンバー */
-    --accent-indigo: #e2e8f0;   /* プラチナシルバー */
+    /* ========================================================
+       3. セマンティック・カラー設計（意味とカラーの結びつき）
+       ======================================================== */
 
-    /* 角丸（既存維持） */
+    /* 【Primary / Energy / Action】
+       意味: 主導線・エネルギー・現在実行中（NOW）
+       色: ブレイズ・オレンジ（メインカラーそのまま維持） */
+    --color-primary: #f97316;
+    --color-primary-hover: #ea580c;
+    --color-primary-subtle: rgba(249, 115, 22, 0.15);
+    --color-primary-glow: rgba(249, 115, 22, 0.35);
+
+    /* 【Success / Completed / Done】
+       意味: セット完了・タスク達成・チェック済み
+       色: ミント・エメラルド（旧：オレンジから本来の達成色へ刷新） */
+    --color-success: #10b981;
+    --color-success-hover: #059669;
+    --color-success-subtle: rgba(16, 185, 129, 0.14);
+    --color-success-glow: rgba(16, 185, 129, 0.35);
+
+    /* 【Warning / Timer / Parameter】
+       意味: タイマー計測中・インターバル休憩・注意パラメータ（重量）
+       色: アンバー・ゴールド */
+    --color-warning: #f59e0b;
+    --color-warning-hover: #d97706;
+    --color-warning-subtle: rgba(245, 158, 11, 0.16);
+    --color-warning-glow: rgba(245, 158, 11, 0.4);
+    --color-warning-text: #fbbf24;
+
+    /* 【Recovery / Relax / Night Routine】
+       意味: 夜ストレッチ・リカバリー・副交感神経ケア
+       色: ミッドナイト・アメジスト（直書きパープルを体系化） */
+    --color-relax: #8b5cf6;
+    --color-relax-hover: #7c3aed;
+    --color-relax-soft: #a78bfa;
+    --color-relax-subtle: rgba(139, 92, 246, 0.16);
+    --color-relax-glow: rgba(139, 92, 246, 0.4);
+    --color-relax-border: #4338ca;
+
+    /* 【Cool / Weather / Indoor】
+       意味: 雨天モード・室内代替メニュー
+       色: スカイ・シアン */
+    --color-cool: #38bdf8;
+    --color-cool-hover: #0284c7;
+    --color-cool-subtle: rgba(56, 189, 248, 0.15);
+    --color-cool-glow: rgba(56, 189, 248, 0.35);
+
+    /* 【Neutral / Interactive】
+       意味: 通常タブ選択・汎用タップフィードバック
+       色: プラチナシルバー */
+    --color-neutral-active: #e2e8f0;
+    --color-neutral-text: #101012;
+    --color-neutral-subtle: rgba(226, 232, 240, 0.12);
+
+    /* ========================================================
+       4. 後方互換性エイリアス（JS / 旧CSS参照の安全担保）
+       ======================================================== */
+    --accent-blue: var(--color-primary);
+    --accent-emerald: var(--color-success);
+    --accent-amber: var(--color-warning);
+    --accent-indigo: var(--color-neutral-active);
+
+    /* 角丸 */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -67,7 +129,7 @@
   h1 {
     font-size: 1.15rem;
     font-weight: 700;
-    color: var(--accent-blue);
+    color: var(--color-primary);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -148,16 +210,16 @@
   }
 
   .tab-btn.active {
-    background: var(--accent-indigo);
-    color: #101012;
+    background: var(--color-neutral-active);
+    color: var(--color-neutral-text);
     font-weight: 800;
     box-shadow: 0 2px 8px rgba(226, 232, 240, 0.25);
   }
 
   .tab-btn.stretch-active {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--color-relax) 0%, #6366f1 100%);
     color: #fff;
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.45);
+    box-shadow: 0 2px 8px var(--color-relax-glow);
   }
 
   /* Jog & Cardio Styles */
@@ -189,16 +251,16 @@
   }
 
   .weather-btn.active {
-    background: linear-gradient(135deg, var(--accent-blue) 0%, #ea580c 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
     color: #ffffff;
     font-weight: 800;
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+    box-shadow: 0 2px 8px var(--color-primary-glow);
   }
 
   .weather-btn.active.rain {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    background: linear-gradient(135deg, var(--color-cool-hover) 0%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px var(--color-cool-glow);
   }
 
   .jog-card {
@@ -218,8 +280,8 @@
   }
 
   .jog-badge {
-    background: rgba(249, 115, 22, 0.15);
-    color: var(--accent-blue);
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 0.85rem;
@@ -227,8 +289,8 @@
   }
 
   .jog-badge.rain {
-    background: rgba(99, 102, 241, 0.2);
-    color: #a5b4fc;
+    background: var(--color-cool-subtle);
+    color: var(--color-cool);
   }
 
   .jog-target-info {
@@ -240,10 +302,11 @@
   .jog-notice {
     background: var(--bg-card-sub);
     border: 1px solid var(--border-card);
+    border-left: 3px solid var(--color-primary);
     border-radius: var(--radius-sm);
     padding: 8px 10px;
     font-size: 0.76rem;
-    color: var(--accent-blue);
+    color: var(--text-secondary);
     line-height: 1.45;
     margin-bottom: 14px;
   }
@@ -277,15 +340,15 @@
   }
 
   .jog-ctrl-btn.btn-primary {
-    background: linear-gradient(135deg, var(--accent-blue) 0%, #ea580c 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 2px 8px var(--color-primary-glow);
   }
 
   .jog-ctrl-btn.btn-primary.running {
-    background: linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%);
+    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-hover) 100%);
     color: #fff;
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 2px 8px var(--color-warning-glow);
     animation: timerPulse 1s infinite;
   }
 
@@ -323,7 +386,7 @@
 
   .foam-tips-box {
     background: var(--bg-card-sub);
-    border-left: 3px solid var(--accent-blue);
+    border-left: 3px solid var(--color-primary);
     padding: 8px 12px;
     border-radius: 6px;
     margin-bottom: 14px;
@@ -368,15 +431,15 @@
   }
 
   .metronome-btn.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(79, 70, 229, 0.35) 100%);
-    border-color: var(--accent-indigo);
-    color: #e0e7ff;
-    box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary);
+    color: #ffffff;
+    box-shadow: 0 0 14px var(--color-primary-glow);
   }
 
   .metronome-btn.active strong {
-    color: var(--accent-blue);
-    text-shadow: 0 0 6px rgba(249, 115, 22, 0.6);
+    color: var(--color-primary);
+    text-shadow: 0 0 6px var(--color-primary-glow);
   }
 
   /* Superset Container */
@@ -405,8 +468,8 @@
   }
 
   .superset-badge {
-    background: rgba(249, 115, 22, 0.15);
-    color: var(--accent-blue);
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
     padding: 3px 8px;
     border-radius: 6px;
     font-size: 0.8rem;
@@ -458,8 +521,8 @@
     touch-action: manipulation;
   }
   .timer-step-btn:active {
-    background: var(--accent-indigo);
-    color: #101012;
+    background: var(--color-neutral-active);
+    color: var(--color-neutral-text);
   }
 
   .timer-duration-val {
@@ -472,8 +535,8 @@
 
   .timer-action-btn {
     background: var(--bg-card);
-    border: 1px solid var(--accent-blue);
-    color: var(--accent-blue);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
     padding: 5px 12px;
     border-radius: 6px;
     font-size: 0.85rem;
@@ -487,16 +550,16 @@
   }
 
   .timer-action-btn.running {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: var(--accent-amber);
-    color: var(--accent-amber);
+    background: var(--color-warning-subtle);
+    border-color: var(--color-warning);
+    color: var(--color-warning-text);
     animation: timerPulse 1s infinite;
   }
 
   .timer-action-btn.finished {
-    background: rgba(251, 146, 60, 0.2);
-    border-color: var(--accent-emerald);
-    color: var(--accent-emerald);
+    background: var(--color-success-subtle);
+    border-color: var(--color-success);
+    color: var(--color-success);
   }
 
   @keyframes timerPulse {
@@ -534,7 +597,7 @@
     width: 100%;
     background: var(--bg-input);
     border: 1px solid var(--border-card);
-    color: var(--accent-amber);
+    color: var(--color-warning-text);
     padding: 6px 8px;
     border-radius: 6px;
     font-size: 0.85rem;
@@ -586,10 +649,10 @@
     position: relative;
   }
 
-  /* 現在取り組むべきセット（NOW）のハイライト */
+  /* 現在取り組むべきセット（NOW）のハイライト：エナジー・オレンジ */
   .stepper-box.active-now {
-    border: 2px solid var(--accent-blue);
-    box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
     animation: pulseNow 2s infinite;
   }
 
@@ -599,15 +662,15 @@
     100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
   }
 
-  /* 完了したセットのスタイル */
+  /* 完了したセットのスタイル：達成・エメラルドグリーン */
   .stepper-box.done {
-    border-color: var(--accent-emerald);
-    background: rgba(251, 146, 60, 0.1);
-    opacity: 0.85;
+    border-color: rgba(16, 185, 129, 0.45);
+    background: var(--color-success-subtle);
+    opacity: 0.95;
   }
 
   .stepper-box.done .stepper-val {
-    color: var(--accent-emerald);
+    color: var(--color-success);
   }
 
   .stepper-btn {
@@ -626,8 +689,8 @@
   }
 
   .stepper-btn:active {
-    background: var(--accent-indigo);
-    color: #101012;
+    background: var(--color-neutral-active);
+    color: var(--color-neutral-text);
   }
 
   .stepper-val {
@@ -650,7 +713,7 @@
     text-overflow: ellipsis;
   }
 
-  /* セット完了チェックボタン（トグル可能） */
+  /* セット完了チェックボタン（トグル可能）：達成感あふれるエメラルド点灯 */
   .check-btn {
     width: 38px;
     height: 44px;
@@ -669,8 +732,9 @@
   }
 
   .check-btn.checked {
-    background: var(--accent-emerald);
-    color: #101012;
+    background: var(--color-success);
+    color: #ffffff;
+    box-shadow: 0 0 10px var(--color-success-glow);
   }
 
   .check-btn:active {
@@ -705,7 +769,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(16, 16, 18, 0.95);
+    background: var(--bg-glass);
     backdrop-filter: blur(8px);
     border-top: 1px solid var(--border-card);
     padding: 10px 16px;
@@ -716,7 +780,7 @@
 
   .save-btn {
     flex: 1;
-    background: linear-gradient(135deg, var(--accent-blue) 0%, #ea580c 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
     border: none;
     color: #ffffff;
     padding: 14px;
@@ -724,7 +788,7 @@
     font-size: 1.05rem;
     font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+    box-shadow: 0 4px 14px var(--color-primary-glow);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -796,14 +860,14 @@
   }
 
   .weight-option-btn.selected {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: var(--accent-amber);
-    color: var(--accent-amber);
+    background: var(--color-warning-subtle);
+    border-color: var(--color-warning);
+    color: var(--color-warning-text);
   }
 
   .weight-option-btn:active {
-    background: var(--accent-indigo);
-    color: #101012;
+    background: var(--color-neutral-active);
+    color: var(--color-neutral-text);
   }
 
   .modal-close-btn {
@@ -841,7 +905,7 @@
   .success-h2 {
     font-size: 1.3rem;
     font-weight: 800;
-    color: var(--accent-emerald);
+    color: var(--color-success);
     margin-bottom: 8px;
   }
   .success-p {
@@ -888,10 +952,10 @@
     touch-action: manipulation;
   }
   .rir-btn.active {
-    background: rgba(249, 115, 22, 0.15);
-    border-color: var(--accent-blue);
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary);
     color: #ffffff;
-    box-shadow: 0 0 10px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 0 10px var(--color-primary-glow);
   }
   .rir-score {
     font-size: 0.95rem;
@@ -902,14 +966,14 @@
     color: var(--text-muted);
   }
   .rir-btn.active .rir-desc {
-    color: var(--accent-blue);
+    color: var(--color-primary);
   }
 
   /* Last Reps Badge inside Stepper */
   .last-rep-badge {
     font-size: 0.65rem;
-    color: var(--accent-blue);
-    background: rgba(249, 115, 22, 0.15);
+    color: var(--color-primary);
+    background: var(--color-primary-subtle);
     padding: 1px 4px;
     border-radius: 4px;
     margin-top: 2px;
@@ -934,7 +998,7 @@
   }
   .history-date {
     font-weight: 700;
-    color: var(--accent-blue);
+    color: var(--color-primary);
   }
   .history-summary {
     color: var(--text-secondary);
@@ -956,14 +1020,14 @@
     cursor: pointer;
   }
 
-  /* ==================== 夜ストレッチ専用スタイル ==================== */
+  /* ==================== 夜ストレッチ専用スタイル（Recovery & Relax） ==================== */
   .stretch-quick-card {
-    background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 100%);
-    border: 1px solid #4338ca;
+    background: var(--color-relax-card-bg, linear-gradient(135deg, #18152c 0%, #1e1b38 100%));
+    border: 1px solid var(--color-relax-border);
     border-radius: var(--radius-lg);
     padding: 14px;
     margin-bottom: 14px;
-    box-shadow: 0 4px 14px rgba(30, 27, 75, 0.4);
+    box-shadow: 0 4px 14px rgba(24, 21, 44, 0.5);
   }
 
   .stretch-quick-header {
@@ -977,13 +1041,13 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(168, 85, 247, 0.2);
-    color: #d8b4fe;
+    background: var(--color-relax-subtle);
+    color: var(--color-relax-soft);
     font-size: 0.82rem;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 6px;
-    border: 1px solid rgba(168, 85, 247, 0.3);
+    border: 1px solid rgba(139, 92, 246, 0.3);
   }
 
   .stretch-status-badge {
@@ -997,15 +1061,15 @@
   }
 
   .stretch-status-badge.completed {
-    background: rgba(251, 146, 60, 0.2);
-    color: var(--accent-emerald);
-    border-color: var(--accent-blue);
+    background: var(--color-success-subtle);
+    color: var(--color-success);
+    border-color: var(--color-success);
   }
 
   /* プレイヤーカード */
   .stretch-card {
     background: var(--bg-card);
-    border: 1px solid #3730a3;
+    border: 1px solid var(--color-relax-border);
     border-radius: var(--radius-lg);
     padding: 16px;
     margin-bottom: 14px;
@@ -1021,7 +1085,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #a855f7, #6366f1, var(--accent-blue));
+    background: linear-gradient(90deg, #a855f7, var(--color-relax), var(--color-primary));
   }
 
   .stretch-card-top {
@@ -1034,15 +1098,15 @@
   .stretch-step-idx {
     font-size: 0.75rem;
     font-weight: 800;
-    color: #a855f7;
+    color: var(--color-relax-soft);
     letter-spacing: 0.5px;
   }
 
   .stretch-phase-tag {
     font-size: 0.72rem;
-    background: rgba(99, 102, 241, 0.15);
-    color: #c7d2fe;
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: var(--color-relax-subtle);
+    color: #ddd6fe;
+    border: 1px solid rgba(139, 92, 246, 0.3);
     padding: 2px 8px;
     border-radius: 4px;
     font-weight: 600;
@@ -1082,10 +1146,10 @@
   }
 
   .side-chip.active {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--color-relax) 0%, #6366f1 100%);
     border-color: #a855f7;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 2px 8px var(--color-relax-glow);
   }
 
   /* タイマー数値 */
@@ -1101,7 +1165,7 @@
 
   .stretch-timer-display.interval-mode,
   .stretch-timer-display.prep-mode {
-    color: #f59e0b;
+    color: var(--color-warning-text);
     animation: timerPulse 0.8s infinite;
   }
 
@@ -1109,7 +1173,7 @@
     text-align: center;
     font-size: 0.82rem;
     font-weight: 700;
-    color: #fbbf24;
+    color: var(--color-warning-text);
     margin-bottom: 10px;
   }
 
@@ -1130,16 +1194,16 @@
     font-weight: 800;
     border: none;
     cursor: pointer;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--color-relax) 0%, #6366f1 100%);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 14px var(--color-relax-glow);
     transition: all 0.15s;
     touch-action: manipulation;
   }
 
   .stretch-ctrl-main.running {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-hover) 100%);
+    box-shadow: 0 4px 14px var(--color-warning-glow);
   }
 
   .stretch-ctrl-sub {
@@ -1166,7 +1230,7 @@
     border-radius: var(--radius-sm);
     padding: 8px 12px;
     font-size: 0.78rem;
-    color: #a5b4fc;
+    color: var(--color-relax-soft);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1174,8 +1238,8 @@
   }
 
   .stretch-instruction-box {
-    background: rgba(30, 41, 59, 0.7);
-    border-left: 3px solid #8b5cf6;
+    background: rgba(28, 24, 51, 0.7);
+    border-left: 3px solid var(--color-relax);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     padding: 8px 12px;
     font-size: 0.78rem;
@@ -1206,7 +1270,7 @@
 
   .stretch-total-time {
     font-size: 0.75rem;
-    color: #818cf8;
+    color: var(--color-relax-soft);
     font-weight: 600;
   }
 
@@ -1230,8 +1294,8 @@
   }
 
   .stretch-list-row.active {
-    background: rgba(139, 92, 246, 0.15);
-    border-color: #8b5cf6;
+    background: var(--color-relax-subtle);
+    border-color: var(--color-relax);
   }
 
   .stretch-list-row.completed {
@@ -1260,9 +1324,9 @@
   }
 
   .stretch-list-row.completed .stretch-check-mark {
-    background: var(--accent-emerald);
-    border-color: var(--accent-emerald);
-    color: #101012;
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: #ffffff;
     font-weight: 800;
   }
 
@@ -2011,7 +2075,7 @@ function showUpdateToast(msg) {
       top: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: #f97316;
+      background: var(--color-primary);
       color: #ffffff;
       padding: 10px 18px;
       border-radius: 20px;
