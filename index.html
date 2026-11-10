@@ -1286,6 +1286,9 @@
 </head>
 <body>
 
+<!-- バックグラウンド動作維持用（メトロノーム再生時のみ使用） -->
+<audio id="metronome-keep-alive" loop playsinline preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP//"></audio>
+
 <header>
   <h1>🏋️ 筋トレ記録</h1>
   <button class="settings-btn" onclick="openSettingsModal()" title="設定">⚙️</button>
@@ -1445,11 +1448,11 @@
     </div>
   </div>
 
-  <!-- 全9種目シークエンス・リスト -->
+  <!-- 全8種目シークエンス・リスト -->
   <div class="stretch-list-card">
     <div class="stretch-list-title">
       <span>全身ストレッチ シークエンス</span>
-      <span class="stretch-total-time">全9種目 / 姿勢移行スムーズ</span>
+      <span class="stretch-total-time">全8種目 / 姿勢移行スムーズ</span>
     </div>
     <div class="stretch-items-container" id="stretch-items-container">
       <!-- JSで動的に一覧描画 -->
@@ -1717,9 +1720,10 @@ let metronomeAudioCtx = null;
 let isMetronomeRunning = false;
 let metronomeNextTime = 0.0;
 let metronomeTimerId = null;
+let metronomeWorker = null;
 const METRONOME_BPM = 180;
 const LOOKAHEAD_MS = 25.0;
-const SCHEDULE_AHEAD_TIME = 0.1;
+const SCHEDULE_AHEAD_TIME = 1.5;
 
 let jogWeatherMode = localStorage.getItem("jog_weather_mode") || "sunny";
 let sunnyJogMinutes = 20;
@@ -2044,6 +2048,7 @@ function initApp() {
   workoutStartTime = new Date();
   initNotificationService();
   initTimerWorker();
+  initMetronomeWorker();
   loadStateFromStorage();
   bindInputPersistenceListeners();
   updateTabUI();
@@ -2989,9 +2994,9 @@ function saveAndExport() {
   if (currentRoutineKey === "stretch") {
     routineName = "夜ストレッチ";
     const elapsedStretchMin = Math.round(stretchState.totalElapsedSec / 60);
-    duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 12.0;
+    duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 10.0;
     const completedCount = Object.keys(stretchState.completedExIds).length;
-    const details = `夜ストレッチ${duration}分（全9種目中 ${completedCount}種目完了）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・90/90・4の字・ハムストリングス・ワニ・胸開き。`;
+    const details = `夜ストレッチ${duration}分（全8種目中 ${completedCount}種目完了）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・90/90・4の字・ハムストリングス・ワニ。`;
     finalMemo = memoText ? `${memoText}（${details}）` : details;
 
     exercisesData.push({
@@ -2999,8 +3004,8 @@ function saveAndExport() {
       load_kg: 0,
       load_details: "自重",
       sets: 1,
-      reps_total: 9,
-      reps_details: `${completedCount}/9種目`,
+      reps_total: 8,
+      reps_details: `${completedCount}/8種目`,
       target_rir: 0,
       actual_rir: 0,
       superset_group: "",
@@ -3125,7 +3130,7 @@ function saveAndExport() {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
         const subInfo = currentRoutineKey === "stretch"
-          ? `（夜ストレッチ: 約${duration}分 / 全9種目完了）`
+          ? `（夜ストレッチ: 約${duration}分 / 全8種目完了）`
           : (currentRoutineKey === "jog"
               ? (isRain 
                   ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"}）`
@@ -3167,7 +3172,7 @@ function saveAndExport() {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
     const subInfo = currentRoutineKey === "stretch"
-      ? `（夜ストレッチ: 約${duration}分 / 全9種目完了 / マイドライブへ同期完了）`
+      ? `（夜ストレッチ: 約${duration}分 / 全8種目完了 / マイドライブへ同期完了）`
       : (currentRoutineKey === "jog"
           ? (isRain 
               ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
@@ -3365,10 +3370,72 @@ function setCardioRPE(val, shouldSave = true) {
   }
 }
 
-// ==================== BPM 180 メトロノーム (Web Audio API 高精度スケジューラ) ====================
+// ==================== BPM 180 メトロノーム (Web Audio API 高精度スケジューラ & バックグラウンド維持) ====================
+function initMetronomeWorker() {
+  if (typeof Worker !== "undefined" && !metronomeWorker) {
+    try {
+      const workerCode = `
+        var timerId = null;
+        self.onmessage = function(e) {
+          if (e.data.action === "start") {
+            if (timerId) clearInterval(timerId);
+            timerId = setInterval(function() {
+              self.postMessage({ type: "tick" });
+            }, 50);
+          } else if (e.data.action === "stop") {
+            if (timerId) {
+              clearInterval(timerId);
+              timerId = null;
+            }
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: "application/javascript" });
+      metronomeWorker = new Worker(URL.createObjectURL(blob));
+      metronomeWorker.onmessage = function(e) {
+        if (e.data.type === "tick") {
+          if (isMetronomeRunning) {
+            metronomeScheduler();
+          }
+          if (rainyTimerState && rainyTimerState.isRunning) {
+            checkRainyTick();
+          }
+        }
+      };
+    } catch (err) {
+      console.warn("Metronome worker init failed:", err);
+      metronomeWorker = null;
+    }
+  }
+}
+
+function setMetronomeMediaSession(active) {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    if (active) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: "雨の日室内スロージョグ (BPM 180)",
+        artist: "筋トレログ",
+        album: "メトロノーム"
+      });
+      navigator.mediaSession.playbackState = "playing";
+      navigator.mediaSession.setActionHandler("play", () => {
+        if (!isMetronomeRunning) startMetronome();
+      });
+      navigator.mediaSession.setActionHandler("pause", () => {
+        if (isMetronomeRunning) stopMetronome();
+      });
+    } else {
+      navigator.mediaSession.playbackState = "none";
+    }
+  } catch (e) {
+    console.warn("MediaSession setup failed:", e);
+  }
+}
+
 function getMetronomeAudioContext() {
   if (navigator.audioSession) {
-    try { navigator.audioSession.type = "ambient"; } catch (e) {}
+    try { navigator.audioSession.type = "playback"; } catch (e) {}
   }
   if (!metronomeAudioCtx) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -3407,11 +3474,21 @@ function metronomeScheduler() {
   const ctx = getMetronomeAudioContext();
   if (!ctx) return;
 
+  // バックグラウンド復帰や遅延で nextTime が過去になった場合は現在時刻直後にリセット
+  if (metronomeNextTime < ctx.currentTime) {
+    metronomeNextTime = ctx.currentTime + 0.05;
+  }
+
   while (metronomeNextTime < ctx.currentTime + SCHEDULE_AHEAD_TIME) {
     playMetronomeClick(metronomeNextTime);
     metronomeNextTime += 60.0 / METRONOME_BPM; // 60 / 180 = 0.3333...秒
   }
-  metronomeTimerId = setTimeout(metronomeScheduler, LOOKAHEAD_MS);
+
+  // Worker がない場合のフォールバック
+  if (!metronomeWorker) {
+    if (metronomeTimerId) clearTimeout(metronomeTimerId);
+    metronomeTimerId = setTimeout(metronomeScheduler, LOOKAHEAD_MS);
+  }
 }
 
 function startMetronome() {
@@ -3420,18 +3497,63 @@ function startMetronome() {
   if (!ctx) return;
 
   isMetronomeRunning = true;
+  initMetronomeWorker();
+
+  // 1. AudioSession を playback に設定（画面ロック・バックグラウンドでの消音を防止）
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "playback"; } catch (e) {}
+  }
+
+  // 2. 無音オーディオ再生（Chrome/iOSのTab Freezing / 省電力スリープを防止）
+  const keepAlive = document.getElementById("metronome-keep-alive");
+  if (keepAlive) {
+    keepAlive.play().catch(e => console.warn("keepAlive audio play error:", e));
+  }
+
+  // 3. MediaSession API 有効化
+  setMetronomeMediaSession(true);
+
+  // 4. スケジューラ起動
   metronomeNextTime = ctx.currentTime + 0.05;
   metronomeScheduler();
+
+  if (metronomeWorker) {
+    metronomeWorker.postMessage({ action: "start" });
+  } else {
+    metronomeTimerId = setTimeout(metronomeScheduler, LOOKAHEAD_MS);
+  }
+
   updateMetronomeUI();
   requestWakeLock();
 }
 
 function stopMetronome() {
   isMetronomeRunning = false;
+  if (metronomeWorker) {
+    metronomeWorker.postMessage({ action: "stop" });
+  }
   if (metronomeTimerId) {
     clearTimeout(metronomeTimerId);
     metronomeTimerId = null;
   }
+
+  // 無音オーディオ停止
+  const keepAlive = document.getElementById("metronome-keep-alive");
+  if (keepAlive) {
+    try {
+      keepAlive.pause();
+      keepAlive.currentTime = 0;
+    } catch (e) {}
+  }
+
+  // MediaSession API 解除
+  setMetronomeMediaSession(false);
+
+  // AudioSession を ambient に戻す
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "ambient"; } catch (e) {}
+  }
+
   if (metronomeAudioCtx) {
     try { metronomeAudioCtx.close().catch(() => {}); } catch (e) {}
     metronomeAudioCtx = null;
@@ -3790,16 +3912,6 @@ const STRETCH_EXERCISES = [
     hasSides: true,
     desc: "片膝を曲げて反対側へパタンと倒す。顔は反対向き、両肩は床につけたまま。",
     tips: "息を吐きながら全身脱力"
-  },
-  {
-    id: "chest_open",
-    name: "胸開きリラクゼーション",
-    phase: "仰向け・大の字",
-    target: "大胸筋・胸郭（呼吸筋）",
-    durationSec: 60,
-    hasSides: false,
-    desc: "腕を広げて胸郭を解放。深呼吸で全身脱力して終了。",
-    tips: "そのまま寝落ちしてもOK"
   }
 ];
 
@@ -4131,7 +4243,7 @@ function handleStretchStepCompletion() {
     updateStretchPlayerUI();
     renderStretchList();
   } else {
-    // 全9種目完了！
+    // 全8種目完了！
     finishAllStretch();
   }
 }
@@ -4218,6 +4330,12 @@ document.addEventListener("visibilitychange", async () => {
     }
     if (activeTimer.intervalId) checkTimerTick();
     if (rainyTimerState.isRunning) checkRainyTick();
+    if (isMetronomeRunning) {
+      if (metronomeAudioCtx && metronomeAudioCtx.state === "suspended") {
+        metronomeAudioCtx.resume().catch(() => {});
+      }
+      metronomeScheduler();
+    }
     if (stretchState && stretchState.isRunning) checkStretchTick();
     if (checkAnyTimerRunning()) {
       await requestWakeLock();
