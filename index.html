@@ -840,6 +840,55 @@
     margin-bottom: 16px;
   }
 
+  /* ダンベル内部ウェイト切替 */
+  .dumbbell-mode-selector {
+    margin-bottom: 14px;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+  }
+  .dumbbell-mode-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .dumbbell-mode-tabs {
+    display: flex;
+    gap: 8px;
+  }
+  .dumbbell-mode-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    border: 1.5px solid transparent;
+    color: var(--text-secondary);
+    padding: 7px 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .dumbbell-mode-btn span {
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .dumbbell-mode-btn small {
+    font-size: 0.68rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+  .dumbbell-mode-btn.active {
+    background: var(--color-warning-subtle, rgba(245, 158, 11, 0.15));
+    border-color: var(--color-warning, #f59e0b);
+    color: var(--color-warning-text, #fbbf24);
+  }
+
   .weight-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -851,18 +900,39 @@
     background: var(--bg-input);
     border: 2px solid var(--border-card);
     color: var(--text-primary);
-    padding: 12px 6px;
+    padding: 10px 4px;
     border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 800;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     cursor: pointer;
     transition: all 0.15s;
+  }
+
+  .weight-option-btn .weight-val {
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .weight-option-btn .weight-nominal {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    line-height: 1.1;
   }
 
   .weight-option-btn.selected {
     background: var(--color-warning-subtle);
     border-color: var(--color-warning);
     color: var(--color-warning-text);
+  }
+
+  .weight-option-btn.selected .weight-nominal {
+    color: var(--color-warning-text);
+    opacity: 0.9;
   }
 
   .weight-option-btn:active {
@@ -1605,6 +1675,22 @@
 <div class="modal-overlay" id="weight-modal" onclick="closeWeightModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-title" id="modal-ex-title">重量選択</div>
+    
+    <!-- 内部ウェイト設定切替（ダンベル種目用） -->
+    <div id="modal-dumbbell-mode-wrap" class="dumbbell-mode-selector" style="display:none;">
+      <div class="dumbbell-mode-label">ダンベル内部ウェイト設定</div>
+      <div class="dumbbell-mode-tabs">
+        <button type="button" class="dumbbell-mode-btn" id="db-mode-minus2" onclick="setDumbbellMode(-2)">
+          <span>重り外し (-2kg)</span>
+          <small>3〜40kg刻み</small>
+        </button>
+        <button type="button" class="dumbbell-mode-btn" id="db-mode-standard" onclick="setDumbbellMode(0)">
+          <span>標準 (+0kg)</span>
+          <small>5〜42kg刻み</small>
+        </button>
+      </div>
+    </div>
+
     <div class="modal-desc" id="modal-ex-desc">前回の重量が保持されます。更新時はタップして選択。</div>
     <div class="weight-grid" id="modal-weight-grid"></div>
     <button class="modal-close-btn" onclick="closeWeightModal()">決定 / 閉じる</button>
@@ -1645,6 +1731,19 @@
       </span>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">ダンベル内部ウェイト設定</label>
+      <div class="dumbbell-mode-tabs">
+        <button type="button" class="dumbbell-mode-btn" id="setting-db-mode-minus2" onclick="setDumbbellModeFromSettings(-2)">
+          <span>重り外し (-2kg)</span>
+          <small>3〜40kg刻み</small>
+        </button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-db-mode-standard" onclick="setDumbbellModeFromSettings(0)">
+          <span>標準 (+0kg)</span>
+          <small>5〜42kg刻み</small>
+        </button>
+      </div>
+    </div>
+    <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
       <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">アプリの自動更新・入力リセット</label>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <span style="font-size:0.8rem; color:var(--text-secondary);">現在のバージョン:</span>
@@ -1665,8 +1764,18 @@
 </div>
 
 <script>
-// 指定の9段階重量刻み (kg)
-const WEIGHT_STEPS = [5, 9, 14, 18, 23, 27, 32, 37, 42];
+// ダンベル重量刻み設定 (kg)
+const DUMBBELL_STEPS_STANDARD = [5, 9, 14, 18, 23, 27, 32, 37, 42];
+const DUMBBELL_STEPS_MINUS2   = [3, 7, 12, 16, 21, 25, 30, 35, 40];
+const WEIGHT_STEPS = DUMBBELL_STEPS_STANDARD; // 互換性保持用
+
+// ダンベル内部ウェイト設定（0 または -2。デフォルト: -2kgモード）
+let dumbbellCoreOffset = parseInt(localStorage.getItem("dumbbell_core_offset") || "-2", 10);
+if (isNaN(dumbbellCoreOffset)) dumbbellCoreOffset = -2;
+
+function getCurrentDumbbellSteps() {
+  return dumbbellCoreOffset === -2 ? DUMBBELL_STEPS_MINUS2 : DUMBBELL_STEPS_STANDARD;
+}
 
 // ルーティン定義 (8種目)
 const ROUTINES = {
@@ -2576,6 +2685,17 @@ function getWeightDisplayString(exKey) {
   return `${s.weight}kg (${s.mode})`;
 }
 
+// 内部重り外しモード時のダンベル本体目盛（表向き重量）バッジ
+function getWeightNominalBadge(exKey) {
+  const s = workoutState[exKey];
+  if (!s || s.isPullup) return "";
+  if (dumbbellCoreOffset === -2) {
+    const nominal = s.weight + 2;
+    return `<span style="font-size:0.68rem; font-weight:700; color:var(--text-secondary); opacity:0.85; margin-top:2px;">(目盛: ${nominal}kg)</span>`;
+  }
+  return "";
+}
+
 // 現在のルーティン内で「次にやるべきセット（NOW）」のキーを取得
 function getActiveTargetKey() {
   const pairs = ROUTINES[currentRoutineKey].pairs;
@@ -2697,15 +2817,21 @@ function renderWorkout() {
         <div class="exercise-setting-box">
           <div class="ex-name-label">${exA.name}</div>
           <button class="weight-select-btn" onclick="openWeightModal('${exA.key}')">
-            <span>${getWeightDisplayString(exA.key)}</span>
-            <span>▾</span>
+            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+              <span>${getWeightDisplayString(exA.key)}</span>
+              ${getWeightNominalBadge(exA.key)}
+            </div>
+            <span style="margin-left:4px;">▾</span>
           </button>
         </div>
         <div class="exercise-setting-box">
           <div class="ex-name-label">${exB.name}</div>
           <button class="weight-select-btn" onclick="openWeightModal('${exB.key}')">
-            <span>${getWeightDisplayString(exB.key)}</span>
-            <span>▾</span>
+            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+              <span>${getWeightDisplayString(exB.key)}</span>
+              ${getWeightNominalBadge(exB.key)}
+            </div>
+            <span style="margin-left:4px;">▾</span>
           </button>
         </div>
       </div>
@@ -3000,7 +3126,12 @@ function openWeightModal(exKey) {
   const grid = document.getElementById("modal-weight-grid");
   grid.innerHTML = "";
 
+  const modeWrap = document.getElementById("modal-dumbbell-mode-wrap");
+  const minus2Btn = document.getElementById("db-mode-minus2");
+  const stdBtn = document.getElementById("db-mode-standard");
+
   if (s.isPullup) {
+    if (modeWrap) modeWrap.style.display = "none";
     document.getElementById("modal-ex-desc").innerText = "自重、または追加加重量を選択：";
     const pullupOptions = [0, 5, 9, 14, 16.5, 18, 23];
     pullupOptions.forEach(w => {
@@ -3011,17 +3142,72 @@ function openWeightModal(exKey) {
       grid.appendChild(btn);
     });
   } else {
-    document.getElementById("modal-ex-desc").innerText = "ダンベルの重量（刻み: 5〜42kg）を選択：";
-    WEIGHT_STEPS.forEach(w => {
+    if (modeWrap) modeWrap.style.display = "block";
+    if (minus2Btn && stdBtn) {
+      if (dumbbellCoreOffset === -2) {
+        minus2Btn.classList.add("active");
+        stdBtn.classList.remove("active");
+      } else {
+        stdBtn.classList.add("active");
+        minus2Btn.classList.remove("active");
+      }
+    }
+    const currentSteps = getCurrentDumbbellSteps();
+    const modeDesc = dumbbellCoreOffset === -2 ? "内部重り外しモード（刻み: 3〜40kg）" : "標準モード（刻み: 5〜42kg）";
+    document.getElementById("modal-ex-desc").innerText = `${modeDesc}。タップして選択：`;
+
+    currentSteps.forEach(w => {
       const btn = document.createElement("button");
       btn.className = "weight-option-btn " + (s.weight === w ? "selected" : "");
-      btn.innerText = `${w} kg`;
+      
+      const valSpan = document.createElement("span");
+      valSpan.className = "weight-val";
+      valSpan.innerText = `${w} kg`;
+      btn.appendChild(valSpan);
+
+      if (dumbbellCoreOffset === -2) {
+        const nominalSpan = document.createElement("span");
+        nominalSpan.className = "weight-nominal";
+        nominalSpan.innerText = `目盛: ${w + 2}kg`;
+        btn.appendChild(nominalSpan);
+      }
+
       btn.onclick = () => selectWeight(w);
       grid.appendChild(btn);
     });
   }
 
   document.getElementById("weight-modal").classList.add("open");
+}
+
+function setDumbbellMode(offset) {
+  dumbbellCoreOffset = offset;
+  localStorage.setItem("dumbbell_core_offset", offset);
+  renderWorkout();
+  if (activeModalExKey) {
+    openWeightModal(activeModalExKey);
+  }
+}
+
+function setDumbbellModeFromSettings(offset) {
+  dumbbellCoreOffset = offset;
+  localStorage.setItem("dumbbell_core_offset", offset);
+  renderWorkout();
+  updateSettingsDumbbellModeUI();
+}
+
+function updateSettingsDumbbellModeUI() {
+  const sMinus2 = document.getElementById("setting-db-mode-minus2");
+  const sStd = document.getElementById("setting-db-mode-standard");
+  if (sMinus2 && sStd) {
+    if (dumbbellCoreOffset === -2) {
+      sMinus2.classList.add("active");
+      sStd.classList.remove("active");
+    } else {
+      sStd.classList.add("active");
+      sMinus2.classList.remove("active");
+    }
+  }
 }
 
 function selectWeight(weight) {
@@ -3352,6 +3538,7 @@ function openSettingsModal() {
   const curV = localStorage.getItem("workout_app_version");
   const verDisplay = document.getElementById("app-version-display");
   if (verDisplay) verDisplay.innerText = curV ? "v" + curV : "確認中...";
+  updateSettingsDumbbellModeUI();
   renderHistoryLogs();
   document.getElementById("settings-modal").classList.add("open");
 }
