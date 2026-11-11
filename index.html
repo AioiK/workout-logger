@@ -1430,7 +1430,8 @@
 </head>
 <body>
 
-<!-- バックグラウンド動作維持用（メトロノーム再生時のみ使用） -->
+<!-- バックグラウンド動作維持用（タイマー・メトロノーム） -->
+<audio id="timer-keep-alive" loop playsinline preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP//"></audio>
 <audio id="metronome-keep-alive" loop playsinline preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP//"></audio>
 
 <header>
@@ -1958,33 +1959,114 @@ let activeTimer = {
   remainingSec: 0,
   targetTime: null,
   intervalId: null,
+  timeoutId: null,
   wasFinished: false
 };
 let timerWorker = null;
+
+// アラーム音用の事前アンロックAudioContext
+let alarmAudioCtx = null;
+function preloadAlarmAudio() {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
+      alarmAudioCtx = new AudioContextClass();
+    }
+    if (alarmAudioCtx.state === "suspended") {
+      alarmAudioCtx.resume().catch(() => {});
+    }
+  } catch (e) {}
+}
+
+// バックグラウンド動作の維持（無音オーディオ + AudioSession + MediaSession）
+function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー") {
+  // 1. AudioSession を playback に設定（画面ロック・消音モードでもタイマー維持＆アラーム鳴動を保証）
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "playback"; } catch (e) {}
+  }
+
+  // 2. 無音オーディオ再生（Chrome / iOS の Tab Freezing / CPU Throttling を防止）
+  const keepAlive = document.getElementById("timer-keep-alive") || document.getElementById("metronome-keep-alive");
+  if (keepAlive) {
+    keepAlive.play().catch(e => console.warn("keepAlive audio play error:", e));
+  }
+
+  // 3. MediaSession API
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title,
+        artist: "筋トレ インターバル休憩中",
+        album: "筋トレ記録"
+      });
+      navigator.mediaSession.playbackState = "playing";
+    } catch (e) {}
+  }
+}
+
+function stopBackgroundKeepAlive() {
+  if (checkAnyTimerRunning()) return;
+
+  const keepAlive = document.getElementById("timer-keep-alive") || document.getElementById("metronome-keep-alive");
+  if (keepAlive) {
+    try {
+      keepAlive.pause();
+      keepAlive.currentTime = 0;
+    } catch (e) {}
+  }
+
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.playbackState = "none";
+    } catch (e) {}
+  }
+}
 
 function initTimerWorker() {
   if (typeof Worker !== "undefined") {
     try {
       const workerCode = `
-        var timerId = null;
+        var intervalId = null;
+        var timeoutId = null;
+        var targetTime = 0;
+
+        function clearTimers() {
+          if (intervalId) { clearInterval(intervalId); intervalId = null; }
+          if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        }
+
         self.onmessage = function(e) {
           if (e.data.action === "start") {
-            if (timerId) clearInterval(timerId);
-            var targetTime = e.data.targetTime;
-            timerId = setInterval(function() {
-              var remaining = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
-              self.postMessage({ type: "tick", remaining: remaining });
-              if (remaining <= 0) {
-                clearInterval(timerId);
-                timerId = null;
+            clearTimers();
+            targetTime = e.data.targetTime;
+
+            function tick() {
+              var now = Date.now();
+              var remainingSec = Math.max(0, Math.round((targetTime - now) / 1000));
+              self.postMessage({ type: "tick", remaining: remainingSec });
+              if (now >= targetTime || remainingSec <= 0) {
+                clearTimers();
                 self.postMessage({ type: "finish" });
               }
-            }, 1000);
-          } else if (e.data.action === "stop") {
-            if (timerId) {
-              clearInterval(timerId);
-              timerId = null;
             }
+
+            // 初回即時発火
+            tick();
+
+            // 500ms周期で高精度Tick（OSスロットリング耐性向上）
+            intervalId = setInterval(tick, 500);
+
+            // 正確な残りミリ秒での一発終了トリガー（バックグラウンドでTickが間引かれた場合の確実な保険）
+            var remainingMs = Math.max(0, targetTime - Date.now());
+            timeoutId = setTimeout(function() {
+              clearTimers();
+              self.postMessage({ type: "finish" });
+            }, remainingMs);
+
+          } else if (e.data.action === "stop") {
+            clearTimers();
+            targetTime = 0;
           }
         };
       `;
@@ -2972,11 +3054,16 @@ function updateTimerDisplay(remaining) {
 function startTimer(pairId) {
   stopTimer();
   requestWakeLock();
+  preloadAlarmAudio();
+
   const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
   activeTimer.pairId = pairId;
   activeTimer.remainingSec = mins * 60;
   activeTimer.targetTime = Date.now() + activeTimer.remainingSec * 1000;
   activeTimer.wasFinished = false;
+
+  // バックグラウンドKeep-Alive開始（無音オーディオ + AudioSession + MediaSession）
+  startBackgroundKeepAlive(`⏱️ インターバルタイマー (${mins}分)`);
 
   // 通知許可のリクエスト（未設定時）
   if ("Notification" in window && Notification.permission === "default") {
@@ -2988,10 +3075,19 @@ function startTimer(pairId) {
     timerWorker.postMessage({ action: "start", targetTime: activeTimer.targetTime });
   }
 
-  // フォールバック兼用のメインスレッドタイマー
+  // フォールバック兼用のメインスレッドタイマー（500ms周期でTick）
   activeTimer.intervalId = setInterval(() => {
     checkTimerTick();
-  }, 1000);
+  }, 500);
+
+  // メインスレッドでの直接setTimeout終了トリガー（万が一の二重保険）
+  if (activeTimer.timeoutId) clearTimeout(activeTimer.timeoutId);
+  const remainingMs = Math.max(0, activeTimer.targetTime - Date.now());
+  activeTimer.timeoutId = setTimeout(() => {
+    if (activeTimer.targetTime && !activeTimer.wasFinished) {
+      onTimerFinished();
+    }
+  }, remainingMs);
 
   saveDraftToStorage();
   renderWorkout();
@@ -3027,32 +3123,39 @@ function stopTimer() {
     clearInterval(activeTimer.intervalId);
     activeTimer.intervalId = null;
   }
+  if (activeTimer.timeoutId) {
+    clearTimeout(activeTimer.timeoutId);
+    activeTimer.timeoutId = null;
+  }
   if (timerWorker) {
     timerWorker.postMessage({ action: "stop" });
   }
   activeTimer.targetTime = null;
+  stopBackgroundKeepAlive();
   if (!checkAnyTimerRunning()) {
     releaseWakeLock();
   }
 }
 
-// 終了アラーム音再生（音楽プレイヤーの邪魔をしないWeb Audio API短音再生＋即座にAudioContextを破棄）
+// 終了アラーム音再生（バックグラウンド・消音時でも鳴動可能なplayback設定＋Web Audio API短音再生）
 function playAlarmSound() {
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "playback"; } catch (e) {}
+  }
   playBeepWebAudio();
 }
 
 function playBeepWebAudio() {
   try {
-    // 音楽アプリとのミキシング指定（対応ブラウザでAudio Ducking/停止を防止）
-    if (navigator.audioSession) {
-      try { navigator.audioSession.type = "ambient"; } catch (e) {}
-    }
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return;
-    const audioCtx = new AudioContextClass();
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume().catch(() => {});
+    if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
+      alarmAudioCtx = new AudioContextClass();
     }
+    if (alarmAudioCtx.state === "suspended") {
+      alarmAudioCtx.resume().catch(() => {});
+    }
+    const audioCtx = alarmAudioCtx;
 
     const now = audioCtx.currentTime;
     const osc1 = audioCtx.createOscillator();
@@ -3077,16 +3180,6 @@ function playBeepWebAudio() {
     gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.62);
     osc2.start(now + 0.28);
     osc2.stop(now + 0.63);
-
-    // 再生終了後に即座にAudioContextをcloseしてOSのオーディオフォーカス・ストリームを完全解放
-    let closed = false;
-    const closeCtx = () => {
-      if (closed) return;
-      closed = true;
-      try { audioCtx.close().catch(() => {}); } catch (e) {}
-    };
-    osc2.onended = closeCtx;
-    setTimeout(closeCtx, 700);
   } catch (e) {
     console.log("Web Audio play error", e);
   }
@@ -3609,7 +3702,7 @@ function releaseWakeLock() {
 
 function checkAnyTimerRunning() {
   return (
-    (typeof activeTimer !== "undefined" && activeTimer && activeTimer.intervalId !== null) ||
+    (typeof activeTimer !== "undefined" && activeTimer && (activeTimer.intervalId !== null || activeTimer.targetTime !== null)) ||
     rainyTimerState.isRunning ||
     isMetronomeRunning ||
     (typeof stretchState !== "undefined" && stretchState && stretchState.isRunning)
@@ -4572,7 +4665,7 @@ function stopStretchTimers() {
 }
 
 // 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
-document.addEventListener("visibilitychange", async () => {
+async function handleVisibilityOrFocus() {
   if (document.visibilityState === "hidden") {
     saveDraftToStorage();
   } else if (document.visibilityState === "visible") {
@@ -4589,7 +4682,10 @@ document.addEventListener("visibilitychange", async () => {
         saveDraftToStorage();
       }
     }
-    if (activeTimer.intervalId) checkTimerTick();
+    // インターバルタイマーの即時再同期（targetTimeが存在すれば必ずTickを実行）
+    if (activeTimer && activeTimer.targetTime) {
+      checkTimerTick();
+    }
     if (rainyTimerState.isRunning) checkRainyTick();
     if (isMetronomeRunning) {
       if (metronomeAudioCtx && metronomeAudioCtx.state === "suspended") {
@@ -4603,6 +4699,14 @@ document.addEventListener("visibilitychange", async () => {
     }
     checkForAppUpdate(false);
   }
+}
+
+document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+window.addEventListener("focus", () => {
+  if (activeTimer && activeTimer.targetTime) checkTimerTick();
+});
+window.addEventListener("pageshow", () => {
+  if (activeTimer && activeTimer.targetTime) checkTimerTick();
 });
 
 if (document.readyState === "loading") {
