@@ -1547,7 +1547,7 @@
   <!-- ステータスバー -->
   <div class="stretch-quick-card">
     <div class="stretch-quick-header" style="margin-bottom:0;">
-      <div class="stretch-badge-moon">🌙 就寝前リセット（約10〜12分）</div>
+      <div class="stretch-badge-moon">🌙 就寝前リセット（約10分）</div>
       <div id="stretch-status-badge" class="stretch-status-badge">未実施</div>
     </div>
   </div>
@@ -1555,12 +1555,12 @@
   <!-- プレイヤーカード -->
   <div class="stretch-card" id="stretch-player-card">
     <div class="stretch-card-top">
-      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/8</span>
-      <span class="stretch-phase-tag" id="stretch-phase-tag">四つん這い</span>
+      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/10</span>
+      <span class="stretch-phase-tag" id="stretch-phase-tag">立位</span>
     </div>
 
-    <div class="stretch-ex-name" id="stretch-ex-name">キャット＆カウ</div>
-    <div class="stretch-target-desc" id="stretch-target-desc">脊柱全体・自律神経のリセット</div>
+    <div class="stretch-ex-name" id="stretch-ex-name">立位アキレス腱伸ばし</div>
+    <div class="stretch-target-desc" id="stretch-target-desc">ふくらはぎ・アキレス腱</div>
 
     <!-- 左右インジケーター（左右がある種目のみ表示） -->
     <div class="stretch-side-indicator" id="stretch-side-indicator" style="display:none;">
@@ -1569,7 +1569,7 @@
     </div>
 
     <!-- タイマーディスプレイ -->
-    <div class="stretch-timer-display" id="stretch-timer-display">00:40</div>
+    <div class="stretch-timer-display" id="stretch-timer-display">00:30</div>
     <div class="stretch-interval-notice" id="stretch-interval-notice">
       🔔 体勢を整えてスタートを押してください (3秒準備)
     </div>
@@ -1589,15 +1589,15 @@
     </div>
 
     <div class="stretch-instruction-box" id="stretch-instruction-box">
-      四つん這いで息を吐きながら背中を丸め、吸いながら軽く反らす。背骨を1骨ずつ動かす意識。
+      前後に足を開き、後ろ脚のかかとを床につけたまま前脚へ体重を預ける。後半は後ろ膝を少し緩めるとヒラメ筋まで伸びる。
     </div>
   </div>
 
-  <!-- 全8種目シークエンス・リスト -->
+  <!-- 全10種目シークエンス・リスト -->
   <div class="stretch-list-card">
     <div class="stretch-list-title">
       <span>全身ストレッチ シークエンス</span>
-      <span class="stretch-total-time">全8種目 / 姿勢移行スムーズ</span>
+      <span class="stretch-total-time">全10種目 / 立位→就寝フロー</span>
     </div>
     <div class="stretch-items-container" id="stretch-items-container">
       <!-- JSで動的に一覧描画 -->
@@ -3655,8 +3655,10 @@ function saveAndExport() {
     routineName = "夜ストレッチ";
     const elapsedStretchMin = Math.round(stretchState.totalElapsedSec / 60);
     duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 10.0;
+    const totalStretchCount = STRETCH_EXERCISES.length;
     const completedCount = Object.keys(stretchState.completedExIds).length;
-    const details = `夜ストレッチ${duration}分（全8種目中 ${completedCount}種目完了）。キャット＆カウ・ローランジ・仙骨割り・チャイルドポーズ・90/90・4の字・ハムストリングス・ワニ。`;
+    const exNames = STRETCH_EXERCISES.map(ex => ex.name).join("・");
+    const details = `夜ストレッチ${duration}分（全${totalStretchCount}種目中 ${completedCount}種目完了）。${exNames}。`;
     finalMemo = memoText ? `${memoText}（${details}）` : details;
 
     exercisesData.push({
@@ -3664,8 +3666,8 @@ function saveAndExport() {
       load_kg: 0,
       load_details: "自重",
       sets: 1,
-      reps_total: 8,
-      reps_details: `${completedCount}/8種目`,
+      reps_total: totalStretchCount,
+      reps_details: `${completedCount}/${totalStretchCount}種目`,
       target_rir: 0,
       actual_rir: 0,
       superset_group: "",
@@ -3791,7 +3793,7 @@ function saveAndExport() {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
         const subInfo = currentRoutineKey === "stretch"
-          ? `（夜ストレッチ: 約${duration}分 / 全8種目完了）`
+          ? `（夜ストレッチ: 約${duration}分 / 全${STRETCH_EXERCISES.length}種目完了）`
           : (currentRoutineKey === "jog"
               ? (isRain 
                   ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"}）`
@@ -3833,7 +3835,7 @@ function saveAndExport() {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
     const subInfo = currentRoutineKey === "stretch"
-      ? `（夜ストレッチ: 約${duration}分 / 全8種目完了 / マイドライブへ同期完了）`
+      ? `（夜ストレッチ: 約${duration}分 / 全${STRETCH_EXERCISES.length}種目完了 / マイドライブへ同期完了）`
       : (currentRoutineKey === "jog"
           ? (isRain 
               ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
@@ -4498,6 +4500,26 @@ function stopJogTimers() {
 
 const STRETCH_EXERCISES = [
   {
+    id: "achilles_calf",
+    name: "立位アキレス腱伸ばし",
+    phase: "立位",
+    target: "ふくらはぎ・アキレス腱",
+    durationSec: 30,
+    hasSides: true,
+    desc: "前後に足を開き、後ろ脚のかかとを床につけたまま前脚へ体重を預ける。後半は後ろ膝を少し緩めるとヒラメ筋まで伸びる。",
+    tips: "手は前脚か壁に軽く添えるだけ・かかと浮かせない"
+  },
+  {
+    id: "low_lunge",
+    name: "ローランジ",
+    phase: "片膝立ち",
+    target: "股関節前側・腸腰筋",
+    durationSec: 30,
+    hasSides: true,
+    desc: "立位から後ろ膝を床に下ろし、前脚を大きく踏み出して後ろ脚の股関節前面を心地よく伸ばす。骨盤を立てる。",
+    tips: "反り腰に注意・骨盤後傾を意識"
+  },
+  {
     id: "cat_cow",
     name: "キャット＆カウ",
     phase: "四つん這い",
@@ -4508,14 +4530,14 @@ const STRETCH_EXERCISES = [
     tips: "呼気優位・吐く息を長めに深呼吸"
   },
   {
-    id: "low_lunge",
-    name: "ローランジ",
-    phase: "片膝立ち",
-    target: "股関節前側・腸腰筋",
+    id: "side_child",
+    name: "サイド・チャイルドポーズ",
+    phase: "正座・脱力",
+    target: "広背筋・脇の下・肩甲骨",
     durationSec: 30,
     hasSides: true,
-    desc: "片足を前に大きく踏み出し、後ろ脚の股関節前面を心地よく伸ばす。骨盤を立てる。",
-    tips: "反り腰に注意・骨盤後傾を意識"
+    desc: "お尻をかかとに落としたまま、左側時は両手を右斜め前へ、右側時は左斜め前へ歩かせて脇〜背中を伸ばす。",
+    tips: "腕の力は抜いてお尻の重みで伸ばす"
   },
   {
     id: "frog",
@@ -4528,16 +4550,6 @@ const STRETCH_EXERCISES = [
     tips: "痛気持ちいい手前・微小に揺らす"
   },
   {
-    id: "child",
-    name: "チャイルドポーズ",
-    phase: "正座・脱力",
-    target: "背中・広背筋・肩甲骨",
-    durationSec: 35,
-    hasSides: false,
-    desc: "両足の親指を合わせお尻をかかとに落とす。両手を前へ伸ばして完全脱力。",
-    tips: "胸をマットへ預けて深呼吸"
-  },
-  {
     id: "hip_90_90",
     name: "90/90ヒップストレッチ",
     phase: "床座位・Shin Box",
@@ -4548,24 +4560,34 @@ const STRETCH_EXERCISES = [
     tips: "手で床を支えてOK・骨盤から前傾"
   },
   {
-    id: "figure4",
-    name: "4の字お尻ストレッチ",
-    phase: "仰向け・膝立て",
-    target: "殿筋群・梨状筋",
-    durationSec: 30,
-    hasSides: true,
-    desc: "仰向けで片足を反対の太ももに乗せ「4」の字に。立てた膝を胸へ引いてお尻を伸ばす。",
-    tips: "首・肩の力を抜く・キツい時は壁を活用"
+    id: "seated_hamstring",
+    name: "両脚長座前屈",
+    phase: "床座位",
+    target: "太もも裏・膝裏（ハムストリングス）",
+    durationSec: 45,
+    hasSides: false,
+    desc: "両脚を前に伸ばして座り、膝を軽く緩めたまま息を吐いて上体を前へ預ける。手は床やすねに添えるだけで引っ張らない。",
+    tips: "腰を丸めすぎずお腹と太ももを近づける"
   },
   {
-    id: "hamstring",
-    name: "仰向けハムストリングス",
-    phase: "仰向け・片脚上げ",
-    target: "太もも裏・膝裏",
+    id: "seiza_lean_back",
+    name: "両脚正座・後傾ストレッチ",
+    phase: "床座位・後傾",
+    target: "太もも前側（大腿四頭筋）",
+    durationSec: 45,
+    hasSides: false,
+    desc: "足先をまっすぐ後ろへ向けた正座（または少し広め）から後ろに手をつき、上体を後ろへ傾けて前ももを伸ばす。",
+    tips: "反り腰に注意・お腹を締めて尾てい骨を前へ送る"
+  },
+  {
+    id: "open_book",
+    name: "横向きオープンブック",
+    phase: "横向き・胸開き",
+    target: "大胸筋・肩前面・胸椎",
     durationSec: 30,
     hasSides: true,
-    desc: "太もも裏を手で支え、膝を心地よい程度に天井へ伸ばす。膝は軽く曲がってOK。",
-    tips: "無理に伸ばさず心地よさ優先"
+    desc: "横向きで両膝を曲げて床に固定し、前に合わせた上の腕を息を吐きながら反対側へ大きく開いて床へ預ける。（左側＝左胸／右側＝右胸）",
+    tips: "腕の重みだけで脱力・呼吸を深く"
   },
   {
     id: "spine_twist",
@@ -4726,7 +4748,8 @@ function updateStretchPlayerUI() {
   // タイマー表示
   if (timerDisplayEl) {
     if (stretchState.isPrep) {
-      timerDisplayEl.textContent = `00:0${stretchState.prepRemainingSec}`;
+      const ps = stretchState.prepRemainingSec;
+      timerDisplayEl.textContent = `00:${ps < 10 ? "0" + ps : ps}`;
       timerDisplayEl.classList.add("prep-mode");
     } else {
       const m = Math.floor(stretchState.remainingSec / 60);
@@ -4740,7 +4763,11 @@ function updateStretchPlayerUI() {
   if (intervalNoticeEl) {
     if (stretchState.isPrep) {
       intervalNoticeEl.style.display = "block";
-      intervalNoticeEl.textContent = `🔔 準備中... 体勢を整えてください (${stretchState.prepRemainingSec}秒)`;
+      if (ex.hasSides && stretchState.currentSide === "right") {
+        intervalNoticeEl.textContent = `🔄 右側へ切り替え中... 体勢を整えてください (${stretchState.prepRemainingSec}秒)`;
+      } else {
+        intervalNoticeEl.textContent = `🔔 準備中... 体勢を整えてください (${stretchState.prepRemainingSec}秒)`;
+      }
     } else if (!stretchState.isRunning) {
       intervalNoticeEl.style.display = "block";
       if (ex.hasSides && stretchState.currentSide === "right") {
@@ -4846,11 +4873,13 @@ function pauseStretchPlayer() {
 function checkStretchTick() {
   if (!stretchState.isRunning) return;
 
-  // 1. 3秒の準備時間カウントダウン
+  // 1. 準備時間・左右切り替えインターバルカウントダウン
   if (stretchState.isPrep) {
     stretchState.prepRemainingSec--;
     if (stretchState.prepRemainingSec > 0) {
-      playStretchSound("countdown");
+      if (stretchState.prepRemainingSec <= 3) {
+        playStretchSound("countdown");
+      }
     } else {
       // 準備終了 ➔ 種目本番タイマースタート！
       stretchState.isPrep = false;
@@ -4881,11 +4910,11 @@ function checkStretchTick() {
 function handleStretchStepCompletion() {
   const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
 
-  // 1. 左右種目で「左」が終了した時 ➔ 「右」へ切り替えてタイマー停止（自動進行せず待機）
+  // 1. 左右種目で「左」が終了した時 ➔ 自動で「右」へ切り替え（5秒インターバル後に自動開始）
   if (currentEx.hasSides && stretchState.currentSide === "left") {
-    pauseStretchPlayer();
     stretchState.currentSide = "right";
-    stretchState.isPrep = false;
+    stretchState.isPrep = true;
+    stretchState.prepRemainingSec = 5;
     stretchState.remainingSec = currentEx.durationSec;
     playStretchSound("switch");
     updateStretchPlayerUI();
@@ -4895,7 +4924,7 @@ function handleStretchStepCompletion() {
   // 2. 種目完了（右側または左右なし）
   stretchState.completedExIds[currentEx.id] = true;
 
-  // 次の種目があるか確認
+  // 次の種目があるか確認（種目間はタイマー停止し手動スタート待機）
   if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
     pauseStretchPlayer();
     stretchState.currentExIdx++;
@@ -4907,7 +4936,7 @@ function handleStretchStepCompletion() {
     updateStretchPlayerUI();
     renderStretchList();
   } else {
-    // 全8種目完了！
+    // 全種目完了！
     finishAllStretch();
   }
 }
