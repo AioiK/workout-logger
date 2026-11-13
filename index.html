@@ -2417,12 +2417,34 @@ function showUpdateToast(msg) {
   toast.innerText = msg;
 }
 
-function getTodayDateString() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
+function getDateString(dateObj = new Date()) {
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function getTodayDateString() {
+  return getDateString(new Date());
+}
+
+// 深夜0:00〜2:59の就寝前ストレッチを「前夜分」として扱うための論理夜間日付（午前3時区切り）
+function getLogicalNightString(dateObj = new Date()) {
+  const shifted = new Date(dateObj.getTime() - 3 * 3600 * 1000);
+  return getDateString(shifted);
+}
+
+function markStretchCompletedForNight(dateObj = new Date()) {
+  localStorage.setItem("stretch_last_completed_night", getLogicalNightString(dateObj));
+}
+
+function isStretchDoneForNight(dateObj = new Date()) {
+  const nightKey = getLogicalNightString(dateObj);
+  const lastNight = localStorage.getItem("stretch_last_completed_night");
+  if (lastNight) return lastNight === nightKey;
+  // 旧キーのみ存在する場合の互換判定
+  const lastDate = localStorage.getItem("stretch_last_completed_date");
+  return lastDate === nightKey;
 }
 
 function getDefaultRoutineByDay(dateObj = new Date()) {
@@ -2432,6 +2454,50 @@ function getDefaultRoutineByDay(dateObj = new Date()) {
   return "jog";
 }
 
+// 時間帯・保存状態・ストレッチ完了状況を考慮したデフォルトタブ判定（案A）
+function getDefaultRoutineSmart(dateObj = new Date(), context = {}) {
+  const {
+    isSaved = false,
+    hasActiveProgress = false,
+    savedRoutineKey = null,
+    updatedAt = 0
+  } = context;
+
+  // 1. 進行中の入力や稼働中タイマーがある場合は現在のタブを維持
+  if (hasActiveProgress && savedRoutineKey && ROUTINES[savedRoutineKey]) {
+    return savedRoutineKey;
+  }
+
+  const hour = dateObj.getHours();
+  const isNightStretchWindow = (hour >= 21 || hour < 3);
+  const isEvening = (hour >= 18);
+  const stretchDone = isStretchDoneForNight(dateObj);
+
+  // 2. 今夜のストレッチを完了・保存済みなら夜間帯はそのまま維持
+  if (stretchDone && savedRoutineKey === "stretch" && isSaved && (isEvening || hour < 3)) {
+    return "stretch";
+  }
+
+  // 3. 就寝前帯（21:00〜翌02:59）でストレッチ未完了なら夜ストレッチをデフォルト表示
+  if (!stretchDone && isNightStretchWindow) {
+    return "stretch";
+  }
+
+  // 4. 夕方以降（18:00〜20:59）で本日のメイン運動（筋トレ/Jog）が保存済み＆15分以上経過していれば夜ストレッチへ切替
+  const elapsedSinceSaveMs = updatedAt ? (dateObj.getTime() - updatedAt) : Infinity;
+  if (!stretchDone && isEvening && isSaved && savedRoutineKey && savedRoutineKey !== "stretch" && elapsedSinceSaveMs >= 15 * 60 * 1000) {
+    return "stretch";
+  }
+
+  // 5. 同日保存直後（18:00未満または保存から15分未満）はその日の保存タブを維持
+  if (isSaved && savedRoutineKey && ROUTINES[savedRoutineKey]) {
+    return savedRoutineKey;
+  }
+
+  // 6. 通常時は曜日ルール
+  return getDefaultRoutineByDay(dateObj);
+}
+
 // 初期化
 function initApp() {
   // ブラウザのストレージ自動削除を防止 (Persistent Storage)
@@ -2439,10 +2505,11 @@ function initApp() {
     navigator.storage.persist().catch(() => {});
   }
 
+  const now = new Date();
   const dateInput = document.getElementById("input-date");
   if (dateInput && !dateInput.value) {
-    dateInput.value = getTodayDateString();
-    currentRoutineKey = getDefaultRoutineByDay(new Date());
+    dateInput.value = getDateString(now);
+    currentRoutineKey = getDefaultRoutineSmart(now);
   }
 
   workoutStartTime = new Date();
@@ -2781,6 +2848,7 @@ function loadStateFromStorage() {
   });
 
   // 進行中または当日の下書きデータ (workout_draft_v1) があれば完全復元
+  let restoredDraft = null;
   try {
     const rawDraft = localStorage.getItem("workout_draft_v1") || sessionStorage.getItem("workout_draft_v1");
     if (rawDraft) {
@@ -2796,6 +2864,7 @@ function loadStateFromStorage() {
       // 当日のデータ、または18時間以内の未保存データは完全復元（深夜跨ぎや別ブラウザ閲覧後の復帰に対応）
       if (isSameDay || (hasUnsavedWork && ageMs < 18 * 3600 * 1000)) {
         applyDraftObject(draft);
+        restoredDraft = draft;
       } else {
         // 前日以前の未保存データがあれば履歴バックアップへ自動救出してから新セッション開始
         archiveForgottenDraftIfNeeded(draft);
@@ -2806,6 +2875,15 @@ function loadStateFromStorage() {
   } catch (e) {
     console.warn("Draft load error:", e);
   }
+
+  // 時間帯・保存済み状況に応じてデフォルトタブを最適化
+  const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (stretchState.isRunning || stretchState.totalElapsedSec > 0));
+  currentRoutineKey = getDefaultRoutineSmart(new Date(), {
+    isSaved: isDraftSavedToCloud,
+    hasActiveProgress: hasActiveWorkoutProgress() || stretchInProgress,
+    savedRoutineKey: restoredDraft ? restoredDraft.currentRoutineKey : currentRoutineKey,
+    updatedAt: restoredDraft ? (restoredDraft.updatedAt || 0) : 0
+  });
 }
 
 // 重量のみ永続化（種目別重量変更時：前回回数バッジ lastSavedReps を上書きしない）
@@ -3606,6 +3684,7 @@ function saveAndExport() {
     };
 
     localStorage.setItem("stretch_last_completed_date", dateStr);
+    markStretchCompletedForNight(new Date());
     updateStretchStatusBadge();
   } else if (currentRoutineKey === "jog") {
     const isRain = (jogWeatherMode === "rainy");
@@ -4839,6 +4918,7 @@ function finishAllStretch() {
 
   const todayStr = getTodayDateString();
   localStorage.setItem("stretch_last_completed_date", todayStr);
+  markStretchCompletedForNight(new Date());
   updateStretchStatusBadge();
   renderStretchList();
 
@@ -4896,18 +4976,39 @@ function stopStretchTimers() {
 }
 
 // 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
+let lastHiddenTimestamp = 0;
+
 async function handleVisibilityOrFocus() {
   if (document.visibilityState === "hidden") {
+    lastHiddenTimestamp = Date.now();
     saveDraftToStorage();
   } else if (document.visibilityState === "visible") {
-    // 日付またぎの自動同期（保存済み、または未入力のまま翌日を迎えた場合に今日の日付へ更新）
-    const todayStr = getTodayDateString();
+    const now = new Date();
+    const todayStr = getDateString(now);
     const dateInput = document.getElementById("input-date");
+    const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (stretchState.isRunning || stretchState.totalElapsedSec > 0));
+    const isBusy = hasActiveWorkoutProgress() || stretchInProgress;
+
+    // 日付またぎの自動同期（保存済み、または未入力のまま翌日を迎えた場合に今日の日付・タブへ更新）
     if (dateInput && dateInput.value !== todayStr) {
       const hasUnsavedChecks = completedSets && Object.values(completedSets).some(Boolean);
       if (isDraftSavedToCloud || !hasUnsavedChecks) {
         dateInput.value = todayStr;
-        currentRoutineKey = getDefaultRoutineByDay(new Date());
+        currentRoutineKey = getDefaultRoutineSmart(now, { isSaved: false, hasActiveProgress: false });
+        updateTabUI();
+        renderWorkout();
+        saveDraftToStorage();
+      }
+    } else if (!isBusy && lastHiddenTimestamp && (Date.now() - lastHiddenTimestamp > 30 * 60 * 1000)) {
+      // 30分以上バックグラウンドに回っていた場合は、時間帯と完了状況に合わせてデフォルトタブを再判定
+      const nextRoutine = getDefaultRoutineSmart(now, {
+        isSaved: isDraftSavedToCloud,
+        hasActiveProgress: false,
+        savedRoutineKey: currentRoutineKey,
+        updatedAt: lastHiddenTimestamp
+      });
+      if (nextRoutine !== currentRoutineKey) {
+        currentRoutineKey = nextRoutine;
         updateTabUI();
         renderWorkout();
         saveDraftToStorage();
