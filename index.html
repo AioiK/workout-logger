@@ -1431,8 +1431,8 @@
 <body>
 
 <!-- バックグラウンド動作維持用（タイマー・メトロノーム） -->
-<audio id="timer-keep-alive" loop playsinline preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP//"></audio>
-<audio id="metronome-keep-alive" loop playsinline preload="auto" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP//"></audio>
+<audio id="timer-keep-alive" loop playsinline preload="auto"></audio>
+<audio id="metronome-keep-alive" loop playsinline preload="auto"></audio>
 
 <header>
   <h1>🏋️ 筋トレ記録</h1>
@@ -1963,36 +1963,152 @@ let activeTimer = {
   wasFinished: false
 };
 let timerWorker = null;
+let cachedKeepAliveWavUrl = null;
+let cachedAlarmWavUrl = null;
+let isPlayingAlarmAudio = false;
+let alarmCleanupTimerId = null;
+let pendingMissedAlarmSound = false;
 
-// アラーム音用の事前アンロックAudioContext
+function buildPcm16WavUrl(sampleRate, durationSec, renderSample) {
+  const numSamples = Math.floor(sampleRate * durationSec);
+  const dataSize = numSamples * 2;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  const writeStr = (offset, str) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeStr(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeStr(8, "WAVE");
+  writeStr(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, "data");
+  view.setUint32(40, dataSize, true);
+
+  for (let i = 0; i < numSamples; i++) {
+    const s = Math.max(-1, Math.min(1, renderSample(i, sampleRate)));
+    view.setInt16(44 + i * 2, Math.round(s * 32767), true);
+  }
+  return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+}
+
+function getKeepAliveWavUrl() {
+  if (!cachedKeepAliveWavUrl) {
+    // 10秒・16Hz・-52dBFS（可聴域外で無音だがMediaSession維持とタブ凍結抑止に必要な音声ストリームとして認識させる）
+    cachedKeepAliveWavUrl = buildPcm16WavUrl(8000, 10, (i, sr) => {
+      return Math.sin(2 * Math.PI * 16 * (i / sr)) * 0.0025;
+    });
+  }
+  return cachedKeepAliveWavUrl;
+}
+
+function getAlarmWavUrl() {
+  if (!cachedAlarmWavUrl) {
+    // 1.6秒の2連チャイム音 (A5 -> D6 × 2回)
+    cachedAlarmWavUrl = buildPcm16WavUrl(22050, 1.6, (i, sr) => {
+      const t = i / sr;
+      const notes = [
+        { start: 0.00, end: 0.18, freq: 880.0 },
+        { start: 0.22, end: 0.52, freq: 1174.66 },
+        { start: 0.72, end: 0.90, freq: 880.0 },
+        { start: 0.94, end: 1.38, freq: 1174.66 }
+      ];
+      for (const n of notes) {
+        if (t >= n.start && t <= n.end) {
+          const dt = t - n.start;
+          const dur = n.end - n.start;
+          const fadeIn = Math.min(1, dt / 0.012);
+          const fadeOut = Math.min(1, (dur - dt) / 0.04);
+          return Math.sin(2 * Math.PI * n.freq * dt) * 0.65 * fadeIn * fadeOut;
+        }
+      }
+      return 0;
+    });
+  }
+  return cachedAlarmWavUrl;
+}
+
+function initKeepAliveAudioSources() {
+  const wavUrl = getKeepAliveWavUrl();
+  ["timer-keep-alive", "metronome-keep-alive"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.getAttribute("src")) {
+      el.src = wavUrl;
+    }
+  });
+}
+
+// アラーム音用の事前アンロックAudioContext（タイマー稼働中は微弱ノードでsuspended遷移を防ぐ）
 let alarmAudioCtx = null;
-function preloadAlarmAudio() {
+let alarmKeepAliveOsc = null;
+let alarmKeepAliveGain = null;
+
+function preloadAlarmAudio(keepRunning = true) {
   try {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return;
     if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
       alarmAudioCtx = new AudioContextClass();
+      alarmKeepAliveOsc = null;
+      alarmKeepAliveGain = null;
     }
     if (alarmAudioCtx.state === "suspended") {
       alarmAudioCtx.resume().catch(() => {});
     }
+    if (keepRunning && !alarmKeepAliveOsc) {
+      alarmKeepAliveOsc = alarmAudioCtx.createOscillator();
+      alarmKeepAliveGain = alarmAudioCtx.createGain();
+      alarmKeepAliveOsc.frequency.value = 16;
+      alarmKeepAliveGain.gain.value = 0.0001;
+      alarmKeepAliveOsc.connect(alarmKeepAliveGain);
+      alarmKeepAliveGain.connect(alarmAudioCtx.destination);
+      alarmKeepAliveOsc.start();
+    }
   } catch (e) {}
 }
 
-// バックグラウンド動作の維持（無音オーディオ + AudioSession + MediaSession）
+function stopAlarmKeepAliveNode() {
+  if (alarmKeepAliveOsc) {
+    try { alarmKeepAliveOsc.stop(); } catch (e) {}
+    try { alarmKeepAliveOsc.disconnect(); } catch (e) {}
+    alarmKeepAliveOsc = null;
+  }
+  if (alarmKeepAliveGain) {
+    try { alarmKeepAliveGain.disconnect(); } catch (e) {}
+    alarmKeepAliveGain = null;
+  }
+}
+
+// バックグラウンド動作の維持（10秒連続WAV + AudioSession + MediaSession）
 function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー") {
-  // 1. AudioSession を playback に設定（画面ロック・消音モードでもタイマー維持＆アラーム鳴動を保証）
   if (navigator.audioSession) {
     try { navigator.audioSession.type = "playback"; } catch (e) {}
   }
 
-  // 2. 無音オーディオ再生（Chrome / iOS の Tab Freezing / CPU Throttling を防止）
-  const keepAlive = document.getElementById("timer-keep-alive") || document.getElementById("metronome-keep-alive");
+  if (alarmCleanupTimerId) {
+    clearTimeout(alarmCleanupTimerId);
+    alarmCleanupTimerId = null;
+  }
+  isPlayingAlarmAudio = false;
+
+  const keepAlive = document.getElementById("timer-keep-alive");
   if (keepAlive) {
+    const wavUrl = getKeepAliveWavUrl();
+    keepAlive.onended = null;
+    if (keepAlive.src !== wavUrl) {
+      keepAlive.src = wavUrl;
+    }
+    keepAlive.loop = true;
+    keepAlive.volume = 1.0;
     keepAlive.play().catch(e => console.warn("keepAlive audio play error:", e));
   }
 
-  // 3. MediaSession API
   if ("mediaSession" in navigator) {
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -2001,24 +2117,40 @@ function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー
         album: "筋トレ記録"
       });
       navigator.mediaSession.playbackState = "playing";
+      try {
+        navigator.mediaSession.setActionHandler("stop", () => {
+          stopTimer();
+          saveDraftToStorage();
+          renderWorkout();
+        });
+      } catch (e) {}
     } catch (e) {}
   }
 }
 
-function stopBackgroundKeepAlive() {
-  if (checkAnyTimerRunning()) return;
+function stopBackgroundKeepAlive(force = false) {
+  if (!force && (isPlayingAlarmAudio || checkAnyTimerRunning())) return;
 
-  const keepAlive = document.getElementById("timer-keep-alive") || document.getElementById("metronome-keep-alive");
+  const keepAlive = document.getElementById("timer-keep-alive");
   if (keepAlive) {
     try {
+      keepAlive.onended = null;
       keepAlive.pause();
+      const wavUrl = getKeepAliveWavUrl();
+      if (keepAlive.src !== wavUrl) {
+        keepAlive.src = wavUrl;
+      }
+      keepAlive.loop = true;
       keepAlive.currentTime = 0;
     } catch (e) {}
   }
 
-  if ("mediaSession" in navigator) {
+  stopAlarmKeepAliveNode();
+
+  if ("mediaSession" in navigator && !isMetronomeRunning) {
     try {
       navigator.mediaSession.playbackState = "none";
+      try { navigator.mediaSession.setActionHandler("stop", null); } catch (e) {}
     } catch (e) {}
   }
 }
@@ -2043,9 +2175,10 @@ function initTimerWorker() {
 
             function tick() {
               var now = Date.now();
-              var remainingSec = Math.max(0, Math.round((targetTime - now) / 1000));
+              var diffMs = targetTime - now;
+              var remainingSec = Math.max(0, Math.ceil(diffMs / 1000));
               self.postMessage({ type: "tick", remaining: remainingSec });
-              if (now >= targetTime || remainingSec <= 0) {
+              if (diffMs <= 0) {
                 clearTimers();
                 self.postMessage({ type: "finish" });
               }
@@ -2107,14 +2240,18 @@ async function initNotificationService() {
 
 // バックグラウンド通知の送信
 async function triggerPopupNotification(title = "⏱️ 筋トレタイマー終了！", body = "休憩時間が終了しました。次のセットを開始してください！") {
+  if (!("Notification" in window) || Notification.permission !== "granted") {
+    return;
+  }
+
   const options = {
     body: body,
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>",
-    badge: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>",
+    icon: "./icon.svg",
     vibrate: [300, 150, 300, 150, 500],
     tag: "workout-rest-timer",
     renotify: true,
-    requireInteraction: true
+    requireInteraction: true,
+    silent: false
   };
 
   // 1. Service Worker 経由（Android Chromeのバックグラウンド通知で必須）
@@ -2131,12 +2268,10 @@ async function triggerPopupNotification(title = "⏱️ 筋トレタイマー終
   }
 
   // 2. フォールバック（PCブラウザ等）
-  if ("Notification" in window && Notification.permission === "granted") {
-    try {
-      new Notification(title, options);
-    } catch (e) {
-      console.log("Normal notification error:", e);
-    }
+  try {
+    new Notification(title, options);
+  } catch (e) {
+    console.log("Normal notification error:", e);
   }
 }
 
@@ -2311,6 +2446,7 @@ function initApp() {
   }
 
   workoutStartTime = new Date();
+  initKeepAliveAudioSources();
   initNotificationService();
   initTimerWorker();
   initMetronomeWorker();
@@ -2397,7 +2533,7 @@ function saveDraftToStorage() {
         targetTime: activeTimer.targetTime,
         remainingSec: activeTimer.remainingSec,
         wasFinished: activeTimer.wasFinished,
-        isRunning: !!activeTimer.intervalId
+        isRunning: !!(activeTimer.intervalId || activeTimer.targetTime)
       },
       sunnyTimerState: {
         isRunning: sunnyTimerState.isRunning,
@@ -2542,20 +2678,29 @@ function applyDraftObject(draft) {
   // 稼働中だった筋トレ休憩タイマーの復元
   if (draft.activeTimer && draft.activeTimer.pairId) {
     if (draft.activeTimer.isRunning && draft.activeTimer.targetTime) {
-      const rem = Math.max(0, Math.round((draft.activeTimer.targetTime - Date.now()) / 1000));
-      if (rem > 0) {
+      const diffMs = draft.activeTimer.targetTime - Date.now();
+      const rem = Math.max(0, Math.ceil(diffMs / 1000));
+      if (diffMs > 0 && rem > 0) {
         activeTimer.pairId = draft.activeTimer.pairId;
         activeTimer.remainingSec = rem;
         activeTimer.targetTime = draft.activeTimer.targetTime;
         activeTimer.wasFinished = false;
         requestWakeLock();
+        preloadAlarmAudio();
+        startBackgroundKeepAlive("⏱️ インターバルタイマー");
         if (timerWorker) {
           timerWorker.postMessage({ action: "start", targetTime: activeTimer.targetTime });
         }
         if (activeTimer.intervalId) clearInterval(activeTimer.intervalId);
         activeTimer.intervalId = setInterval(() => {
           checkTimerTick();
-        }, 1000);
+        }, 500);
+        if (activeTimer.timeoutId) clearTimeout(activeTimer.timeoutId);
+        activeTimer.timeoutId = setTimeout(() => {
+          if (activeTimer.targetTime && !activeTimer.wasFinished) {
+            onTimerFinished();
+          }
+        }, diffMs);
       } else {
         activeTimer.pairId = draft.activeTimer.pairId;
         activeTimer.remainingSec = 0;
@@ -3055,6 +3200,7 @@ function startTimer(pairId) {
   stopTimer();
   requestWakeLock();
   preloadAlarmAudio();
+  pendingMissedAlarmSound = false;
 
   const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
   activeTimer.pairId = pairId;
@@ -3062,7 +3208,7 @@ function startTimer(pairId) {
   activeTimer.targetTime = Date.now() + activeTimer.remainingSec * 1000;
   activeTimer.wasFinished = false;
 
-  // バックグラウンドKeep-Alive開始（無音オーディオ + AudioSession + MediaSession）
+  // バックグラウンドKeep-Alive開始（10秒連続WAV + AudioSession + MediaSession）
   startBackgroundKeepAlive(`⏱️ インターバルタイマー (${mins}分)`);
 
   // 通知許可のリクエスト（未設定時）
@@ -3095,10 +3241,11 @@ function startTimer(pairId) {
 
 function checkTimerTick() {
   if (!activeTimer.targetTime) return;
-  const remaining = Math.max(0, Math.round((activeTimer.targetTime - Date.now()) / 1000));
+  const diffMs = activeTimer.targetTime - Date.now();
+  const remaining = Math.max(0, Math.ceil(diffMs / 1000));
   activeTimer.remainingSec = remaining;
 
-  if (remaining <= 0) {
+  if (diffMs <= 0) {
     if (!activeTimer.wasFinished) {
       onTimerFinished();
     }
@@ -3108,9 +3255,24 @@ function checkTimerTick() {
 }
 
 function onTimerFinished() {
-  stopTimer();
+  if (activeTimer.wasFinished) return;
   activeTimer.wasFinished = true;
   activeTimer.remainingSec = 0;
+
+  // カウントダウン用タイマーのみ停止（Keep-Alive / MediaSession はアラーム鳴動完了まで維持）
+  if (activeTimer.intervalId) {
+    clearInterval(activeTimer.intervalId);
+    activeTimer.intervalId = null;
+  }
+  if (activeTimer.timeoutId) {
+    clearTimeout(activeTimer.timeoutId);
+    activeTimer.timeoutId = null;
+  }
+  if (timerWorker) {
+    timerWorker.postMessage({ action: "stop" });
+  }
+  activeTimer.targetTime = null;
+
   playAlarmSound();
   if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
   triggerPopupNotification();
@@ -3130,58 +3292,125 @@ function stopTimer() {
   if (timerWorker) {
     timerWorker.postMessage({ action: "stop" });
   }
+  if (alarmCleanupTimerId) {
+    clearTimeout(alarmCleanupTimerId);
+    alarmCleanupTimerId = null;
+  }
+  isPlayingAlarmAudio = false;
+  pendingMissedAlarmSound = false;
   activeTimer.targetTime = null;
-  stopBackgroundKeepAlive();
+  stopBackgroundKeepAlive(true);
   if (!checkAnyTimerRunning()) {
     releaseWakeLock();
   }
 }
 
-// 終了アラーム音再生（バックグラウンド・消音時でも鳴動可能なplayback設定＋Web Audio API短音再生）
-function playAlarmSound() {
+// 終了アラーム音再生（再生中のKeep-Alive audio要素を再利用してバックグラウンド再生し、失敗時はWeb Audioへフォールバック）
+async function playAlarmSound() {
   if (navigator.audioSession) {
     try { navigator.audioSession.type = "playback"; } catch (e) {}
   }
-  playBeepWebAudio();
+
+  let playedViaElement = false;
+  const keepAlive = document.getElementById("timer-keep-alive");
+  if (keepAlive) {
+    try {
+      if (alarmCleanupTimerId) {
+        clearTimeout(alarmCleanupTimerId);
+        alarmCleanupTimerId = null;
+      }
+      isPlayingAlarmAudio = true;
+      keepAlive.onended = null;
+      keepAlive.loop = false;
+      keepAlive.volume = 1.0;
+      keepAlive.src = getAlarmWavUrl();
+      keepAlive.currentTime = 0;
+
+      const cleanupAfterAlarm = () => {
+        if (!isPlayingAlarmAudio) return;
+        isPlayingAlarmAudio = false;
+        keepAlive.onended = null;
+        if (alarmCleanupTimerId) {
+          clearTimeout(alarmCleanupTimerId);
+          alarmCleanupTimerId = null;
+        }
+        if (!checkAnyTimerRunning()) {
+          stopBackgroundKeepAlive(true);
+          releaseWakeLock();
+        }
+      };
+
+      keepAlive.onended = cleanupAfterAlarm;
+      alarmCleanupTimerId = setTimeout(cleanupAfterAlarm, 2500);
+
+      await keepAlive.play();
+      playedViaElement = true;
+    } catch (err) {
+      console.warn("Element alarm play failed, falling back to Web Audio:", err);
+      isPlayingAlarmAudio = false;
+      if (alarmCleanupTimerId) {
+        clearTimeout(alarmCleanupTimerId);
+        alarmCleanupTimerId = null;
+      }
+    }
+  }
+
+  if (!playedViaElement) {
+    const webAudioOk = await playBeepWebAudio();
+    if (!webAudioOk && document.visibilityState !== "visible") {
+      pendingMissedAlarmSound = true;
+    }
+    if (!checkAnyTimerRunning()) {
+      setTimeout(() => {
+        if (!checkAnyTimerRunning() && !isPlayingAlarmAudio) {
+          stopBackgroundKeepAlive(true);
+          releaseWakeLock();
+        }
+      }, 1500);
+    }
+  }
 }
 
-function playBeepWebAudio() {
+async function playBeepWebAudio() {
   try {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
+    if (!AudioContextClass) return false;
     if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
       alarmAudioCtx = new AudioContextClass();
+      alarmKeepAliveOsc = null;
+      alarmKeepAliveGain = null;
     }
     if (alarmAudioCtx.state === "suspended") {
-      alarmAudioCtx.resume().catch(() => {});
+      await alarmAudioCtx.resume().catch(() => {});
+    }
+    if (alarmAudioCtx.state !== "running") {
+      return false;
     }
     const audioCtx = alarmAudioCtx;
 
     const now = audioCtx.currentTime;
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(880, now); // A5
-    gain1.gain.setValueAtTime(0.25, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
-    osc1.start(now);
-    osc1.stop(now + 0.25);
+    const playPulse = (startOffset, freq, dur) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + startOffset);
+      gain.gain.setValueAtTime(0.001, now + startOffset);
+      gain.gain.linearRampToValueAtTime(0.45, now + startOffset + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + startOffset + dur);
+      osc.start(now + startOffset);
+      osc.stop(now + startOffset + dur + 0.01);
+    };
 
-    const osc2 = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.connect(gain2);
-    gain2.connect(audioCtx.destination);
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(1174.66, now + 0.28); // D6
-    gain2.gain.setValueAtTime(0.001, now);
-    gain2.gain.setValueAtTime(0.25, now + 0.28);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.62);
-    osc2.start(now + 0.28);
-    osc2.stop(now + 0.63);
+    playPulse(0.00, 880.0, 0.18);
+    playPulse(0.22, 1174.66, 0.30);
+    playPulse(0.72, 880.0, 0.18);
+    playPulse(0.94, 1174.66, 0.44);
+    return true;
   } catch (e) {
     console.log("Web Audio play error", e);
+    return false;
   }
 }
 
@@ -3861,6 +4090,7 @@ function startMetronome() {
   // 2. 無音オーディオ再生（Chrome/iOSのTab Freezing / 省電力スリープを防止）
   const keepAlive = document.getElementById("metronome-keep-alive");
   if (keepAlive) {
+    if (!keepAlive.getAttribute("src")) keepAlive.src = getKeepAliveWavUrl();
     keepAlive.play().catch(e => console.warn("keepAlive audio play error:", e));
   }
 
@@ -4094,6 +4324,7 @@ function toggleRainyTimer() {
     if (!checkAnyTimerRunning()) releaseWakeLock();
   } else {
     // 開始
+    preloadAlarmAudio(false);
     if (rainyTimerState.remainingSec <= 0 || rainyTimerState.done) {
       rainyTimerState.remainingSec = rainyJogMinutes * 60;
       rainyTimerState.done = false;
@@ -4683,8 +4914,15 @@ async function handleVisibilityOrFocus() {
       }
     }
     // インターバルタイマーの即時再同期（targetTimeが存在すれば必ずTickを実行）
+    if (pendingMissedAlarmSound) {
+      pendingMissedAlarmSound = false;
+      playAlarmSound();
+    }
     if (activeTimer && activeTimer.targetTime) {
       checkTimerTick();
+    }
+    if (alarmAudioCtx && alarmAudioCtx.state === "suspended" && checkAnyTimerRunning()) {
+      alarmAudioCtx.resume().catch(() => {});
     }
     if (rainyTimerState.isRunning) checkRainyTick();
     if (isMetronomeRunning) {
