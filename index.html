@@ -1965,6 +1965,8 @@ let activeTimer = {
 let timerWorker = null;
 let cachedKeepAliveWavUrl = null;
 let cachedAlarmWavUrl = null;
+let cachedStretchSwitchWavUrl = null;
+let cachedStretchFinishWavUrl = null;
 let isPlayingAlarmAudio = false;
 let alarmCleanupTimerId = null;
 let pendingMissedAlarmSound = false;
@@ -2034,6 +2036,55 @@ function getAlarmWavUrl() {
   return cachedAlarmWavUrl;
 }
 
+function getStretchSwitchWavUrl() {
+  if (!cachedStretchSwitchWavUrl) {
+    // 0.9秒の優しい2音チャイム (C5 -> E5)
+    cachedStretchSwitchWavUrl = buildPcm16WavUrl(22050, 0.9, (i, sr) => {
+      const t = i / sr;
+      const notes = [
+        { start: 0.00, dur: 0.80, freq: 523.25 },
+        { start: 0.05, dur: 0.80, freq: 659.25 }
+      ];
+      let sum = 0;
+      for (const n of notes) {
+        if (t >= n.start && t <= n.start + n.dur) {
+          const dt = t - n.start;
+          const fadeIn = Math.min(1, dt / 0.01);
+          const fadeOut = Math.min(1, (n.dur - dt) / 0.04);
+          sum += Math.sin(2 * Math.PI * n.freq * dt) * 0.28 * fadeIn * Math.exp(-dt * 4.5) * fadeOut;
+        }
+      }
+      return sum;
+    });
+  }
+  return cachedStretchSwitchWavUrl;
+}
+
+function getStretchFinishWavUrl() {
+  if (!cachedStretchFinishWavUrl) {
+    // 1.65秒の優しい3音フィニッシュチャイム (C5 -> E5 -> G5)
+    cachedStretchFinishWavUrl = buildPcm16WavUrl(22050, 1.65, (i, sr) => {
+      const t = i / sr;
+      const notes = [
+        { start: 0.00, dur: 1.40, freq: 523.25 },
+        { start: 0.10, dur: 1.40, freq: 659.25 },
+        { start: 0.20, dur: 1.40, freq: 783.99 }
+      ];
+      let sum = 0;
+      for (const n of notes) {
+        if (t >= n.start && t <= n.start + n.dur) {
+          const dt = t - n.start;
+          const fadeIn = Math.min(1, dt / 0.01);
+          const fadeOut = Math.min(1, (n.dur - dt) / 0.05);
+          sum += Math.sin(2 * Math.PI * n.freq * dt) * 0.24 * fadeIn * Math.exp(-dt * 3.0) * fadeOut;
+        }
+      }
+      return sum;
+    });
+  }
+  return cachedStretchFinishWavUrl;
+}
+
 function initKeepAliveAudioSources() {
   const wavUrl = getKeepAliveWavUrl();
   ["timer-keep-alive", "metronome-keep-alive"].forEach(id => {
@@ -2086,7 +2137,14 @@ function stopAlarmKeepAliveNode() {
 }
 
 // バックグラウンド動作の維持（10秒連続WAV + AudioSession + MediaSession）
-function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー") {
+function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー", options = {}) {
+  const {
+    artist = "筋トレ インターバル休憩中",
+    album = "筋トレ記録",
+    onStop = null,
+    onPause = null
+  } = options;
+
   if (navigator.audioSession) {
     try { navigator.audioSession.type = "playback"; } catch (e) {}
   }
@@ -2113,16 +2171,23 @@ function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
-        artist: "筋トレ インターバル休憩中",
-        album: "筋トレ記録"
+        artist: artist,
+        album: album
       });
       navigator.mediaSession.playbackState = "playing";
       try {
         navigator.mediaSession.setActionHandler("stop", () => {
-          stopTimer();
-          saveDraftToStorage();
-          renderWorkout();
+          if (onStop) {
+            onStop();
+          } else {
+            stopTimer();
+            saveDraftToStorage();
+            renderWorkout();
+          }
         });
+      } catch (e) {}
+      try {
+        navigator.mediaSession.setActionHandler("pause", onPause ? () => onPause() : null);
       } catch (e) {}
     } catch (e) {}
   }
@@ -2151,7 +2216,12 @@ function stopBackgroundKeepAlive(force = false) {
     try {
       navigator.mediaSession.playbackState = "none";
       try { navigator.mediaSession.setActionHandler("stop", null); } catch (e) {}
+      try { navigator.mediaSession.setActionHandler("pause", null); } catch (e) {}
     } catch (e) {}
+  }
+
+  if (navigator.audioSession && !isMetronomeRunning && !checkAnyTimerRunning()) {
+    try { navigator.audioSession.type = "ambient"; } catch (e) {}
   }
 }
 
@@ -2327,6 +2397,11 @@ function hasActiveWorkoutProgress() {
   if (!isDraftSavedToCloud && memoEl && memoEl.value.trim().length > 0) return true;
   if (checkAnyTimerRunning()) return true;
   if (!isDraftSavedToCloud && rainyTimerState && rainyTimerState.remainingSec < rainyJogMinutes * 60) return true;
+  if (!isDraftSavedToCloud && typeof stretchState !== "undefined" && stretchState && (
+    stretchState.totalElapsedSec > 0 ||
+    stretchState.currentExIdx > 0 ||
+    Object.keys(stretchState.completedExIds || {}).length > 0
+  )) return true;
   return false;
 }
 
@@ -2517,6 +2592,7 @@ function initApp() {
   initNotificationService();
   initTimerWorker();
   initMetronomeWorker();
+  initStretchWorker();
   loadStateFromStorage();
   bindInputPersistenceListeners();
   updateTabUI();
@@ -2612,6 +2688,17 @@ function saveDraftToStorage() {
         targetEndTime: rainyTimerState.targetEndTime,
         remainingSec: rainyTimerState.remainingSec,
         done: rainyTimerState.done
+      },
+      stretchState: {
+        isRunning: stretchState.isRunning,
+        isPrep: stretchState.isPrep,
+        prepRemainingSec: stretchState.prepRemainingSec,
+        currentExIdx: stretchState.currentExIdx,
+        currentSide: stretchState.currentSide,
+        remainingSec: stretchState.remainingSec,
+        targetEndTime: stretchState.targetEndTime,
+        totalElapsedSec: stretchState.totalElapsedSec,
+        completedExIds: stretchState.completedExIds
       }
     };
     const serialized = JSON.stringify(draft);
@@ -2813,6 +2900,11 @@ function applyDraftObject(draft) {
     }
     updateRainyDisplay();
   }
+
+  // 夜ストレッチタイマーの復元
+  if (draft.stretchState && typeof draft.stretchState === "object") {
+    restoreStretchDraftState(draft.stretchState);
+  }
 }
 
 function loadStateFromStorage() {
@@ -2856,10 +2948,17 @@ function loadStateFromStorage() {
       const todayStr = getTodayDateString();
       const ageMs = Date.now() - (draft.updatedAt || 0);
       const isSameDay = (draft.todayDate === todayStr || draft.inputDate === todayStr);
+      const hasStretchWork = !!(draft.stretchState && (
+        draft.stretchState.isRunning ||
+        draft.stretchState.totalElapsedSec > 0 ||
+        draft.stretchState.currentExIdx > 0 ||
+        (draft.stretchState.completedExIds && Object.keys(draft.stretchState.completedExIds).length > 0)
+      ));
       const hasUnsavedWork = !draft.isSaved && (
         draft.draftModified ||
         (draft.completedSets && Object.values(draft.completedSets).some(Boolean)) ||
-        (draft.memo && draft.memo.trim().length > 0)
+        (draft.memo && draft.memo.trim().length > 0) ||
+        hasStretchWork
       );
       // 当日のデータ、または18時間以内の未保存データは完全復元（深夜跨ぎや別ブラウザ閲覧後の復帰に対応）
       if (isSameDay || (hasUnsavedWork && ageMs < 18 * 3600 * 1000)) {
@@ -2877,7 +2976,10 @@ function loadStateFromStorage() {
   }
 
   // 時間帯・保存済み状況に応じてデフォルトタブを最適化
-  const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (stretchState.isRunning || stretchState.totalElapsedSec > 0));
+  const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (
+    stretchState.isRunning ||
+    (!isDraftSavedToCloud && (stretchState.totalElapsedSec > 0 || stretchState.currentExIdx > 0 || Object.keys(stretchState.completedExIds || {}).length > 0))
+  ));
   currentRoutineKey = getDefaultRoutineSmart(new Date(), {
     isSaved: isDraftSavedToCloud,
     hasActiveProgress: hasActiveWorkoutProgress() || stretchInProgress,
@@ -2915,6 +3017,8 @@ function resetTodayDraftManual() {
   }
   stopTimer();
   stopJogTimers();
+  stopStretchTimers();
+  initStretchState();
   completedSets = {};
   isDraftSavedToCloud = false;
   draftModified = false;
@@ -4611,32 +4715,69 @@ let stretchState = {
   targetEndTime: null,
   timerIntervalId: null,
   totalElapsedSec: 0,
-  completedExIds: {}
+  completedExIds: {},
+  lastCountdownCue: null
 };
+let stretchWorker = null;
+let pendingStretchFinishAlert = false;
 
-// --- ストレッチ用オーディオ (Web Audio API) ---
+// --- ストレッチ用オーディオ (Web Audio API + バックグラウンドKeep-Alive) ---
 let stretchAudioCtx = null;
+let stretchKeepAliveOsc = null;
+let stretchKeepAliveGain = null;
 
-function getStretchAudioContext() {
+function getStretchAudioContext(keepRunning = false) {
   if (navigator.audioSession) {
-    try { navigator.audioSession.type = "ambient"; } catch (e) {}
+    try {
+      if (stretchState.isRunning || checkAnyTimerRunning()) {
+        navigator.audioSession.type = "playback";
+      }
+    } catch (e) {}
   }
-  if (!stretchAudioCtx) {
+  if (!stretchAudioCtx || stretchAudioCtx.state === "closed") {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
       stretchAudioCtx = new AudioContextClass();
+      stretchKeepAliveOsc = null;
+      stretchKeepAliveGain = null;
     }
   }
   if (stretchAudioCtx && stretchAudioCtx.state === "suspended") {
     stretchAudioCtx.resume().catch(() => {});
   }
+  if (keepRunning && stretchAudioCtx && !stretchKeepAliveOsc) {
+    try {
+      stretchKeepAliveOsc = stretchAudioCtx.createOscillator();
+      stretchKeepAliveGain = stretchAudioCtx.createGain();
+      stretchKeepAliveOsc.frequency.value = 16;
+      stretchKeepAliveGain.gain.value = 0.0001;
+      stretchKeepAliveOsc.connect(stretchKeepAliveGain);
+      stretchKeepAliveGain.connect(stretchAudioCtx.destination);
+      stretchKeepAliveOsc.start();
+    } catch (e) {}
+  }
   return stretchAudioCtx;
 }
 
-// 優しいベル音・チャイム音
+function stopStretchKeepAliveNode() {
+  if (stretchKeepAliveOsc) {
+    try { stretchKeepAliveOsc.stop(); } catch (e) {}
+    try { stretchKeepAliveOsc.disconnect(); } catch (e) {}
+    stretchKeepAliveOsc = null;
+  }
+  if (stretchKeepAliveGain) {
+    try { stretchKeepAliveGain.disconnect(); } catch (e) {}
+    stretchKeepAliveGain = null;
+  }
+}
+
+// 優しいベル音・チャイム音（Web Audio API）
 function playStretchSound(type) {
-  const ctx = getStretchAudioContext();
-  if (!ctx) return;
+  const ctx = getStretchAudioContext(stretchState.isRunning);
+  if (!ctx) return false;
+  if (ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+  }
   const now = ctx.currentTime;
 
   if (type === "countdown") {
@@ -4650,6 +4791,7 @@ function playStretchSound(type) {
     gain.connect(ctx.destination);
     osc.start(now);
     osc.stop(now + 0.06);
+    return ctx.state === "running";
   } else if (type === "switch") {
     [523.25, 659.25].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
@@ -4663,6 +4805,7 @@ function playStretchSound(type) {
       osc.start(now + idx * 0.05);
       osc.stop(now + idx * 0.05 + 0.8);
     });
+    return ctx.state === "running";
   } else if (type === "finish") {
     [523.25, 659.25, 783.99].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
@@ -4676,7 +4819,219 @@ function playStretchSound(type) {
       osc.start(now + idx * 0.1);
       osc.stop(now + idx * 0.1 + 1.4);
     });
+    return ctx.state === "running";
   }
+  return false;
+}
+
+// 種目進行中のフェーズ切替音（Web Audioがバックグラウンドで停止していた場合はKeep-Alive audio要素で確実に鳴動）
+function playStretchMidSwitchSound() {
+  const ctx = getStretchAudioContext(true);
+  if (ctx && ctx.state === "running") {
+    playStretchSound("switch");
+    return;
+  }
+  const keepAlive = document.getElementById("timer-keep-alive");
+  if (keepAlive) {
+    try {
+      if (alarmCleanupTimerId) {
+        clearTimeout(alarmCleanupTimerId);
+        alarmCleanupTimerId = null;
+      }
+      isPlayingAlarmAudio = true;
+      keepAlive.onended = null;
+      keepAlive.loop = false;
+      keepAlive.volume = 1.0;
+      keepAlive.src = getStretchSwitchWavUrl();
+      keepAlive.currentTime = 0;
+
+      const restoreKeepAlive = () => {
+        if (!isPlayingAlarmAudio) return;
+        isPlayingAlarmAudio = false;
+        keepAlive.onended = null;
+        if (alarmCleanupTimerId) {
+          clearTimeout(alarmCleanupTimerId);
+          alarmCleanupTimerId = null;
+        }
+        if (stretchState.isRunning) {
+          const wavUrl = getKeepAliveWavUrl();
+          if (keepAlive.src !== wavUrl) keepAlive.src = wavUrl;
+          keepAlive.loop = true;
+          keepAlive.volume = 1.0;
+          keepAlive.play().catch(() => {});
+        } else if (!checkAnyTimerRunning()) {
+          stopBackgroundKeepAlive(true);
+          releaseWakeLock();
+        }
+      };
+      keepAlive.onended = restoreKeepAlive;
+      alarmCleanupTimerId = setTimeout(restoreKeepAlive, 1300);
+      keepAlive.play().catch(() => {
+        isPlayingAlarmAudio = false;
+        if (alarmCleanupTimerId) {
+          clearTimeout(alarmCleanupTimerId);
+          alarmCleanupTimerId = null;
+        }
+        playStretchSound("switch");
+      });
+      return;
+    } catch (e) {
+      isPlayingAlarmAudio = false;
+    }
+  }
+  playStretchSound("switch");
+}
+
+// 種目終了・全種目完了時のチャイム再生（再生中のKeep-Alive audio要素を再利用し、バックグラウンド鳴動を保証）
+async function playStretchEndAudio(type = "switch") {
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = "playback"; } catch (e) {}
+  }
+
+  let playedViaElement = false;
+  const keepAlive = document.getElementById("timer-keep-alive");
+  if (keepAlive) {
+    try {
+      if (alarmCleanupTimerId) {
+        clearTimeout(alarmCleanupTimerId);
+        alarmCleanupTimerId = null;
+      }
+      isPlayingAlarmAudio = true;
+      keepAlive.onended = null;
+      keepAlive.loop = false;
+      keepAlive.volume = 1.0;
+      keepAlive.src = (type === "finish") ? getStretchFinishWavUrl() : getStretchSwitchWavUrl();
+      keepAlive.currentTime = 0;
+
+      const cleanupAfterEnd = () => {
+        if (!isPlayingAlarmAudio) return;
+        isPlayingAlarmAudio = false;
+        keepAlive.onended = null;
+        if (alarmCleanupTimerId) {
+          clearTimeout(alarmCleanupTimerId);
+          alarmCleanupTimerId = null;
+        }
+        if (!checkAnyTimerRunning()) {
+          stopBackgroundKeepAlive(true);
+          releaseWakeLock();
+        }
+      };
+
+      keepAlive.onended = cleanupAfterEnd;
+      alarmCleanupTimerId = setTimeout(cleanupAfterEnd, type === "finish" ? 2400 : 1500);
+
+      await keepAlive.play();
+      playedViaElement = true;
+    } catch (err) {
+      console.warn("Stretch end element play failed, falling back to Web Audio:", err);
+      isPlayingAlarmAudio = false;
+      if (alarmCleanupTimerId) {
+        clearTimeout(alarmCleanupTimerId);
+        alarmCleanupTimerId = null;
+      }
+    }
+  }
+
+  if (!playedViaElement) {
+    playStretchSound(type);
+    if (!checkAnyTimerRunning()) {
+      setTimeout(() => {
+        if (!checkAnyTimerRunning() && !isPlayingAlarmAudio) {
+          stopBackgroundKeepAlive(true);
+          releaseWakeLock();
+        }
+      }, type === "finish" ? 1800 : 1100);
+    }
+  }
+}
+
+function initStretchWorker() {
+  if (typeof Worker !== "undefined" && !stretchWorker) {
+    try {
+      const workerCode = `
+        var intervalId = null;
+        var timeoutId = null;
+        var targetTime = 0;
+
+        function clearTimers() {
+          if (intervalId) { clearInterval(intervalId); intervalId = null; }
+          if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        }
+
+        function schedulePhaseTimeout() {
+          if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+          if (targetTime > 0) {
+            var remMs = Math.max(0, targetTime - Date.now());
+            timeoutId = setTimeout(function() {
+              self.postMessage({ type: "tick" });
+            }, remMs);
+          }
+        }
+
+        self.onmessage = function(e) {
+          if (e.data.action === "start" || e.data.action === "sync") {
+            targetTime = e.data.targetTime || 0;
+            if (e.data.action === "start" && !intervalId) {
+              intervalId = setInterval(function() {
+                self.postMessage({ type: "tick" });
+              }, 250);
+            }
+            schedulePhaseTimeout();
+          } else if (e.data.action === "stop") {
+            clearTimers();
+            targetTime = 0;
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: "application/javascript" });
+      stretchWorker = new Worker(URL.createObjectURL(blob));
+      stretchWorker.onmessage = function(e) {
+        if (e.data.type === "tick" && stretchState && stretchState.isRunning) {
+          checkStretchTick();
+        }
+      };
+    } catch (err) {
+      console.warn("Stretch worker init failed:", err);
+      stretchWorker = null;
+    }
+  }
+}
+
+function getStretchMediaTitle() {
+  const ex = STRETCH_EXERCISES[stretchState.currentExIdx];
+  if (!ex) return "🌙 夜ストレッチ";
+  const sideLabel = ex.hasSides ? (stretchState.currentSide === "right" ? " (右側)" : " (左側)") : "";
+  return `🌙 ${ex.name}${sideLabel}`;
+}
+
+function updateStretchMediaSession() {
+  if (!stretchState.isRunning || !("mediaSession" in navigator)) return;
+  try {
+    const stepLabel = `STEP ${stretchState.currentExIdx + 1}/${STRETCH_EXERCISES.length}`;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: getStretchMediaTitle(),
+      artist: stretchState.isPrep ? `${stepLabel} ・ 準備中` : `${stepLabel} ・ ストレッチ中`,
+      album: "夜ストレッチ"
+    });
+  } catch (e) {}
+}
+
+function startStretchBackgroundServices() {
+  requestWakeLock();
+  getStretchAudioContext(true);
+  const stepLabel = `STEP ${stretchState.currentExIdx + 1}/${STRETCH_EXERCISES.length}`;
+  startBackgroundKeepAlive(getStretchMediaTitle(), {
+    artist: stretchState.isPrep ? `${stepLabel} ・ 準備中` : `${stepLabel} ・ ストレッチ中`,
+    album: "夜ストレッチ",
+    onStop: () => {
+      pauseStretchPlayer();
+      saveDraftToStorage();
+    },
+    onPause: () => {
+      pauseStretchPlayer();
+      saveDraftToStorage();
+    }
+  });
 }
 
 // --- ストレッチ シーケンス タイマー ---
@@ -4687,8 +5042,10 @@ function initStretchState() {
   stretchState.prepRemainingSec = 3;
   stretchState.currentSide = STRETCH_EXERCISES[0].hasSides ? "left" : null;
   stretchState.remainingSec = STRETCH_EXERCISES[0].durationSec;
+  stretchState.targetEndTime = null;
   stretchState.totalElapsedSec = 0;
   stretchState.completedExIds = {};
+  stretchState.lastCountdownCue = null;
 }
 initStretchState();
 
@@ -4835,7 +5192,11 @@ function renderStretchList() {
 
 function toggleStretchPlay() {
   if (stretchState.isRunning) {
-    pauseStretchPlayer();
+    checkStretchTick();
+    if (stretchState.isRunning) {
+      pauseStretchPlayer();
+    }
+    saveDraftToStorage();
   } else {
     startStretchPlayer();
   }
@@ -4844,70 +5205,149 @@ function toggleStretchPlay() {
 function startStretchPlayer() {
   if (stretchState.isRunning) return;
 
+  initStretchWorker();
+  const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+  if (currentEx && stretchState.remainingSec <= 0) {
+    stretchState.remainingSec = currentEx.durationSec;
+  }
+
   stretchState.isRunning = true;
   stretchState.isPrep = true;
   stretchState.prepRemainingSec = 3;
+  stretchState.targetEndTime = Date.now() + 3000;
+  stretchState.lastCountdownCue = `prep:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}:3`;
 
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
+  startStretchBackgroundServices();
   playStretchSound("countdown");
 
+  if (stretchWorker) {
+    stretchWorker.postMessage({ action: "start", targetTime: stretchState.targetEndTime });
+  }
   if (stretchState.timerIntervalId) clearInterval(stretchState.timerIntervalId);
-  stretchState.timerIntervalId = setInterval(checkStretchTick, 1000);
+  stretchState.timerIntervalId = setInterval(checkStretchTick, 250);
 
   updateStretchPlayerUI();
-  requestWakeLock();
+  saveDraftToStorage();
 }
 
-function pauseStretchPlayer() {
+function pauseStretchPlayer(options = {}) {
+  const { keepAliveForSound = false } = options;
   stretchState.isRunning = false;
   stretchState.isPrep = false;
+  stretchState.targetEndTime = null;
+  stretchState.lastCountdownCue = null;
+
   if (stretchState.timerIntervalId) {
     clearInterval(stretchState.timerIntervalId);
     stretchState.timerIntervalId = null;
   }
-  updateStretchPlayerUI();
-  if (!checkAnyTimerRunning()) {
-    releaseWakeLock();
+  if (stretchWorker) {
+    stretchWorker.postMessage({ action: "stop" });
   }
+  stopStretchKeepAliveNode();
+
+  if (!keepAliveForSound) {
+    stopBackgroundKeepAlive();
+    if (!checkAnyTimerRunning()) {
+      releaseWakeLock();
+    }
+  }
+  updateStretchPlayerUI();
 }
 
 function checkStretchTick() {
-  if (!stretchState.isRunning) return;
+  if (!stretchState.isRunning || !stretchState.targetEndTime) return;
 
-  // 1. 準備時間・左右切り替えインターバルカウントダウン
-  if (stretchState.isPrep) {
-    stretchState.prepRemainingSec--;
-    if (stretchState.prepRemainingSec > 0) {
-      if (stretchState.prepRemainingSec <= 3) {
-        playStretchSound("countdown");
+  const now = Date.now();
+  let stateChanged = false;
+  let pendingMidSwitchSound = false;
+  let targetTimeUpdated = false;
+  let safetyCounter = 0;
+
+  while (stretchState.isRunning && stretchState.targetEndTime && safetyCounter < 10) {
+    safetyCounter++;
+    const diffMs = stretchState.targetEndTime - now;
+
+    if (diffMs > 0) {
+      const rem = Math.ceil(diffMs / 1000);
+      if (stretchState.isPrep) {
+        if (rem !== stretchState.prepRemainingSec) {
+          stretchState.prepRemainingSec = rem;
+          stateChanged = true;
+        }
+        const cueKey = `prep:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}:${rem}`;
+        if (rem <= 3 && stretchState.lastCountdownCue !== cueKey) {
+          stretchState.lastCountdownCue = cueKey;
+          if (diffMs > 150) {
+            playStretchSound("countdown");
+          }
+        }
+      } else {
+        if (rem !== stretchState.remainingSec) {
+          const prevRem = stretchState.remainingSec;
+          if (rem < prevRem) {
+            stretchState.totalElapsedSec += (prevRem - rem);
+          }
+          stretchState.remainingSec = rem;
+          stateChanged = true;
+        }
+        const cueKey = `active:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}:${rem}`;
+        if (rem <= 3 && rem > 0 && stretchState.lastCountdownCue !== cueKey) {
+          stretchState.lastCountdownCue = cueKey;
+          if (diffMs > 150) {
+            playStretchSound("countdown");
+          }
+        }
       }
-    } else {
+      break;
+    }
+
+    // 現在のフェーズが終了（スリープ・バックグラウンド復帰時は複数フェーズ分を連続消化）
+    const endedAt = stretchState.targetEndTime;
+    if (stretchState.isPrep) {
       // 準備終了 ➔ 種目本番タイマースタート！
       stretchState.isPrep = false;
-      playStretchSound("switch");
+      stretchState.prepRemainingSec = 0;
+      stretchState.lastCountdownCue = null;
+      stretchState.targetEndTime = endedAt + stretchState.remainingSec * 1000;
+      targetTimeUpdated = true;
+      pendingMidSwitchSound = true;
+      stateChanged = true;
+    } else {
+      if (stretchState.remainingSec > 0) {
+        stretchState.totalElapsedSec += stretchState.remainingSec;
+        stretchState.remainingSec = 0;
+      }
+      stretchState.lastCountdownCue = null;
+      const continued = handleStretchStepCompletion(endedAt, true);
+      stateChanged = true;
+      if (!continued) {
+        pendingMidSwitchSound = false;
+        break;
+      }
+      targetTimeUpdated = true;
+      pendingMidSwitchSound = true;
     }
+  }
+
+  if (stretchState.isRunning && targetTimeUpdated && stretchWorker && stretchState.targetEndTime) {
+    stretchWorker.postMessage({ action: "sync", targetTime: stretchState.targetEndTime });
+  }
+  if (pendingMidSwitchSound && stretchState.isRunning) {
+    playStretchMidSwitchSound();
+  }
+  if (stateChanged) {
     updateStretchPlayerUI();
-    return;
+    updateStretchMediaSession();
+    saveDraftToStorage();
   }
-
-  // 2. 本運動カウントダウン
-  stretchState.remainingSec--;
-  stretchState.totalElapsedSec++;
-
-  // カウント音（残り3, 2, 1秒）
-  if (stretchState.remainingSec <= 3 && stretchState.remainingSec > 0) {
-    playStretchSound("countdown");
-  }
-
-  // 秒数終了時の処理
-  if (stretchState.remainingSec <= 0) {
-    handleStretchStepCompletion();
-    return;
-  }
-
-  updateStretchPlayerUI();
 }
 
-function handleStretchStepCompletion() {
+function handleStretchStepCompletion(endedAt = Date.now(), deferMidSound = false) {
   const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
 
   // 1. 左右種目で「左」が終了した時 ➔ 自動で「右」へ切り替え（5秒インターバル後に自動開始）
@@ -4916,9 +5356,18 @@ function handleStretchStepCompletion() {
     stretchState.isPrep = true;
     stretchState.prepRemainingSec = 5;
     stretchState.remainingSec = currentEx.durationSec;
-    playStretchSound("switch");
-    updateStretchPlayerUI();
-    return;
+    stretchState.lastCountdownCue = null;
+    stretchState.targetEndTime = endedAt + 5000;
+    if (!deferMidSound) {
+      if (stretchWorker) {
+        stretchWorker.postMessage({ action: "sync", targetTime: stretchState.targetEndTime });
+      }
+      playStretchMidSwitchSound();
+      updateStretchPlayerUI();
+      updateStretchMediaSession();
+      saveDraftToStorage();
+    }
+    return true;
   }
 
   // 2. 種目完了（右側または左右なし）
@@ -4926,32 +5375,54 @@ function handleStretchStepCompletion() {
 
   // 次の種目があるか確認（種目間はタイマー停止し手動スタート待機）
   if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
-    pauseStretchPlayer();
+    pauseStretchPlayer({ keepAliveForSound: true });
     stretchState.currentExIdx++;
     const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
     stretchState.currentSide = nextEx.hasSides ? "left" : null;
     stretchState.isPrep = false;
     stretchState.remainingSec = nextEx.durationSec;
-    playStretchSound("switch");
+    playStretchEndAudio("switch");
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    if (document.visibilityState !== "visible") {
+      triggerPopupNotification(
+        `🧘 ${currentEx.name} 完了！`,
+        `次の種目「${nextEx.name}」の準備ができたらスタートを押してください。`
+      );
+    }
     updateStretchPlayerUI();
     renderStretchList();
+    saveDraftToStorage();
   } else {
     // 全種目完了！
     finishAllStretch();
   }
+  return false;
 }
 
 function finishAllStretch() {
-  pauseStretchPlayer();
-  playStretchSound("finish");
+  pauseStretchPlayer({ keepAliveForSound: true });
+  playStretchEndAudio("finish");
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
 
   const todayStr = getTodayDateString();
   localStorage.setItem("stretch_last_completed_date", todayStr);
   markStretchCompletedForNight(new Date());
   updateStretchStatusBadge();
   renderStretchList();
+  saveDraftToStorage();
 
-  alert("🌙 全身ストレッチ完了！お疲れさまでした。\n副交感神経が整いました。深呼吸のままゆっくりお休みください。");
+  if (document.visibilityState !== "visible") {
+    pendingStretchFinishAlert = true;
+    triggerPopupNotification(
+      "🌙 全身ストレッチ完了！",
+      "全10種目が終了しました。深呼吸のままゆっくりお休みください。"
+    );
+  } else {
+    pendingStretchFinishAlert = false;
+    setTimeout(() => {
+      alert("🌙 全身ストレッチ完了！お疲れさまでした。\n副交感神経が整いました。深呼吸のままゆっくりお休みください。");
+    }, 150);
+  }
 }
 
 function nextStretchStep() {
@@ -4965,6 +5436,7 @@ function nextStretchStep() {
     playStretchSound("switch");
     updateStretchPlayerUI();
     renderStretchList();
+    saveDraftToStorage();
   }
 }
 
@@ -4978,6 +5450,7 @@ function prevStretchStep() {
     stretchState.remainingSec = prevEx.durationSec;
     updateStretchPlayerUI();
     renderStretchList();
+    saveDraftToStorage();
   }
 }
 
@@ -4991,6 +5464,7 @@ function jumpToStretchExercise(idx) {
   stretchState.remainingSec = ex.durationSec;
   updateStretchPlayerUI();
   renderStretchList();
+  saveDraftToStorage();
 }
 
 function resetStretchPlayer() {
@@ -4998,10 +5472,46 @@ function resetStretchPlayer() {
   initStretchState();
   updateStretchPlayerUI();
   renderStretchList();
+  saveDraftToStorage();
 }
 
 function stopStretchTimers() {
   pauseStretchPlayer();
+}
+
+function restoreStretchDraftState(ds) {
+  if (!ds || typeof ds !== "object") return;
+  const maxIdx = STRETCH_EXERCISES.length - 1;
+  const exIdx = (typeof ds.currentExIdx === "number") ? Math.max(0, Math.min(maxIdx, ds.currentExIdx)) : 0;
+  const ex = STRETCH_EXERCISES[exIdx];
+
+  stretchState.currentExIdx = exIdx;
+  stretchState.currentSide = ex.hasSides ? (ds.currentSide === "right" ? "right" : "left") : null;
+  stretchState.isPrep = !!ds.isPrep;
+  stretchState.prepRemainingSec = (typeof ds.prepRemainingSec === "number") ? Math.max(0, ds.prepRemainingSec) : 3;
+  stretchState.remainingSec = (typeof ds.remainingSec === "number") ? Math.max(0, ds.remainingSec) : ex.durationSec;
+  stretchState.totalElapsedSec = (typeof ds.totalElapsedSec === "number") ? Math.max(0, ds.totalElapsedSec) : 0;
+  stretchState.completedExIds = (ds.completedExIds && typeof ds.completedExIds === "object") ? { ...ds.completedExIds } : {};
+  stretchState.lastCountdownCue = null;
+
+  if (ds.isRunning && ds.targetEndTime) {
+    stretchState.isRunning = true;
+    stretchState.targetEndTime = ds.targetEndTime;
+    checkStretchTick();
+    if (stretchState.isRunning) {
+      initStretchWorker();
+      startStretchBackgroundServices();
+      if (stretchWorker && stretchState.targetEndTime) {
+        stretchWorker.postMessage({ action: "start", targetTime: stretchState.targetEndTime });
+      }
+      if (stretchState.timerIntervalId) clearInterval(stretchState.timerIntervalId);
+      stretchState.timerIntervalId = setInterval(checkStretchTick, 250);
+    }
+  } else {
+    stretchState.isRunning = false;
+    stretchState.isPrep = false;
+    stretchState.targetEndTime = null;
+  }
 }
 
 // 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
@@ -5015,7 +5525,10 @@ async function handleVisibilityOrFocus() {
     const now = new Date();
     const todayStr = getDateString(now);
     const dateInput = document.getElementById("input-date");
-    const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (stretchState.isRunning || stretchState.totalElapsedSec > 0));
+    const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (
+      stretchState.isRunning ||
+      (!isDraftSavedToCloud && (stretchState.totalElapsedSec > 0 || stretchState.currentExIdx > 0 || Object.keys(stretchState.completedExIds || {}).length > 0))
+    ));
     const isBusy = hasActiveWorkoutProgress() || stretchInProgress;
 
     // 日付またぎの自動同期（保存済み、または未入力のまま翌日を迎えた場合に今日の日付・タブへ更新）
@@ -5061,7 +5574,24 @@ async function handleVisibilityOrFocus() {
       }
       metronomeScheduler();
     }
-    if (stretchState && stretchState.isRunning) checkStretchTick();
+    if (stretchState && stretchState.isRunning) {
+      if (stretchAudioCtx && stretchAudioCtx.state === "suspended") {
+        stretchAudioCtx.resume().catch(() => {});
+      }
+      checkStretchTick();
+      if (stretchState.isRunning) {
+        const keepAlive = document.getElementById("timer-keep-alive");
+        if (keepAlive && keepAlive.paused && !isPlayingAlarmAudio) {
+          keepAlive.play().catch(() => {});
+        }
+      }
+    }
+    if (pendingStretchFinishAlert) {
+      pendingStretchFinishAlert = false;
+      setTimeout(() => {
+        alert("🌙 全身ストレッチ完了！お疲れさまでした。\n副交感神経が整いました。深呼吸のままゆっくりお休みください。");
+      }, 150);
+    }
     if (checkAnyTimerRunning()) {
       await requestWakeLock();
     }
@@ -5072,9 +5602,13 @@ async function handleVisibilityOrFocus() {
 document.addEventListener("visibilitychange", handleVisibilityOrFocus);
 window.addEventListener("focus", () => {
   if (activeTimer && activeTimer.targetTime) checkTimerTick();
+  if (rainyTimerState && rainyTimerState.isRunning) checkRainyTick();
+  if (stretchState && stretchState.isRunning) checkStretchTick();
 });
 window.addEventListener("pageshow", () => {
   if (activeTimer && activeTimer.targetTime) checkTimerTick();
+  if (rainyTimerState && rainyTimerState.isRunning) checkRainyTick();
+  if (stretchState && stretchState.isRunning) checkStretchTick();
 });
 
 if (document.readyState === "loading") {
