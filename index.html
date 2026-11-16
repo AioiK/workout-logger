@@ -1430,8 +1430,7 @@
 </head>
 <body>
 
-<!-- バックグラウンド動作維持用（タイマー・メトロノーム） -->
-<audio id="timer-keep-alive" loop playsinline preload="auto"></audio>
+<!-- バックグラウンド動作維持用（雨天メトロノーム再生時のみ使用） -->
 <audio id="metronome-keep-alive" loop playsinline preload="auto"></audio>
 
 <header>
@@ -1725,10 +1724,13 @@
       </span>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
-      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">タイマー終了ポップアップ通知</label>
-      <button type="button" class="modal-close-btn" style="background:var(--bg-card-sub); border:1px solid var(--border-card);" onclick="testNotification()">🔔 通知の許可を確認 / テスト</button>
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">タイマー終了ポップアップ通知・ベル音</label>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="modal-close-btn" style="flex:1; background:var(--bg-card-sub); border:1px solid var(--border-card);" onclick="testNotification()">🔔 通知テスト</button>
+        <button type="button" class="modal-close-btn" style="flex:1; background:var(--bg-card-sub); border:1px solid var(--border-card);" onclick="testAlarmBell()">🎵 ベル音テスト</button>
+      </div>
       <span style="font-size:0.7rem; color:var(--text-secondary); display:block; margin-top:6px; line-height:1.4;">
-        ※ バックグラウンド時や画面消灯時でも、タイマー終了時にポップアップでお知らせします。
+        ※ バックグラウンド時や画面消灯時でもBGMを止めずに通知でお知らせします。
       </span>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
@@ -1964,11 +1966,7 @@ let activeTimer = {
 };
 let timerWorker = null;
 let cachedKeepAliveWavUrl = null;
-let cachedAlarmWavUrl = null;
-let cachedStretchSwitchWavUrl = null;
-let cachedStretchFinishWavUrl = null;
-let isPlayingAlarmAudio = false;
-let alarmCleanupTimerId = null;
+let alarmSuspendTimerId = null;
 let pendingMissedAlarmSound = false;
 
 function buildPcm16WavUrl(sampleRate, durationSec, renderSample) {
@@ -2002,7 +2000,7 @@ function buildPcm16WavUrl(sampleRate, durationSec, renderSample) {
 
 function getKeepAliveWavUrl() {
   if (!cachedKeepAliveWavUrl) {
-    // 10秒・16Hz・-52dBFS（可聴域外で無音だがMediaSession維持とタブ凍結抑止に必要な音声ストリームとして認識させる）
+    // 10秒・16Hz・-52dBFS（雨天メトロノーム連続再生時のバックグラウンド維持用）
     cachedKeepAliveWavUrl = buildPcm16WavUrl(8000, 10, (i, sr) => {
       return Math.sin(2 * Math.PI * 16 * (i / sr)) * 0.0025;
     });
@@ -2010,98 +2008,71 @@ function getKeepAliveWavUrl() {
   return cachedKeepAliveWavUrl;
 }
 
-function getAlarmWavUrl() {
-  if (!cachedAlarmWavUrl) {
-    // 1.6秒の2連チャイム音 (A5 -> D6 × 2回)
-    cachedAlarmWavUrl = buildPcm16WavUrl(22050, 1.6, (i, sr) => {
-      const t = i / sr;
-      const notes = [
-        { start: 0.00, end: 0.18, freq: 880.0 },
-        { start: 0.22, end: 0.52, freq: 1174.66 },
-        { start: 0.72, end: 0.90, freq: 880.0 },
-        { start: 0.94, end: 1.38, freq: 1174.66 }
-      ];
-      for (const n of notes) {
-        if (t >= n.start && t <= n.end) {
-          const dt = t - n.start;
-          const dur = n.end - n.start;
-          const fadeIn = Math.min(1, dt / 0.012);
-          const fadeOut = Math.min(1, (dur - dt) / 0.04);
-          return Math.sin(2 * Math.PI * n.freq * dt) * 0.65 * fadeIn * fadeOut;
-        }
-      }
-      return 0;
-    });
-  }
-  return cachedAlarmWavUrl;
-}
-
-function getStretchSwitchWavUrl() {
-  if (!cachedStretchSwitchWavUrl) {
-    // 0.9秒の優しい2音チャイム (C5 -> E5)
-    cachedStretchSwitchWavUrl = buildPcm16WavUrl(22050, 0.9, (i, sr) => {
-      const t = i / sr;
-      const notes = [
-        { start: 0.00, dur: 0.80, freq: 523.25 },
-        { start: 0.05, dur: 0.80, freq: 659.25 }
-      ];
-      let sum = 0;
-      for (const n of notes) {
-        if (t >= n.start && t <= n.start + n.dur) {
-          const dt = t - n.start;
-          const fadeIn = Math.min(1, dt / 0.01);
-          const fadeOut = Math.min(1, (n.dur - dt) / 0.04);
-          sum += Math.sin(2 * Math.PI * n.freq * dt) * 0.28 * fadeIn * Math.exp(-dt * 4.5) * fadeOut;
-        }
-      }
-      return sum;
-    });
-  }
-  return cachedStretchSwitchWavUrl;
-}
-
-function getStretchFinishWavUrl() {
-  if (!cachedStretchFinishWavUrl) {
-    // 1.65秒の優しい3音フィニッシュチャイム (C5 -> E5 -> G5)
-    cachedStretchFinishWavUrl = buildPcm16WavUrl(22050, 1.65, (i, sr) => {
-      const t = i / sr;
-      const notes = [
-        { start: 0.00, dur: 1.40, freq: 523.25 },
-        { start: 0.10, dur: 1.40, freq: 659.25 },
-        { start: 0.20, dur: 1.40, freq: 783.99 }
-      ];
-      let sum = 0;
-      for (const n of notes) {
-        if (t >= n.start && t <= n.start + n.dur) {
-          const dt = t - n.start;
-          const fadeIn = Math.min(1, dt / 0.01);
-          const fadeOut = Math.min(1, (n.dur - dt) / 0.05);
-          sum += Math.sin(2 * Math.PI * n.freq * dt) * 0.24 * fadeIn * Math.exp(-dt * 3.0) * fadeOut;
-        }
-      }
-      return sum;
-    });
-  }
-  return cachedStretchFinishWavUrl;
-}
-
 function initKeepAliveAudioSources() {
   const wavUrl = getKeepAliveWavUrl();
-  ["timer-keep-alive", "metronome-keep-alive"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && !el.getAttribute("src")) {
-      el.src = wavUrl;
-    }
+  const el = document.getElementById("metronome-keep-alive");
+  if (el && !el.getAttribute("src")) {
+    el.src = wavUrl;
+  }
+}
+
+// 他アプリのBGMを止めないため、メトロノーム稼働中以外は AudioSession を ambient（ミックス再生）に保つ
+function setAmbientAudioSession() {
+  if (navigator.audioSession && !isMetronomeRunning) {
+    try { navigator.audioSession.type = "ambient"; } catch (e) {}
+  }
+}
+
+// 爽やかなクリスタルベル音（G5-B5-D6 → G5-B5-D6-G6）をWeb Audio APIで合成再生
+const ALARM_BELL_NOTES = [
+  { start: 0.00, freq: 783.99,  dur: 0.55, amp: 0.32 }, // G5
+  { start: 0.09, freq: 987.77,  dur: 0.65, amp: 0.32 }, // B5
+  { start: 0.18, freq: 1174.66, dur: 0.85, amp: 0.34 }, // D6
+  { start: 0.54, freq: 783.99,  dur: 0.55, amp: 0.30 }, // G5
+  { start: 0.63, freq: 987.77,  dur: 0.65, amp: 0.32 }, // B5
+  { start: 0.72, freq: 1174.66, dur: 0.80, amp: 0.32 }, // D6
+  { start: 0.81, freq: 1567.98, dur: 1.35, amp: 0.38 }  // G6（澄んだ余韻）
+];
+
+function scheduleBellNote(audioCtx, destNode, baseTime, note) {
+  const t0 = baseTime + note.start;
+  const partials = [
+    { ratio: 1.0,   gainScale: 1.0,  decayDur: note.dur },
+    { ratio: 2.0,   gainScale: 0.28, decayDur: note.dur * 0.45 },
+    { ratio: 2.756, gainScale: 0.11, decayDur: Math.min(0.18, note.dur * 0.25) }
+  ];
+  partials.forEach(p => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(note.freq * p.ratio, t0);
+    const peak = Math.max(0.002, note.amp * p.gainScale);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(peak, t0 + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0005, t0 + p.decayDur);
+    osc.connect(gain);
+    gain.connect(destNode);
+    osc.start(t0);
+    osc.stop(t0 + p.decayDur + 0.02);
   });
 }
 
-// アラーム音用の事前アンロックAudioContext（タイマー稼働中は微弱ノードでsuspended遷移を防ぐ）
+// アラーム音用の事前アンロックAudioContext（BGMのAudioFocusを奪わないよう<audio>要素やMediaSessionは使わない）
 let alarmAudioCtx = null;
 let alarmKeepAliveOsc = null;
 let alarmKeepAliveGain = null;
 
+function clearAlarmSuspendTimer() {
+  if (alarmSuspendTimerId) {
+    clearTimeout(alarmSuspendTimerId);
+    alarmSuspendTimerId = null;
+  }
+}
+
 function preloadAlarmAudio(keepRunning = true) {
   try {
+    setAmbientAudioSession();
+    clearAlarmSuspendTimer();
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return;
     if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
@@ -2136,93 +2107,24 @@ function stopAlarmKeepAliveNode() {
   }
 }
 
-// バックグラウンド動作の維持（10秒連続WAV + AudioSession + MediaSession）
-function startBackgroundKeepAlive(title = "⏱️ インターバルタイマー", options = {}) {
-  const {
-    artist = "筋トレ インターバル休憩中",
-    album = "筋トレ記録",
-    onStop = null,
-    onPause = null
-  } = options;
-
-  if (navigator.audioSession) {
-    try { navigator.audioSession.type = "playback"; } catch (e) {}
-  }
-
-  if (alarmCleanupTimerId) {
-    clearTimeout(alarmCleanupTimerId);
-    alarmCleanupTimerId = null;
-  }
-  isPlayingAlarmAudio = false;
-
-  const keepAlive = document.getElementById("timer-keep-alive");
-  if (keepAlive) {
-    const wavUrl = getKeepAliveWavUrl();
-    keepAlive.onended = null;
-    if (keepAlive.src !== wavUrl) {
-      keepAlive.src = wavUrl;
-    }
-    keepAlive.loop = true;
-    keepAlive.volume = 1.0;
-    keepAlive.play().catch(e => console.warn("keepAlive audio play error:", e));
-  }
-
-  if ("mediaSession" in navigator) {
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: title,
-        artist: artist,
-        album: album
-      });
-      navigator.mediaSession.playbackState = "playing";
-      try {
-        navigator.mediaSession.setActionHandler("stop", () => {
-          if (onStop) {
-            onStop();
-          } else {
-            stopTimer();
-            saveDraftToStorage();
-            renderWorkout();
-          }
-        });
-      } catch (e) {}
-      try {
-        navigator.mediaSession.setActionHandler("pause", onPause ? () => onPause() : null);
-      } catch (e) {}
-    } catch (e) {}
+function suspendAlarmAudioContext() {
+  stopAlarmKeepAliveNode();
+  if (alarmAudioCtx && alarmAudioCtx.state === "running") {
+    try { alarmAudioCtx.suspend().catch(() => {}); } catch (e) {}
   }
 }
 
+// バックグラウンドタイマー開始時の環境設定（BGMを止めないため無音<audio>・MediaSessionは使用しない）
+function startBackgroundKeepAlive() {
+  clearAlarmSuspendTimer();
+  setAmbientAudioSession();
+}
+
 function stopBackgroundKeepAlive(force = false) {
-  if (!force && (isPlayingAlarmAudio || checkAnyTimerRunning())) return;
-
-  const keepAlive = document.getElementById("timer-keep-alive");
-  if (keepAlive) {
-    try {
-      keepAlive.onended = null;
-      keepAlive.pause();
-      const wavUrl = getKeepAliveWavUrl();
-      if (keepAlive.src !== wavUrl) {
-        keepAlive.src = wavUrl;
-      }
-      keepAlive.loop = true;
-      keepAlive.currentTime = 0;
-    } catch (e) {}
-  }
-
-  stopAlarmKeepAliveNode();
-
-  if ("mediaSession" in navigator && !isMetronomeRunning) {
-    try {
-      navigator.mediaSession.playbackState = "none";
-      try { navigator.mediaSession.setActionHandler("stop", null); } catch (e) {}
-      try { navigator.mediaSession.setActionHandler("pause", null); } catch (e) {}
-    } catch (e) {}
-  }
-
-  if (navigator.audioSession && !isMetronomeRunning && !checkAnyTimerRunning()) {
-    try { navigator.audioSession.type = "ambient"; } catch (e) {}
-  }
+  if (!force && checkAnyTimerRunning()) return;
+  clearAlarmSuspendTimer();
+  suspendAlarmAudioContext();
+  setAmbientAudioSession();
 }
 
 function initTimerWorker() {
@@ -2387,6 +2289,11 @@ async function testNotification() {
   } catch (e) {
     alert("通知エラー: " + e.message);
   }
+}
+
+function testAlarmBell() {
+  preloadAlarmAudio(false);
+  playAlarmSound();
 }
 
 // 入力中またはトレーニング進行中かどうかを判定（自動リロード抑止用）
@@ -2841,7 +2748,7 @@ function applyDraftObject(draft) {
         activeTimer.wasFinished = false;
         requestWakeLock();
         preloadAlarmAudio();
-        startBackgroundKeepAlive("⏱️ インターバルタイマー");
+        startBackgroundKeepAlive();
         if (timerWorker) {
           timerWorker.postMessage({ action: "start", targetTime: activeTimer.targetTime });
         }
@@ -3390,8 +3297,8 @@ function startTimer(pairId) {
   activeTimer.targetTime = Date.now() + activeTimer.remainingSec * 1000;
   activeTimer.wasFinished = false;
 
-  // バックグラウンドKeep-Alive開始（10秒連続WAV + AudioSession + MediaSession）
-  startBackgroundKeepAlive(`⏱️ インターバルタイマー (${mins}分)`);
+  // BGM非干渉のバックグラウンド設定（ambientセッション維持）
+  startBackgroundKeepAlive();
 
   // 通知許可のリクエスト（未設定時）
   if ("Notification" in window && Notification.permission === "default") {
@@ -3441,7 +3348,7 @@ function onTimerFinished() {
   activeTimer.wasFinished = true;
   activeTimer.remainingSec = 0;
 
-  // カウントダウン用タイマーのみ停止（Keep-Alive / MediaSession はアラーム鳴動完了まで維持）
+  // カウントダウン用タイマーのみ停止（アラーム鳴動後にAudioContextを解放）
   if (activeTimer.intervalId) {
     clearInterval(activeTimer.intervalId);
     activeTimer.intervalId = null;
@@ -3474,11 +3381,7 @@ function stopTimer() {
   if (timerWorker) {
     timerWorker.postMessage({ action: "stop" });
   }
-  if (alarmCleanupTimerId) {
-    clearTimeout(alarmCleanupTimerId);
-    alarmCleanupTimerId = null;
-  }
-  isPlayingAlarmAudio = false;
+  clearAlarmSuspendTimer();
   pendingMissedAlarmSound = false;
   activeTimer.targetTime = null;
   stopBackgroundKeepAlive(true);
@@ -3487,70 +3390,23 @@ function stopTimer() {
   }
 }
 
-// 終了アラーム音再生（再生中のKeep-Alive audio要素を再利用してバックグラウンド再生し、失敗時はWeb Audioへフォールバック）
+// 終了アラーム音再生（BGMを止めないためWeb Audio APIのみで爽やかなベルを鳴動し、終了後に即座に解放）
 async function playAlarmSound() {
-  if (navigator.audioSession) {
-    try { navigator.audioSession.type = "playback"; } catch (e) {}
+  setAmbientAudioSession();
+  clearAlarmSuspendTimer();
+
+  const webAudioOk = await playBeepWebAudio();
+  if (!webAudioOk && document.visibilityState !== "visible") {
+    pendingMissedAlarmSound = true;
   }
 
-  let playedViaElement = false;
-  const keepAlive = document.getElementById("timer-keep-alive");
-  if (keepAlive) {
-    try {
-      if (alarmCleanupTimerId) {
-        clearTimeout(alarmCleanupTimerId);
-        alarmCleanupTimerId = null;
-      }
-      isPlayingAlarmAudio = true;
-      keepAlive.onended = null;
-      keepAlive.loop = false;
-      keepAlive.volume = 1.0;
-      keepAlive.src = getAlarmWavUrl();
-      keepAlive.currentTime = 0;
-
-      const cleanupAfterAlarm = () => {
-        if (!isPlayingAlarmAudio) return;
-        isPlayingAlarmAudio = false;
-        keepAlive.onended = null;
-        if (alarmCleanupTimerId) {
-          clearTimeout(alarmCleanupTimerId);
-          alarmCleanupTimerId = null;
-        }
-        if (!checkAnyTimerRunning()) {
-          stopBackgroundKeepAlive(true);
-          releaseWakeLock();
-        }
-      };
-
-      keepAlive.onended = cleanupAfterAlarm;
-      alarmCleanupTimerId = setTimeout(cleanupAfterAlarm, 2500);
-
-      await keepAlive.play();
-      playedViaElement = true;
-    } catch (err) {
-      console.warn("Element alarm play failed, falling back to Web Audio:", err);
-      isPlayingAlarmAudio = false;
-      if (alarmCleanupTimerId) {
-        clearTimeout(alarmCleanupTimerId);
-        alarmCleanupTimerId = null;
-      }
-    }
-  }
-
-  if (!playedViaElement) {
-    const webAudioOk = await playBeepWebAudio();
-    if (!webAudioOk && document.visibilityState !== "visible") {
-      pendingMissedAlarmSound = true;
-    }
+  alarmSuspendTimerId = setTimeout(() => {
+    alarmSuspendTimerId = null;
     if (!checkAnyTimerRunning()) {
-      setTimeout(() => {
-        if (!checkAnyTimerRunning() && !isPlayingAlarmAudio) {
-          stopBackgroundKeepAlive(true);
-          releaseWakeLock();
-        }
-      }, 1500);
+      stopBackgroundKeepAlive(true);
+      releaseWakeLock();
     }
-  }
+  }, 2350);
 }
 
 async function playBeepWebAudio() {
@@ -3569,26 +3425,15 @@ async function playBeepWebAudio() {
       return false;
     }
     const audioCtx = alarmAudioCtx;
-
     const now = audioCtx.currentTime;
-    const playPulse = (startOffset, freq, dur) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now + startOffset);
-      gain.gain.setValueAtTime(0.001, now + startOffset);
-      gain.gain.linearRampToValueAtTime(0.45, now + startOffset + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + startOffset + dur);
-      osc.start(now + startOffset);
-      osc.stop(now + startOffset + dur + 0.01);
-    };
 
-    playPulse(0.00, 880.0, 0.18);
-    playPulse(0.22, 1174.66, 0.30);
-    playPulse(0.72, 880.0, 0.18);
-    playPulse(0.94, 1174.66, 0.44);
+    const masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(0.85, now);
+    masterGain.connect(audioCtx.destination);
+
+    ALARM_BELL_NOTES.forEach(note => {
+      scheduleBellNote(audioCtx, masterGain, now, note);
+    });
     return true;
   } catch (e) {
     console.log("Web Audio play error", e);
@@ -4721,19 +4566,22 @@ let stretchState = {
 let stretchWorker = null;
 let pendingStretchFinishAlert = false;
 
-// --- ストレッチ用オーディオ (Web Audio API + バックグラウンドKeep-Alive) ---
+// --- ストレッチ用オーディオ (Web Audio API / BGM非干渉 ambient モード) ---
 let stretchAudioCtx = null;
 let stretchKeepAliveOsc = null;
 let stretchKeepAliveGain = null;
+let stretchSuspendTimerId = null;
+
+function clearStretchSuspendTimer() {
+  if (stretchSuspendTimerId) {
+    clearTimeout(stretchSuspendTimerId);
+    stretchSuspendTimerId = null;
+  }
+}
 
 function getStretchAudioContext(keepRunning = false) {
-  if (navigator.audioSession) {
-    try {
-      if (stretchState.isRunning || checkAnyTimerRunning()) {
-        navigator.audioSession.type = "playback";
-      }
-    } catch (e) {}
-  }
+  setAmbientAudioSession();
+  clearStretchSuspendTimer();
   if (!stretchAudioCtx || stretchAudioCtx.state === "closed") {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
@@ -4768,6 +4616,13 @@ function stopStretchKeepAliveNode() {
   if (stretchKeepAliveGain) {
     try { stretchKeepAliveGain.disconnect(); } catch (e) {}
     stretchKeepAliveGain = null;
+  }
+}
+
+function suspendStretchAudioContext() {
+  stopStretchKeepAliveNode();
+  if (stretchAudioCtx && stretchAudioCtx.state === "running") {
+    try { stretchAudioCtx.suspend().catch(() => {}); } catch (e) {}
   }
 }
 
@@ -4824,125 +4679,32 @@ function playStretchSound(type) {
   return false;
 }
 
-// 種目進行中のフェーズ切替音（Web Audioがバックグラウンドで停止していた場合はKeep-Alive audio要素で確実に鳴動）
+// 種目進行中のフェーズ切替音（BGMを邪魔しないWeb Audio API再生）
 function playStretchMidSwitchSound() {
-  const ctx = getStretchAudioContext(true);
-  if (ctx && ctx.state === "running") {
-    playStretchSound("switch");
-    return;
-  }
-  const keepAlive = document.getElementById("timer-keep-alive");
-  if (keepAlive) {
-    try {
-      if (alarmCleanupTimerId) {
-        clearTimeout(alarmCleanupTimerId);
-        alarmCleanupTimerId = null;
-      }
-      isPlayingAlarmAudio = true;
-      keepAlive.onended = null;
-      keepAlive.loop = false;
-      keepAlive.volume = 1.0;
-      keepAlive.src = getStretchSwitchWavUrl();
-      keepAlive.currentTime = 0;
-
-      const restoreKeepAlive = () => {
-        if (!isPlayingAlarmAudio) return;
-        isPlayingAlarmAudio = false;
-        keepAlive.onended = null;
-        if (alarmCleanupTimerId) {
-          clearTimeout(alarmCleanupTimerId);
-          alarmCleanupTimerId = null;
-        }
-        if (stretchState.isRunning) {
-          const wavUrl = getKeepAliveWavUrl();
-          if (keepAlive.src !== wavUrl) keepAlive.src = wavUrl;
-          keepAlive.loop = true;
-          keepAlive.volume = 1.0;
-          keepAlive.play().catch(() => {});
-        } else if (!checkAnyTimerRunning()) {
-          stopBackgroundKeepAlive(true);
-          releaseWakeLock();
-        }
-      };
-      keepAlive.onended = restoreKeepAlive;
-      alarmCleanupTimerId = setTimeout(restoreKeepAlive, 1300);
-      keepAlive.play().catch(() => {
-        isPlayingAlarmAudio = false;
-        if (alarmCleanupTimerId) {
-          clearTimeout(alarmCleanupTimerId);
-          alarmCleanupTimerId = null;
-        }
-        playStretchSound("switch");
-      });
-      return;
-    } catch (e) {
-      isPlayingAlarmAudio = false;
-    }
-  }
   playStretchSound("switch");
 }
 
-// 種目終了・全種目完了時のチャイム再生（再生中のKeep-Alive audio要素を再利用し、バックグラウンド鳴動を保証）
+// 種目終了・全種目完了時のチャイム再生（BGMを邪魔しないWeb Audio API再生＋終了後解放）
 async function playStretchEndAudio(type = "switch") {
-  if (navigator.audioSession) {
-    try { navigator.audioSession.type = "playback"; } catch (e) {}
+  setAmbientAudioSession();
+  clearStretchSuspendTimer();
+
+  const ctx = getStretchAudioContext(false);
+  if (ctx && ctx.state === "suspended") {
+    await ctx.resume().catch(() => {});
   }
+  playStretchSound(type);
 
-  let playedViaElement = false;
-  const keepAlive = document.getElementById("timer-keep-alive");
-  if (keepAlive) {
-    try {
-      if (alarmCleanupTimerId) {
-        clearTimeout(alarmCleanupTimerId);
-        alarmCleanupTimerId = null;
-      }
-      isPlayingAlarmAudio = true;
-      keepAlive.onended = null;
-      keepAlive.loop = false;
-      keepAlive.volume = 1.0;
-      keepAlive.src = (type === "finish") ? getStretchFinishWavUrl() : getStretchSwitchWavUrl();
-      keepAlive.currentTime = 0;
-
-      const cleanupAfterEnd = () => {
-        if (!isPlayingAlarmAudio) return;
-        isPlayingAlarmAudio = false;
-        keepAlive.onended = null;
-        if (alarmCleanupTimerId) {
-          clearTimeout(alarmCleanupTimerId);
-          alarmCleanupTimerId = null;
-        }
-        if (!checkAnyTimerRunning()) {
-          stopBackgroundKeepAlive(true);
-          releaseWakeLock();
-        }
-      };
-
-      keepAlive.onended = cleanupAfterEnd;
-      alarmCleanupTimerId = setTimeout(cleanupAfterEnd, type === "finish" ? 2400 : 1500);
-
-      await keepAlive.play();
-      playedViaElement = true;
-    } catch (err) {
-      console.warn("Stretch end element play failed, falling back to Web Audio:", err);
-      isPlayingAlarmAudio = false;
-      if (alarmCleanupTimerId) {
-        clearTimeout(alarmCleanupTimerId);
-        alarmCleanupTimerId = null;
-      }
+  stretchSuspendTimerId = setTimeout(() => {
+    stretchSuspendTimerId = null;
+    if (!stretchState.isRunning) {
+      suspendStretchAudioContext();
     }
-  }
-
-  if (!playedViaElement) {
-    playStretchSound(type);
     if (!checkAnyTimerRunning()) {
-      setTimeout(() => {
-        if (!checkAnyTimerRunning() && !isPlayingAlarmAudio) {
-          stopBackgroundKeepAlive(true);
-          releaseWakeLock();
-        }
-      }, type === "finish" ? 1800 : 1100);
+      stopBackgroundKeepAlive(true);
+      releaseWakeLock();
     }
-  }
+  }, type === "finish" ? 1800 : 1100);
 }
 
 function initStretchWorker() {
@@ -4997,41 +4759,10 @@ function initStretchWorker() {
   }
 }
 
-function getStretchMediaTitle() {
-  const ex = STRETCH_EXERCISES[stretchState.currentExIdx];
-  if (!ex) return "🌙 夜ストレッチ";
-  const sideLabel = ex.hasSides ? (stretchState.currentSide === "right" ? " (右側)" : " (左側)") : "";
-  return `🌙 ${ex.name}${sideLabel}`;
-}
-
-function updateStretchMediaSession() {
-  if (!stretchState.isRunning || !("mediaSession" in navigator)) return;
-  try {
-    const stepLabel = `STEP ${stretchState.currentExIdx + 1}/${STRETCH_EXERCISES.length}`;
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: getStretchMediaTitle(),
-      artist: stretchState.isPrep ? `${stepLabel} ・ 準備中` : `${stepLabel} ・ ストレッチ中`,
-      album: "夜ストレッチ"
-    });
-  } catch (e) {}
-}
-
 function startStretchBackgroundServices() {
   requestWakeLock();
   getStretchAudioContext(true);
-  const stepLabel = `STEP ${stretchState.currentExIdx + 1}/${STRETCH_EXERCISES.length}`;
-  startBackgroundKeepAlive(getStretchMediaTitle(), {
-    artist: stretchState.isPrep ? `${stepLabel} ・ 準備中` : `${stepLabel} ・ ストレッチ中`,
-    album: "夜ストレッチ",
-    onStop: () => {
-      pauseStretchPlayer();
-      saveDraftToStorage();
-    },
-    onPause: () => {
-      pauseStretchPlayer();
-      saveDraftToStorage();
-    }
-  });
+  startBackgroundKeepAlive();
 }
 
 // --- ストレッチ シーケンス タイマー ---
@@ -5248,9 +4979,11 @@ function pauseStretchPlayer(options = {}) {
   if (stretchWorker) {
     stretchWorker.postMessage({ action: "stop" });
   }
-  stopStretchKeepAliveNode();
-
-  if (!keepAliveForSound) {
+  clearStretchSuspendTimer();
+  if (keepAliveForSound) {
+    stopStretchKeepAliveNode();
+  } else {
+    suspendStretchAudioContext();
     stopBackgroundKeepAlive();
     if (!checkAnyTimerRunning()) {
       releaseWakeLock();
@@ -5342,7 +5075,6 @@ function checkStretchTick() {
   }
   if (stateChanged) {
     updateStretchPlayerUI();
-    updateStretchMediaSession();
     saveDraftToStorage();
   }
 }
@@ -5364,7 +5096,6 @@ function handleStretchStepCompletion(endedAt = Date.now(), deferMidSound = false
       }
       playStretchMidSwitchSound();
       updateStretchPlayerUI();
-      updateStretchMediaSession();
       saveDraftToStorage();
     }
     return true;
@@ -5579,12 +5310,6 @@ async function handleVisibilityOrFocus() {
         stretchAudioCtx.resume().catch(() => {});
       }
       checkStretchTick();
-      if (stretchState.isRunning) {
-        const keepAlive = document.getElementById("timer-keep-alive");
-        if (keepAlive && keepAlive.paused && !isPlayingAlarmAudio) {
-          keepAlive.play().catch(() => {});
-        }
-      }
     }
     if (pendingStretchFinishAlert) {
       pendingStretchFinishAlert = false;
