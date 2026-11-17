@@ -2023,37 +2023,54 @@ function setAmbientAudioSession() {
   }
 }
 
-// 爽やかなクリスタルベル音（G5-B5-D6 → G5-B5-D6-G6）をWeb Audio APIで合成再生
-const ALARM_BELL_NOTES = [
-  { start: 0.00, freq: 783.99,  dur: 0.55, amp: 0.32 }, // G5
-  { start: 0.09, freq: 987.77,  dur: 0.65, amp: 0.32 }, // B5
-  { start: 0.18, freq: 1174.66, dur: 0.85, amp: 0.34 }, // D6
-  { start: 0.54, freq: 783.99,  dur: 0.55, amp: 0.30 }, // G5
-  { start: 0.63, freq: 987.77,  dur: 0.65, amp: 0.32 }, // B5
-  { start: 0.72, freq: 1174.66, dur: 0.80, amp: 0.32 }, // D6
-  { start: 0.81, freq: 1567.98, dur: 1.35, amp: 0.38 }  // G6（澄んだ余韻）
+// ロー・ゴング / パワーコード風の終了音（A2-A3-E4-A4 2連打）をWeb Audio APIで合成再生
+const ALARM_GONG_STRIKES = [
+  { start: 0.00, dur: 0.18, amp: 0.62, cutoffStart: 1350, cutoffEnd: 340, includeSub: false },
+  { start: 0.21, dur: 0.95, amp: 0.90, cutoffStart: 1900, cutoffEnd: 380, includeSub: true }
 ];
 
-function scheduleBellNote(audioCtx, destNode, baseTime, note) {
-  const t0 = baseTime + note.start;
-  const partials = [
-    { ratio: 1.0,   gainScale: 1.0,  decayDur: note.dur },
-    { ratio: 2.0,   gainScale: 0.28, decayDur: note.dur * 0.45 },
-    { ratio: 2.756, gainScale: 0.11, decayDur: Math.min(0.18, note.dur * 0.25) }
+function scheduleGongStrike(audioCtx, destNode, baseTime, strike) {
+  const t0 = baseTime + strike.start;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.Q.setValueAtTime(1.8, t0);
+  filter.frequency.setValueAtTime(strike.cutoffStart, t0);
+  filter.frequency.exponentialRampToValueAtTime(strike.cutoffEnd, t0 + strike.dur * 0.55);
+
+  const strikeGain = audioCtx.createGain();
+  strikeGain.gain.setValueAtTime(0.0001, t0);
+  strikeGain.gain.linearRampToValueAtTime(strike.amp, t0 + 0.008);
+  strikeGain.gain.exponentialRampToValueAtTime(0.0005, t0 + strike.dur);
+
+  filter.connect(strikeGain);
+  strikeGain.connect(destNode);
+
+  const voices = [
+    { type: "sawtooth", freq: 220.00, gainScale: 0.34, durScale: 1.0,  pitchDrop: true }, // A3
+    { type: "sawtooth", freq: 329.63, gainScale: 0.25, durScale: 0.88, pitchDrop: true }, // E4
+    { type: "triangle", freq: 440.00, gainScale: 0.14, durScale: 0.65, pitchDrop: false } // A4（スマホスピーカーでの視認性用）
   ];
-  partials.forEach(p => {
+  if (strike.includeSub) {
+    voices.push({ type: "sine", freq: 110.00, gainScale: 0.30, durScale: 0.92, pitchDrop: false }); // A2（低域の厚み）
+  }
+
+  voices.forEach(v => {
     const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(note.freq * p.ratio, t0);
-    const peak = Math.max(0.002, note.amp * p.gainScale);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.linearRampToValueAtTime(peak, t0 + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0005, t0 + p.decayDur);
-    osc.connect(gain);
-    gain.connect(destNode);
+    const vGain = audioCtx.createGain();
+    const voiceDur = strike.dur * v.durScale;
+    osc.type = v.type;
+    if (v.pitchDrop) {
+      osc.frequency.setValueAtTime(v.freq * 1.025, t0);
+      osc.frequency.exponentialRampToValueAtTime(v.freq, t0 + 0.035);
+    } else {
+      osc.frequency.setValueAtTime(v.freq, t0);
+    }
+    vGain.gain.setValueAtTime(v.gainScale, t0);
+    vGain.gain.exponentialRampToValueAtTime(0.001, t0 + voiceDur);
+    osc.connect(vGain);
+    vGain.connect(filter);
     osc.start(t0);
-    osc.stop(t0 + p.decayDur + 0.02);
+    osc.stop(t0 + voiceDur + 0.02);
   });
 }
 
@@ -3390,7 +3407,7 @@ function stopTimer() {
   }
 }
 
-// 終了アラーム音再生（BGMを止めないためWeb Audio APIのみで爽やかなベルを鳴動し、終了後に即座に解放）
+// 終了アラーム音再生（BGMを止めないためWeb Audio APIのみでロー・ゴング/パワーコード音を鳴動し、終了後に即座に解放）
 async function playAlarmSound() {
   setAmbientAudioSession();
   clearAlarmSuspendTimer();
@@ -3406,7 +3423,7 @@ async function playAlarmSound() {
       stopBackgroundKeepAlive(true);
       releaseWakeLock();
     }
-  }, 2350);
+  }, 1400);
 }
 
 async function playBeepWebAudio() {
@@ -3431,8 +3448,8 @@ async function playBeepWebAudio() {
     masterGain.gain.setValueAtTime(0.85, now);
     masterGain.connect(audioCtx.destination);
 
-    ALARM_BELL_NOTES.forEach(note => {
-      scheduleBellNote(audioCtx, masterGain, now, note);
+    ALARM_GONG_STRIKES.forEach(strike => {
+      scheduleGongStrike(audioCtx, masterGain, now, strike);
     });
     return true;
   } catch (e) {
