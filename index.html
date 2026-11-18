@@ -1247,6 +1247,67 @@
     margin-bottom: 10px;
   }
 
+  /* 骨盤底ブロック: 締める／緩める 交互キュー表示 */
+  .pf-cycle-display {
+    display: none;
+    text-align: center;
+    margin: 2px 0 10px 0;
+  }
+  .pf-cycle-phase {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, color 0.15s;
+  }
+  .pf-cycle-phase.contract {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 12px rgba(139, 92, 246, 0.45);
+  }
+  .pf-cycle-phase.relax {
+    background: var(--bg-card-sub);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-card);
+  }
+  .pf-cycle-phase.idle {
+    background: var(--bg-card-sub);
+    color: var(--text-secondary);
+    border: 1px dashed var(--border-card);
+    font-size: 0.95rem;
+  }
+  .pf-cycle-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-weight: 700;
+  }
+  .stretch-list-row.pf-row .stretch-row-name::before {
+    content: "◆ ";
+    color: #a78bfa;
+  }
+  .pf-setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+  .pf-setting-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #8b5cf6;
+  }
+  .pf-stage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
   /* コントロールボタン群 */
   .stretch-controls {
     display: flex;
@@ -1546,7 +1607,7 @@
   <!-- ステータスバー -->
   <div class="stretch-quick-card">
     <div class="stretch-quick-header" style="margin-bottom:0;">
-      <div class="stretch-badge-moon">🌙 就寝前リセット（約10分）</div>
+      <div class="stretch-badge-moon" id="stretch-badge-moon">🌙 就寝前リセット（約10分）</div>
       <div id="stretch-status-badge" class="stretch-status-badge">未実施</div>
     </div>
   </div>
@@ -1573,6 +1634,12 @@
       🔔 体勢を整えてスタートを押してください (3秒準備)
     </div>
 
+    <!-- 骨盤底ブロック: 締める／緩める 交互キュー（cycle種目のみ表示） -->
+    <div class="pf-cycle-display" id="pf-cycle-display">
+      <div class="pf-cycle-phase idle" id="pf-cycle-phase">締める ／ 緩める</div>
+      <div class="pf-cycle-meta" id="pf-cycle-meta"></div>
+    </div>
+
     <!-- コントロールボタン群 -->
     <div class="stretch-controls">
       <button type="button" class="stretch-ctrl-sub" onclick="prevStretchStep()" title="前の種目へ">⏮ 前へ</button>
@@ -1596,7 +1663,7 @@
   <div class="stretch-list-card">
     <div class="stretch-list-title">
       <span>全身ストレッチ シークエンス</span>
-      <span class="stretch-total-time">全10種目 / 立位→就寝フロー</span>
+      <span class="stretch-total-time" id="stretch-total-time">全10種目 / 立位→就寝フロー</span>
     </div>
     <div class="stretch-items-container" id="stretch-items-container">
       <!-- JSで動的に一覧描画 -->
@@ -1745,6 +1812,32 @@
           <small>5〜42kg刻み</small>
         </button>
       </div>
+    </div>
+    <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">🌙 夜ストレッチ：骨盤底ブロック</label>
+      <div class="pf-setting-row">
+        <span>骨盤底ブロックを追加（ワニのポーズの前に4種目）</span>
+        <input type="checkbox" id="setting-pf-enabled" onchange="onPelvicFloorEnabledChange(this.checked)">
+      </div>
+      <div class="pf-stage-grid">
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-1" onclick="setPelvicFloorStage(1)"><span>ステージ1</span><small>1〜2週 5秒×10</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-2" onclick="setPelvicFloorStage(2)"><span>ステージ2</span><small>3〜4週 8秒×10</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-3" onclick="setPelvicFloorStage(3)"><span>ステージ3</span><small>5〜8週 10秒×10</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-4" onclick="setPelvicFloorStage(4)"><span>ステージ4</span><small>9〜12週 10秒×12</small></button>
+      </div>
+      <div class="pf-setting-row">
+        <span>🔔 締める／緩めるの合図音</span>
+        <input type="checkbox" id="setting-pf-sound" onchange="setPelvicFloorCueOption('pelvic_floor_sound', this.checked)">
+      </div>
+      <div class="pf-setting-row">
+        <span>📳 締める／緩めるの振動</span>
+        <input type="checkbox" id="setting-pf-vibrate" onchange="setPelvicFloorCueOption('pelvic_floor_vibrate', this.checked)">
+      </div>
+      <button type="button" class="modal-close-btn" style="background:var(--bg-card-sub); border:1px solid var(--border-card);" onclick="testPelvicFloorCue()">▲▽ 合図テスト（締める→緩める）</button>
+      <span style="font-size:0.7rem; color:var(--text-secondary); display:block; margin-top:6px; line-height:1.4;">
+        ※ 夜は仰向けで実施し、ステージは保持秒数・回数のみ上がります。痛みや違和感がある場合は中止してください。<br>
+        ※ 夜ストレッチの進行中に変更すると、進捗をリセットして反映します。
+      </span>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
       <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">アプリの自動更新・入力リセット</label>
@@ -3621,10 +3714,38 @@ function saveAndExport() {
     routineName = "夜ストレッチ";
     const elapsedStretchMin = Math.round(stretchState.totalElapsedSec / 60);
     duration = elapsedStretchMin >= 3 ? elapsedStretchMin : 10.0;
-    const totalStretchCount = STRETCH_EXERCISES.length;
-    const completedCount = Object.keys(stretchState.completedExIds).length;
-    const exNames = STRETCH_EXERCISES.map(ex => ex.name).join("・");
-    const details = `夜ストレッチ${duration}分（全${totalStretchCount}種目中 ${completedCount}種目完了）。${exNames}。`;
+    const activeStretchList = getActiveStretchExercises();
+    const baseStretchList = activeStretchList.filter(ex => ex.block !== "pelvic");
+    const pfStretchList = activeStretchList.filter(ex => ex.block === "pelvic");
+    // 夜ストレッチ本体の完了数は従来の種目のみで数える（過去データとの比較維持）
+    const totalStretchCount = baseStretchList.length;
+    const completedCount = baseStretchList.filter(ex => stretchState.completedExIds[ex.id]).length;
+    const exNames = baseStretchList.map(ex => ex.name).join("・");
+    let details = `夜ストレッチ${duration}分（全${totalStretchCount}種目中 ${completedCount}種目完了）。${exNames}。`;
+
+    // 骨盤底ブロック（1種目以上完了時のみ別行で記録）
+    const pfCompleted = pfStretchList.filter(ex => stretchState.completedExIds[ex.id]);
+    let pfExerciseRow = null;
+    if (pfCompleted.length > 0) {
+      const pfStage = getPelvicFloorStage();
+      const pfParts = pfCompleted.map(ex => ex.type === "cycle"
+        ? `${ex.shortName}${ex.contractSec}秒×${ex.reps}`
+        : `${ex.shortName}${ex.durationSec}秒`);
+      const pfRepsTotal = pfCompleted.filter(ex => ex.type === "cycle").reduce((a, ex) => a + ex.reps, 0);
+      pfExerciseRow = {
+        exercise: "骨盤底筋トレーニング",
+        load_kg: 0,
+        load_details: "自重",
+        sets: 1,
+        reps_total: pfRepsTotal,
+        reps_details: pfParts.join("/"),
+        target_rir: "",
+        actual_rir: "",
+        superset_group: "",
+        notes: `ステージ${pfStage}（${PELVIC_FLOOR_STAGES[pfStage].label}）・仰向け・${pfCompleted.length}/${pfStretchList.length}種目`
+      };
+      details += `骨盤底ブロック${pfCompleted.length}/${pfStretchList.length}種目（ステージ${pfStage}: ${pfParts.join("・")}）。`;
+    }
     finalMemo = memoText ? `${memoText}（${details}）` : details;
 
     exercisesData.push({
@@ -3639,6 +3760,7 @@ function saveAndExport() {
       superset_group: "",
       notes: "就寝前全身静的ストレッチ・副交感神経誘導"
     });
+    if (pfExerciseRow) exercisesData.push(pfExerciseRow);
 
     lastExportData = {
       version: 1,
@@ -3759,7 +3881,7 @@ function saveAndExport() {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origBtnText;
         const subInfo = currentRoutineKey === "stretch"
-          ? `（夜ストレッチ: 約${duration}分 / 全${STRETCH_EXERCISES.length}種目完了）`
+          ? `（夜ストレッチ: 約${duration}分 / 全${getActiveStretchExercises().length}種目完了）`
           : (currentRoutineKey === "jog"
               ? (isRain 
                   ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"}）`
@@ -3801,7 +3923,7 @@ function saveAndExport() {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
     const subInfo = currentRoutineKey === "stretch"
-      ? `（夜ストレッチ: 約${duration}分 / 全${STRETCH_EXERCISES.length}種目完了 / マイドライブへ同期完了）`
+      ? `（夜ストレッチ: 約${duration}分 / 全${getActiveStretchExercises().length}種目完了 / マイドライブへ同期完了）`
       : (currentRoutineKey === "jog"
           ? (isRain 
               ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
@@ -3908,6 +4030,7 @@ function openSettingsModal() {
   const verDisplay = document.getElementById("app-version-display");
   if (verDisplay) verDisplay.innerText = curV ? "v" + curV : "確認中...";
   updateSettingsDumbbellModeUI();
+  updatePelvicFloorSettingsUI();
   renderHistoryLogs();
   document.getElementById("settings-modal").classList.add("open");
 }
@@ -4567,6 +4690,245 @@ const STRETCH_EXERCISES = [
   }
 ];
 
+// --- 骨盤底ブロック（夜ストレッチに設定で挿入。夜は常に仰向け、ステージで保持秒数・回数のみ変化） ---
+const PELVIC_FLOOR_STAGES = {
+  1: { label: "1〜2週", holdSec: 5, holdReps: 10, quickReps: 10 },
+  2: { label: "3〜4週", holdSec: 8, holdReps: 10, quickReps: 20 },
+  3: { label: "5〜8週", holdSec: 10, holdReps: 10, quickReps: 30 },
+  4: { label: "9〜12週", holdSec: 10, holdReps: 12, quickReps: 30 }
+};
+
+function getPelvicFloorStage() {
+  const st = parseInt(localStorage.getItem("pelvic_floor_stage") || "1", 10);
+  return PELVIC_FLOOR_STAGES[st] ? st : 1;
+}
+
+function isPelvicFloorEnabled() {
+  return localStorage.getItem("pelvic_floor_enabled") === "1";
+}
+
+function isPelvicFloorCueOn(key) {
+  return localStorage.getItem(key) !== "0"; // 既定ON
+}
+
+function makePelvicCycleExercise(def) {
+  return Object.assign({ block: "pelvic", type: "cycle", hasSides: false }, def, {
+    durationSec: def.reps * (def.contractSec + def.relaxSec)
+  });
+}
+
+function buildPelvicFloorExercises(stage) {
+  const s = PELVIC_FLOOR_STAGES[stage] || PELVIC_FLOOR_STAGES[1];
+  return [
+    {
+      id: "pf_breath",
+      block: "pelvic",
+      name: "腹式呼吸リリース",
+      shortName: "呼吸",
+      phase: "仰向け・骨盤底",
+      target: "骨盤底・横隔膜の連動",
+      durationSec: 40,
+      hasSides: false,
+      desc: "膝を立てて仰向け。吸うと骨盤底がふわっと下がり、吐くと自然に戻る感覚を確認する。",
+      tips: "力まない・お腹と骨盤底をゆるめる"
+    },
+    makePelvicCycleExercise({
+      id: "pf_quick",
+      name: "クイック収縮",
+      shortName: "クイック",
+      phase: "仰向け・骨盤底",
+      target: "骨盤底（瞬発力）",
+      contractSec: 1,
+      relaxSec: 2,
+      reps: s.quickReps,
+      desc: "「締める」で1秒だけ素早く締めて引き上げ、「緩める」ですぐ完全に脱力する。",
+      tips: "お尻・太もも・お腹に力を入れない"
+    }),
+    makePelvicCycleExercise({
+      id: "pf_long_hold",
+      name: "ロングホールド",
+      shortName: "ホールド",
+      phase: "仰向け・骨盤底",
+      target: "骨盤底（持久力）",
+      contractSec: s.holdSec,
+      relaxSec: s.holdSec,
+      reps: s.holdReps,
+      desc: "息を吐きながら肛門と尿道を締めて内側へ引き上げ、保持。「緩める」で同じ時間だけ完全に脱力する。",
+      tips: "最大の6〜8割・息を止めない"
+    }),
+    makePelvicCycleExercise({
+      id: "pf_bridge",
+      name: "ブリッジ＋収縮",
+      shortName: "ブリッジ",
+      phase: "仰向け・骨盤底",
+      target: "骨盤底・殿筋",
+      contractSec: 3,
+      relaxSec: 3,
+      reps: 10,
+      desc: "「締める」で骨盤底を締めてからお尻を持ち上げて保持、「緩める」で下ろして脱力する。",
+      tips: "腰を反らせすぎない・肋骨を締める"
+    })
+  ];
+}
+
+// 実際に使う夜ストレッチ種目リスト（骨盤底ON時はワニのポーズの直前に挿入）
+function getActiveStretchExercises() {
+  if (!isPelvicFloorEnabled()) return STRETCH_EXERCISES;
+  const idx = STRETCH_EXERCISES.findIndex(ex => ex.id === "spine_twist");
+  const insertAt = idx >= 0 ? idx : STRETCH_EXERCISES.length;
+  return [
+    ...STRETCH_EXERCISES.slice(0, insertAt),
+    ...buildPelvicFloorExercises(getPelvicFloorStage()),
+    ...STRETCH_EXERCISES.slice(insertAt)
+  ];
+}
+
+// cycle種目の現在位置（実行中は終了時刻から、停止中は残り秒数から算出）
+function getPelvicCyclePhase(ex, nowMs = Date.now()) {
+  const totalMs = ex.durationSec * 1000;
+  let remMs;
+  if (stretchState.isRunning && !stretchState.isPrep && stretchState.targetEndTime) {
+    remMs = Math.max(0, stretchState.targetEndTime - nowMs);
+  } else {
+    remMs = Math.max(0, stretchState.remainingSec) * 1000;
+  }
+  const elapsedMs = Math.min(totalMs - 1, Math.max(0, totalMs - remMs));
+  const cycleMs = (ex.contractSec + ex.relaxSec) * 1000;
+  const repIdx = Math.floor(elapsedMs / cycleMs);
+  const inCycle = elapsedMs - repIdx * cycleMs;
+  const isContract = inCycle < ex.contractSec * 1000;
+  const phaseEndMs = isContract ? ex.contractSec * 1000 : cycleMs;
+  return {
+    rep: Math.min(ex.reps, repIdx + 1),
+    isContract,
+    phaseRemainSec: Math.max(1, Math.ceil((phaseEndMs - inCycle) / 1000)),
+    started: elapsedMs > 0
+  };
+}
+
+// 締める／緩めるの合図（音＋振動、設定で個別ON/OFF）
+function playPelvicCue(isContract) {
+  if (isPelvicFloorCueOn("pelvic_floor_sound")) {
+    playStretchSound(isContract ? "pf_contract" : "pf_relax");
+  }
+  if (isPelvicFloorCueOn("pelvic_floor_vibrate") && navigator.vibrate) {
+    try { navigator.vibrate(isContract ? 160 : [40, 70, 40]); } catch (e) {}
+  }
+}
+
+// 実行中のcycle種目で局面が切り替わったら合図を出す（切替時のみtrue）
+function evaluatePelvicCycleCue(nowMs) {
+  const ex = getActiveStretchExercises()[stretchState.currentExIdx];
+  if (!ex || ex.type !== "cycle" || !stretchState.isRunning || stretchState.isPrep || !stretchState.targetEndTime) {
+    return false;
+  }
+  if (stretchState.targetEndTime - nowMs <= 0) return false;
+  const ph = getPelvicCyclePhase(ex, nowMs);
+  const key = `${stretchState.currentExIdx}:${ph.rep}:${ph.isContract ? "c" : "r"}`;
+  if (stretchState.lastCycleCue === key) return false;
+  stretchState.lastCycleCue = key;
+  playPelvicCue(ph.isContract);
+  return true;
+}
+
+function estimateStretchTotalMinutes(list) {
+  let sec = 0;
+  list.forEach(ex => {
+    sec += 3 + ex.durationSec * (ex.hasSides ? 2 : 1) + (ex.hasSides ? 5 : 0);
+  });
+  return Math.round(sec / 60);
+}
+
+function updateStretchHeaderInfo() {
+  const list = getActiveStretchExercises();
+  const badge = document.getElementById("stretch-badge-moon");
+  if (badge) badge.textContent = `🌙 就寝前リセット（約${estimateStretchTotalMinutes(list)}分）`;
+  const total = document.getElementById("stretch-total-time");
+  if (total) {
+    total.textContent = isPelvicFloorEnabled()
+      ? `全${list.length}種目 / 骨盤底ステージ${getPelvicFloorStage()}含む`
+      : `全${list.length}種目 / 立位→就寝フロー`;
+  }
+}
+
+function hasStretchProgress() {
+  return !!(stretchState && (
+    stretchState.isRunning ||
+    stretchState.totalElapsedSec > 0 ||
+    stretchState.currentExIdx > 0 ||
+    Object.keys(stretchState.completedExIds || {}).length > 0
+  ));
+}
+
+// 種目リストが変わる設定変更の可否確認（実行中は不可、進捗ありはリセット確認）
+function confirmStretchListChange() {
+  if (stretchState.isRunning) {
+    alert("夜ストレッチの実行中は変更できません。一時停止してから変更してください。");
+    return false;
+  }
+  if (hasStretchProgress()) {
+    return confirm("夜ストレッチの進捗をリセットして反映します。よろしいですか？\n（保存済みの記録には影響しません）");
+  }
+  return true;
+}
+
+function applyStretchListChange() {
+  pauseStretchPlayer();
+  initStretchState();
+  renderStretchView();
+  saveDraftToStorage();
+}
+
+function onPelvicFloorEnabledChange(checked) {
+  if (checked === isPelvicFloorEnabled()) return;
+  if (!confirmStretchListChange()) {
+    updatePelvicFloorSettingsUI();
+    return;
+  }
+  localStorage.setItem("pelvic_floor_enabled", checked ? "1" : "0");
+  applyStretchListChange();
+  updatePelvicFloorSettingsUI();
+}
+
+function setPelvicFloorStage(stage) {
+  if (!PELVIC_FLOOR_STAGES[stage] || stage === getPelvicFloorStage()) return;
+  if (isPelvicFloorEnabled() && !confirmStretchListChange()) {
+    updatePelvicFloorSettingsUI();
+    return;
+  }
+  localStorage.setItem("pelvic_floor_stage", String(stage));
+  if (isPelvicFloorEnabled()) applyStretchListChange();
+  updatePelvicFloorSettingsUI();
+}
+
+function setPelvicFloorCueOption(key, checked) {
+  localStorage.setItem(key, checked ? "1" : "0");
+}
+
+function updatePelvicFloorSettingsUI() {
+  const en = document.getElementById("setting-pf-enabled");
+  if (en) en.checked = isPelvicFloorEnabled();
+  const stage = getPelvicFloorStage();
+  [1, 2, 3, 4].forEach(n => {
+    const b = document.getElementById(`setting-pf-stage-${n}`);
+    if (b) b.classList.toggle("active", n === stage);
+  });
+  const snd = document.getElementById("setting-pf-sound");
+  if (snd) snd.checked = isPelvicFloorCueOn("pelvic_floor_sound");
+  const vib = document.getElementById("setting-pf-vibrate");
+  if (vib) vib.checked = isPelvicFloorCueOn("pelvic_floor_vibrate");
+}
+
+function testPelvicFloorCue() {
+  playPelvicCue(true);
+  setTimeout(() => {
+    playPelvicCue(false);
+    if (!stretchState.isRunning) {
+      setTimeout(() => { if (!stretchState.isRunning) suspendStretchAudioContext(); }, 600);
+    }
+  }, 1200);
+}
+
 let stretchState = {
   isRunning: false,
   isPrep: false,
@@ -4578,7 +4940,8 @@ let stretchState = {
   timerIntervalId: null,
   totalElapsedSec: 0,
   completedExIds: {},
-  lastCountdownCue: null
+  lastCountdownCue: null,
+  lastCycleCue: null
 };
 let stretchWorker = null;
 let pendingStretchFinishAlert = false;
@@ -4676,6 +5039,24 @@ function playStretchSound(type) {
       gain.connect(ctx.destination);
       osc.start(now + idx * 0.05);
       osc.stop(now + idx * 0.05 + 0.8);
+    });
+    return ctx.state === "running";
+  } else if (type === "pf_contract" || type === "pf_relax") {
+    // 骨盤底: 締める＝上昇2音（明るめ）／緩める＝下降1音（柔らかめ）。短く小音量でBGMを邪魔しない
+    const isC = (type === "pf_contract");
+    const notes = isC ? [[659.25, 0], [880.0, 0.07]] : [[523.25, 0]];
+    notes.forEach(([freq, offset]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + offset);
+      if (!isC) osc.frequency.exponentialRampToValueAtTime(392.0, now + offset + 0.18);
+      gain.gain.setValueAtTime(isC ? 0.16 : 0.12, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + (isC ? 0.12 : 0.2));
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + (isC ? 0.12 : 0.2));
     });
     return ctx.state === "running";
   } else if (type === "finish") {
@@ -4788,12 +5169,13 @@ function initStretchState() {
   stretchState.currentExIdx = 0;
   stretchState.isPrep = false;
   stretchState.prepRemainingSec = 3;
-  stretchState.currentSide = STRETCH_EXERCISES[0].hasSides ? "left" : null;
-  stretchState.remainingSec = STRETCH_EXERCISES[0].durationSec;
+  stretchState.currentSide = getActiveStretchExercises()[0].hasSides ? "left" : null;
+  stretchState.remainingSec = getActiveStretchExercises()[0].durationSec;
   stretchState.targetEndTime = null;
   stretchState.totalElapsedSec = 0;
   stretchState.completedExIds = {};
   stretchState.lastCountdownCue = null;
+  stretchState.lastCycleCue = null;
 }
 initStretchState();
 
@@ -4801,6 +5183,7 @@ function renderStretchView() {
   updateStretchPlayerUI();
   renderStretchList();
   updateStretchStatusBadge();
+  updateStretchHeaderInfo();
 }
 
 function updateStretchStatusBadge() {
@@ -4818,7 +5201,7 @@ function updateStretchStatusBadge() {
 }
 
 function updateStretchPlayerUI() {
-  const ex = STRETCH_EXERCISES[stretchState.currentExIdx];
+  const ex = getActiveStretchExercises()[stretchState.currentExIdx];
   if (!ex) return;
 
   const stepIdxEl = document.getElementById("stretch-step-idx");
@@ -4834,7 +5217,7 @@ function updateStretchPlayerUI() {
   const instructionBoxEl = document.getElementById("stretch-instruction-box");
   const playBtn = document.getElementById("stretch-play-btn");
 
-  if (stepIdxEl) stepIdxEl.textContent = `STEP ${stretchState.currentExIdx + 1}/${STRETCH_EXERCISES.length}`;
+  if (stepIdxEl) stepIdxEl.textContent = `STEP ${stretchState.currentExIdx + 1}/${getActiveStretchExercises().length}`;
   if (phaseTagEl) phaseTagEl.textContent = ex.phase;
   if (exNameEl) exNameEl.textContent = ex.name;
   if (targetDescEl) targetDescEl.textContent = `${ex.target} ・ ${ex.tips}`;
@@ -4885,9 +5268,35 @@ function updateStretchPlayerUI() {
     }
   }
 
+  // 骨盤底: 締める／緩める 交互キュー表示
+  const cycleWrapEl = document.getElementById("pf-cycle-display");
+  if (cycleWrapEl) {
+    if (ex.type === "cycle") {
+      cycleWrapEl.style.display = "block";
+      const phaseEl = document.getElementById("pf-cycle-phase");
+      const metaEl = document.getElementById("pf-cycle-meta");
+      const ph = getPelvicCyclePhase(ex);
+      if (stretchState.isRunning && !stretchState.isPrep) {
+        if (phaseEl) {
+          phaseEl.className = "pf-cycle-phase " + (ph.isContract ? "contract" : "relax");
+          phaseEl.textContent = ph.isContract ? `▲ 締める ${ph.phaseRemainSec}` : `▽ 緩める ${ph.phaseRemainSec}`;
+        }
+        if (metaEl) metaEl.textContent = `${ph.rep} / ${ex.reps} 回`;
+      } else {
+        if (phaseEl) {
+          phaseEl.className = "pf-cycle-phase idle";
+          phaseEl.textContent = `締める${ex.contractSec}秒 ／ 緩める${ex.relaxSec}秒`;
+        }
+        if (metaEl) metaEl.textContent = ph.started ? `${ph.rep} / ${ex.reps} 回目から再開` : `× ${ex.reps} 回`;
+      }
+    } else {
+      cycleWrapEl.style.display = "none";
+    }
+  }
+
   // 次の種目プレビュー
   if (nextNameEl) {
-    const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx + 1];
+    const nextEx = getActiveStretchExercises()[stretchState.currentExIdx + 1];
     if (nextEx) {
       nextNameEl.textContent = `${nextEx.name} (${nextEx.phase})`;
     } else {
@@ -4917,13 +5326,15 @@ function renderStretchList() {
   if (!container) return;
 
   let html = "";
-  STRETCH_EXERCISES.forEach((ex, idx) => {
+  getActiveStretchExercises().forEach((ex, idx) => {
     const isActive = (idx === stretchState.currentExIdx);
     const isCompleted = !!stretchState.completedExIds[ex.id];
-    const durationLabel = ex.hasSides ? `左右各${ex.durationSec}秒` : `${ex.durationSec}秒`;
+    const durationLabel = ex.type === "cycle"
+      ? `${ex.contractSec}秒×${ex.reps}回`
+      : (ex.hasSides ? `左右各${ex.durationSec}秒` : `${ex.durationSec}秒`);
 
     html += `
-      <div class="stretch-list-row ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" onclick="jumpToStretchExercise(${idx})">
+      <div class="stretch-list-row ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${ex.block === 'pelvic' ? 'pf-row' : ''}" onclick="jumpToStretchExercise(${idx})">
         <div class="stretch-row-left">
           <div class="stretch-check-mark">${isCompleted ? '✓' : ''}</div>
           <div class="stretch-row-name-wrap">
@@ -4954,7 +5365,7 @@ function startStretchPlayer() {
   if (stretchState.isRunning) return;
 
   initStretchWorker();
-  const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+  const currentEx = getActiveStretchExercises()[stretchState.currentExIdx];
   if (currentEx && stretchState.remainingSec <= 0) {
     stretchState.remainingSec = currentEx.durationSec;
   }
@@ -4988,6 +5399,7 @@ function pauseStretchPlayer(options = {}) {
   stretchState.isPrep = false;
   stretchState.targetEndTime = null;
   stretchState.lastCountdownCue = null;
+  stretchState.lastCycleCue = null;
 
   if (stretchState.timerIntervalId) {
     clearInterval(stretchState.timerIntervalId);
@@ -5046,7 +5458,9 @@ function checkStretchTick() {
           stateChanged = true;
         }
         const cueKey = `active:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}:${rem}`;
-        if (rem <= 3 && rem > 0 && stretchState.lastCountdownCue !== cueKey) {
+        const curExForCue = getActiveStretchExercises()[stretchState.currentExIdx];
+        const isCycleEx = !!(curExForCue && curExForCue.type === "cycle");
+        if (!isCycleEx && rem <= 3 && rem > 0 && stretchState.lastCountdownCue !== cueKey) {
           stretchState.lastCountdownCue = cueKey;
           if (diffMs > 150) {
             playStretchSound("countdown");
@@ -5087,6 +5501,11 @@ function checkStretchTick() {
   if (stretchState.isRunning && targetTimeUpdated && stretchWorker && stretchState.targetEndTime) {
     stretchWorker.postMessage({ action: "sync", targetTime: stretchState.targetEndTime });
   }
+  // 骨盤底cycle種目: 局面切替の合図（開始時は切替チャイムの代わりに「締める」合図）
+  if (evaluatePelvicCycleCue(now)) {
+    pendingMidSwitchSound = false;
+    stateChanged = true;
+  }
   if (pendingMidSwitchSound && stretchState.isRunning) {
     playStretchMidSwitchSound();
   }
@@ -5097,7 +5516,7 @@ function checkStretchTick() {
 }
 
 function handleStretchStepCompletion(endedAt = Date.now(), deferMidSound = false) {
-  const currentEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+  const currentEx = getActiveStretchExercises()[stretchState.currentExIdx];
 
   // 1. 左右種目で「左」が終了した時 ➔ 自動で「右」へ切り替え（5秒インターバル後に自動開始）
   if (currentEx.hasSides && stretchState.currentSide === "left") {
@@ -5122,10 +5541,10 @@ function handleStretchStepCompletion(endedAt = Date.now(), deferMidSound = false
   stretchState.completedExIds[currentEx.id] = true;
 
   // 次の種目があるか確認（種目間はタイマー停止し手動スタート待機）
-  if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
+  if (stretchState.currentExIdx < getActiveStretchExercises().length - 1) {
     pauseStretchPlayer({ keepAliveForSound: true });
     stretchState.currentExIdx++;
-    const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+    const nextEx = getActiveStretchExercises()[stretchState.currentExIdx];
     stretchState.currentSide = nextEx.hasSides ? "left" : null;
     stretchState.isPrep = false;
     stretchState.remainingSec = nextEx.durationSec;
@@ -5163,7 +5582,7 @@ function finishAllStretch() {
     pendingStretchFinishAlert = true;
     triggerPopupNotification(
       "🌙 全身ストレッチ完了！",
-      "全10種目が終了しました。深呼吸のままゆっくりお休みください。"
+      `全${getActiveStretchExercises().length}種目が終了しました。深呼吸のままゆっくりお休みください。`
     );
   } else {
     pendingStretchFinishAlert = false;
@@ -5174,10 +5593,10 @@ function finishAllStretch() {
 }
 
 function nextStretchStep() {
-  if (stretchState.currentExIdx < STRETCH_EXERCISES.length - 1) {
+  if (stretchState.currentExIdx < getActiveStretchExercises().length - 1) {
     pauseStretchPlayer();
     stretchState.currentExIdx++;
-    const nextEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+    const nextEx = getActiveStretchExercises()[stretchState.currentExIdx];
     stretchState.currentSide = nextEx.hasSides ? "left" : null;
     stretchState.isPrep = false;
     stretchState.remainingSec = nextEx.durationSec;
@@ -5192,7 +5611,7 @@ function prevStretchStep() {
   if (stretchState.currentExIdx > 0) {
     pauseStretchPlayer();
     stretchState.currentExIdx--;
-    const prevEx = STRETCH_EXERCISES[stretchState.currentExIdx];
+    const prevEx = getActiveStretchExercises()[stretchState.currentExIdx];
     stretchState.currentSide = prevEx.hasSides ? "left" : null;
     stretchState.isPrep = false;
     stretchState.remainingSec = prevEx.durationSec;
@@ -5203,10 +5622,10 @@ function prevStretchStep() {
 }
 
 function jumpToStretchExercise(idx) {
-  if (idx < 0 || idx >= STRETCH_EXERCISES.length) return;
+  if (idx < 0 || idx >= getActiveStretchExercises().length) return;
   pauseStretchPlayer();
   stretchState.currentExIdx = idx;
-  const ex = STRETCH_EXERCISES[idx];
+  const ex = getActiveStretchExercises()[idx];
   stretchState.currentSide = ex.hasSides ? "left" : null;
   stretchState.isPrep = false;
   stretchState.remainingSec = ex.durationSec;
@@ -5229,9 +5648,9 @@ function stopStretchTimers() {
 
 function restoreStretchDraftState(ds) {
   if (!ds || typeof ds !== "object") return;
-  const maxIdx = STRETCH_EXERCISES.length - 1;
+  const maxIdx = getActiveStretchExercises().length - 1;
   const exIdx = (typeof ds.currentExIdx === "number") ? Math.max(0, Math.min(maxIdx, ds.currentExIdx)) : 0;
-  const ex = STRETCH_EXERCISES[exIdx];
+  const ex = getActiveStretchExercises()[exIdx];
 
   stretchState.currentExIdx = exIdx;
   stretchState.currentSide = ex.hasSides ? (ds.currentSide === "right" ? "right" : "left") : null;
@@ -5241,6 +5660,7 @@ function restoreStretchDraftState(ds) {
   stretchState.totalElapsedSec = (typeof ds.totalElapsedSec === "number") ? Math.max(0, ds.totalElapsedSec) : 0;
   stretchState.completedExIds = (ds.completedExIds && typeof ds.completedExIds === "object") ? { ...ds.completedExIds } : {};
   stretchState.lastCountdownCue = null;
+  stretchState.lastCycleCue = null;
 
   if (ds.isRunning && ds.targetEndTime) {
     stretchState.isRunning = true;
