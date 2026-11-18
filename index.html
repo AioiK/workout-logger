@@ -1821,7 +1821,7 @@
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
       <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">🌙 夜ストレッチ：骨盤底ブロック</label>
       <div class="pf-setting-row">
-        <span>骨盤底ブロックを追加（ワニのポーズの前に4種目）</span>
+        <span>骨盤底ブロックを追加（冒頭に4種目）</span>
         <input type="checkbox" id="setting-pf-enabled" onchange="onPelvicFloorEnabledChange(this.checked)">
       </div>
       <div class="pf-stage-grid">
@@ -4779,15 +4779,12 @@ function buildPelvicFloorExercises(stage) {
   ];
 }
 
-// 実際に使う夜ストレッチ種目リスト（骨盤底ON時はワニのポーズの直前に挿入）
+// 実際に使う夜ストレッチ種目リスト（骨盤底ON時は冒頭に4種目を配置）
 function getActiveStretchExercises() {
   if (!isPelvicFloorEnabled()) return STRETCH_EXERCISES;
-  const idx = STRETCH_EXERCISES.findIndex(ex => ex.id === "spine_twist");
-  const insertAt = idx >= 0 ? idx : STRETCH_EXERCISES.length;
   return [
-    ...STRETCH_EXERCISES.slice(0, insertAt),
     ...buildPelvicFloorExercises(getPelvicFloorStage()),
-    ...STRETCH_EXERCISES.slice(insertAt)
+    ...STRETCH_EXERCISES
   ];
 }
 
