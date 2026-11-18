@@ -1312,6 +1312,43 @@
     gap: 6px;
     margin-bottom: 8px;
   }
+  .pf-inline-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-card);
+  }
+  .pf-inline-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-right: 2px;
+  }
+  .pf-inline-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 2px;
+    border-radius: 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+    font-size: 0.67rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pf-inline-btn.active {
+    background: var(--color-relax-subtle);
+    border-color: var(--color-relax);
+    color: var(--color-relax-soft);
+  }
 
   /* コントロールボタン群 */
   .stretch-controls {
@@ -1615,6 +1652,14 @@
       <div class="stretch-badge-moon" id="stretch-badge-moon">🌙 就寝前リセット（約10分）</div>
       <div id="stretch-status-badge" class="stretch-status-badge">未実施</div>
     </div>
+    <div class="pf-inline-bar" id="pf-inline-bar">
+      <span class="pf-inline-label">骨盤底:</span>
+      <button type="button" class="pf-inline-btn" id="pf-inline-off" onclick="setPelvicFloorFromBar(0)">OFF</button>
+      <button type="button" class="pf-inline-btn" id="pf-inline-1" onclick="setPelvicFloorFromBar(1)">S1 仰向け</button>
+      <button type="button" class="pf-inline-btn" id="pf-inline-2" onclick="setPelvicFloorFromBar(2)">S2 座位+橋</button>
+      <button type="button" class="pf-inline-btn" id="pf-inline-3" onclick="setPelvicFloorFromBar(3)">S3 立位</button>
+      <button type="button" class="pf-inline-btn" id="pf-inline-4" onclick="setPelvicFloorFromBar(4)">S4 動作中</button>
+    </div>
   </div>
 
   <!-- プレイヤーカード -->
@@ -1821,14 +1866,14 @@
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
       <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">🌙 夜ストレッチ：骨盤底ブロック</label>
       <div class="pf-setting-row">
-        <span>骨盤底ブロックを追加（冒頭に4種目）</span>
+        <span>骨盤底ブロックを追加（冒頭に配置）</span>
         <input type="checkbox" id="setting-pf-enabled" onchange="onPelvicFloorEnabledChange(this.checked)">
       </div>
       <div class="pf-stage-grid">
-        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-1" onclick="setPelvicFloorStage(1)"><span>ステージ1</span><small>1〜2週 5秒×10</small></button>
-        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-2" onclick="setPelvicFloorStage(2)"><span>ステージ2</span><small>3〜4週 8秒×10</small></button>
-        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-3" onclick="setPelvicFloorStage(3)"><span>ステージ3</span><small>5〜8週 10秒×10</small></button>
-        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-4" onclick="setPelvicFloorStage(4)"><span>ステージ4</span><small>9〜12週 10秒×12</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-1" onclick="setPelvicFloorStage(1)"><span>ステージ1</span><small>1〜2週 仰向け (5秒×10)</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-2" onclick="setPelvicFloorStage(2)"><span>ステージ2</span><small>3〜4週 座位＋橋 (8秒×10)</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-3" onclick="setPelvicFloorStage(3)"><span>ステージ3</span><small>5〜8週 立位＋連動 (10秒×10)</small></button>
+        <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-4" onclick="setPelvicFloorStage(4)"><span>ステージ4</span><small>9〜12週 立位・動作中 (10秒×12)</small></button>
       </div>
       <div class="pf-setting-row">
         <span>🔔 締める／緩めるの合図音</span>
@@ -1840,7 +1885,7 @@
       </div>
       <button type="button" class="modal-close-btn" style="background:var(--bg-card-sub); border:1px solid var(--border-card);" onclick="testPelvicFloorCue()">▲▽ 合図テスト（締める→緩める）</button>
       <span style="font-size:0.7rem; color:var(--text-secondary); display:block; margin-top:6px; line-height:1.4;">
-        ※ 夜は仰向けで実施し、ステージは保持秒数・回数のみ上がります。痛みや違和感がある場合は中止してください。<br>
+        ※ ステージに応じて姿勢（仰向け→座位→立位→動作中）と種目・回数が段階的に進みます。痛みや違和感がある場合は中止してください。<br>
         ※ 夜ストレッチの進行中に変更すると、進捗をリセットして反映します。
       </span>
     </div>
@@ -3747,7 +3792,7 @@ function saveAndExport() {
         target_rir: "",
         actual_rir: "",
         superset_group: "",
-        notes: `ステージ${pfStage}（${PELVIC_FLOOR_STAGES[pfStage].label}）・仰向け・${pfCompleted.length}/${pfStretchList.length}種目`
+        notes: `ステージ${pfStage}（${PELVIC_FLOOR_STAGES[pfStage].label}・${PELVIC_FLOOR_STAGES[pfStage].posture}）・${pfCompleted.length}/${pfStretchList.length}種目`
       };
       details += `骨盤底ブロック${pfCompleted.length}/${pfStretchList.length}種目（ステージ${pfStage}: ${pfParts.join("・")}）。`;
     }
@@ -4698,12 +4743,89 @@ const STRETCH_EXERCISES = [
   }
 ];
 
-// --- 骨盤底ブロック（夜ストレッチに設定で挿入。夜は常に仰向け、ステージで保持秒数・回数のみ変化） ---
+// --- 骨盤底ブロック（夜ストレッチに設定で挿入。12週間プログラムの4段階に応じて姿勢・種目・負荷を進行） ---
 const PELVIC_FLOOR_STAGES = {
-  1: { label: "1〜2週", holdSec: 5, holdReps: 10, quickReps: 10 },
-  2: { label: "3〜4週", holdSec: 8, holdReps: 10, quickReps: 20 },
-  3: { label: "5〜8週", holdSec: 10, holdReps: 10, quickReps: 30 },
-  4: { label: "9〜12週", holdSec: 10, holdReps: 12, quickReps: 30 }
+  1: {
+    label: "1〜2週",
+    posture: "仰向け・感覚習得",
+    phase: "仰向け・骨盤底",
+    holdSec: 5,
+    holdReps: 10,
+    quickReps: 10,
+    breathDesc: "膝を立てて仰向け。息を吸うと骨盤底がふわっと下がり、吐くと自然に戻る感覚を確認する。",
+    quickDesc: "仰向けのまま「締める」で1秒素早く締め、「緩める」で2秒完全に脱力する。",
+    holdDesc: "仰向けで息を吐きながら肛門と尿道を締めて内側へ引き上げ5秒保持。「緩める」で同じ時間だけ脱力する。",
+    extra: null
+  },
+  2: {
+    label: "3〜4週",
+    posture: "座位＋ブリッジ",
+    phase: "座位・骨盤底",
+    holdSec: 8,
+    holdReps: 10,
+    quickReps: 20,
+    breathDesc: "椅子または正座で座骨を立てて座り、呼吸に合わせて骨盤底が上下する感覚を確認する。",
+    quickDesc: "座った姿勢で座面から引き上げるように「締める」で1秒収縮し、「緩める」で2秒完全に脱力する。",
+    holdDesc: "座位で8秒締めて引き上げ、同じ8秒かけて完全に脱力する。",
+    extra: {
+      id: "pf_bridge",
+      name: "ブリッジ＋収縮",
+      shortName: "ブリッジ",
+      phase: "仰向け・骨盤底・殿筋",
+      target: "骨盤底・殿筋",
+      contractSec: 3,
+      relaxSec: 3,
+      reps: 10,
+      desc: "仰向けになり、「締める」で骨盤底を締めてからお尻を持ち上げて3秒保持、「緩める」で下ろして脱力する。",
+      tips: "腰を反らせすぎない・肋骨を締める"
+    }
+  },
+  3: {
+    label: "5〜8週",
+    posture: "立位＋動作連動",
+    phase: "立位・骨盤底",
+    holdSec: 10,
+    holdReps: 10,
+    quickReps: 30,
+    breathDesc: "立った姿勢で骨盤をニュートラルに保ち、深い呼吸と骨盤底の上下連動を確認する。",
+    quickDesc: "立位で重力に抗して素早く締めて引き上げ、「緩める」ですぐ脱力する。",
+    holdDesc: "立位で息を吐きながら10秒締めて保持し、同じ10秒だけ完全に脱力する。",
+    extra: {
+      id: "pf_squat_sync",
+      name: "ハーフスクワット＋収縮",
+      shortName: "スクワット連動",
+      phase: "立位・動作連動",
+      target: "骨盤底・体幹連動",
+      contractSec: 3,
+      relaxSec: 3,
+      reps: 10,
+      desc: "立位から「締める」で軽く締めたまま浅くしゃがんで立ち上がり（3秒）、「緩める」で立位のまま完全脱力（3秒）。",
+      tips: "最大の3割程度・息を止めない"
+    }
+  },
+  4: {
+    label: "9〜12週",
+    posture: "立位・動作中",
+    phase: "立位・動作中",
+    holdSec: 10,
+    holdReps: 12,
+    quickReps: 30,
+    breathDesc: "立位で全身の余計な力みを抜き、深い呼吸で骨盤底をゆるやかにリリースする。",
+    quickDesc: "立位で最大近くまで1秒で素早く引き上げ、「緩める」で即座に完全に脱力する。",
+    holdDesc: "立位で10秒間締めて保持し、同じ10秒間しっかり脱力する（12回）。",
+    extra: {
+      id: "pf_knack_hinge",
+      name: "ナック（動作前収縮）＋ヒンジ",
+      shortName: "ナック実践",
+      phase: "立位・動作中",
+      target: "骨盤底（反射・腹圧対策）",
+      contractSec: 3,
+      relaxSec: 3,
+      reps: 10,
+      desc: "咳・くしゃみ・持ち上げ動作を想定。「締める」の合図で動く直前に素早く締めてお辞儀（ヒンジ）して戻り（3秒）、「緩める」で完全脱力（3秒）。",
+      tips: "動く直前に先締め・腰を丸めない"
+    }
+  }
 };
 
 function getPelvicFloorStage() {
@@ -4727,56 +4849,48 @@ function makePelvicCycleExercise(def) {
 
 function buildPelvicFloorExercises(stage) {
   const s = PELVIC_FLOOR_STAGES[stage] || PELVIC_FLOOR_STAGES[1];
-  return [
+  const list = [
     {
       id: "pf_breath",
       block: "pelvic",
       name: "腹式呼吸リリース",
       shortName: "呼吸",
-      phase: "仰向け・骨盤底",
+      phase: s.phase,
       target: "骨盤底・横隔膜の連動",
       durationSec: 40,
       hasSides: false,
-      desc: "膝を立てて仰向け。吸うと骨盤底がふわっと下がり、吐くと自然に戻る感覚を確認する。",
+      desc: s.breathDesc,
       tips: "力まない・お腹と骨盤底をゆるめる"
     },
     makePelvicCycleExercise({
       id: "pf_quick",
       name: "クイック収縮",
       shortName: "クイック",
-      phase: "仰向け・骨盤底",
+      phase: s.phase,
       target: "骨盤底（瞬発力）",
       contractSec: 1,
       relaxSec: 2,
       reps: s.quickReps,
-      desc: "「締める」で1秒だけ素早く締めて引き上げ、「緩める」ですぐ完全に脱力する。",
+      desc: s.quickDesc,
       tips: "お尻・太もも・お腹に力を入れない"
     }),
     makePelvicCycleExercise({
       id: "pf_long_hold",
       name: "ロングホールド",
       shortName: "ホールド",
-      phase: "仰向け・骨盤底",
+      phase: s.phase,
       target: "骨盤底（持久力）",
       contractSec: s.holdSec,
       relaxSec: s.holdSec,
       reps: s.holdReps,
-      desc: "息を吐きながら肛門と尿道を締めて内側へ引き上げ、保持。「緩める」で同じ時間だけ完全に脱力する。",
+      desc: s.holdDesc,
       tips: "最大の6〜8割・息を止めない"
-    }),
-    makePelvicCycleExercise({
-      id: "pf_bridge",
-      name: "ブリッジ＋収縮",
-      shortName: "ブリッジ",
-      phase: "仰向け・骨盤底",
-      target: "骨盤底・殿筋",
-      contractSec: 3,
-      relaxSec: 3,
-      reps: 10,
-      desc: "「締める」で骨盤底を締めてからお尻を持ち上げて保持、「緩める」で下ろして脱力する。",
-      tips: "腰を反らせすぎない・肋骨を締める"
     })
   ];
+  if (s.extra) {
+    list.push(makePelvicCycleExercise(s.extra));
+  }
+  return list;
 }
 
 // 実際に使う夜ストレッチ種目リスト（骨盤底ON時は冒頭に4種目を配置）
@@ -4846,14 +4960,42 @@ function estimateStretchTotalMinutes(list) {
 
 function updateStretchHeaderInfo() {
   const list = getActiveStretchExercises();
+  const enabled = isPelvicFloorEnabled();
+  const stage = getPelvicFloorStage();
   const badge = document.getElementById("stretch-badge-moon");
   if (badge) badge.textContent = `🌙 就寝前リセット（約${estimateStretchTotalMinutes(list)}分）`;
   const total = document.getElementById("stretch-total-time");
   if (total) {
-    total.textContent = isPelvicFloorEnabled()
-      ? `全${list.length}種目 / 骨盤底ステージ${getPelvicFloorStage()}含む`
+    total.textContent = enabled
+      ? `全${list.length}種目 / 骨盤底S${stage}（${PELVIC_FLOOR_STAGES[stage].posture}）`
       : `全${list.length}種目 / 立位→就寝フロー`;
   }
+  const offBtn = document.getElementById("pf-inline-off");
+  if (offBtn) offBtn.classList.toggle("active", !enabled);
+  [1, 2, 3, 4].forEach(n => {
+    const btn = document.getElementById(`pf-inline-${n}`);
+    if (btn) btn.classList.toggle("active", enabled && stage === n);
+  });
+}
+
+function setPelvicFloorFromBar(stage) {
+  if (stage === 0) {
+    onPelvicFloorEnabledChange(false);
+    return;
+  }
+  if (!PELVIC_FLOOR_STAGES[stage]) return;
+  if (!isPelvicFloorEnabled()) {
+    if (!confirmStretchListChange()) {
+      updateStretchHeaderInfo();
+      return;
+    }
+    localStorage.setItem("pelvic_floor_stage", String(stage));
+    localStorage.setItem("pelvic_floor_enabled", "1");
+    applyStretchListChange();
+    updatePelvicFloorSettingsUI();
+    return;
+  }
+  setPelvicFloorStage(stage);
 }
 
 function hasStretchProgress() {
