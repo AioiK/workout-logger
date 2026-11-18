@@ -825,6 +825,11 @@
     padding: 20px 16px 36px 16px;
     width: 100%;
     max-width: 500px;
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     animation: slideUp 0.25s ease-out;
   }
 
@@ -4032,7 +4037,10 @@ function openSettingsModal() {
   updateSettingsDumbbellModeUI();
   updatePelvicFloorSettingsUI();
   renderHistoryLogs();
-  document.getElementById("settings-modal").classList.add("open");
+  const modalEl = document.getElementById("settings-modal");
+  modalEl.classList.add("open");
+  const contentEl = modalEl.querySelector(".modal-content");
+  if (contentEl) contentEl.scrollTop = 0;
 }
 
 function closeSettingsModal(event) {
