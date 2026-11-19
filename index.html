@@ -1876,7 +1876,7 @@
         <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-4" onclick="setPelvicFloorStage(4)"><span>ステージ4</span><small>9〜12週 立位・動作中 (10秒×12)</small></button>
       </div>
       <div class="pf-setting-row">
-        <span>🔔 締める／緩めるの合図音</span>
+        <span>🔔 締める／緩めるの合図音（毎秒カウント）</span>
         <input type="checkbox" id="setting-pf-sound" onchange="setPelvicFloorCueOption('pelvic_floor_sound', this.checked)">
       </div>
       <div class="pf-setting-row">
@@ -2848,9 +2848,10 @@ function applyDraftObject(draft) {
   }
 
   const dateInput = document.getElementById("input-date");
+  const todayStr = getTodayDateString();
+  const isSavedFromPastDate = !!(draft.isSaved && draft.inputDate && draft.inputDate !== todayStr);
   if (dateInput) {
-    const todayStr = getTodayDateString();
-    if (draft.isSaved && draft.inputDate !== todayStr) {
+    if (isSavedFromPastDate) {
       dateInput.value = todayStr;
     } else if (draft.inputDate) {
       dateInput.value = draft.inputDate;
@@ -2858,7 +2859,7 @@ function applyDraftObject(draft) {
   }
   const memoInput = document.getElementById("input-memo");
   if (memoInput && draft.memo !== undefined) {
-    memoInput.value = draft.memo;
+    memoInput.value = isSavedFromPastDate ? "" : draft.memo;
   }
   if (draft.workoutStartTime) {
     workoutStartTime = new Date(draft.workoutStartTime);
@@ -2878,7 +2879,11 @@ function applyDraftObject(draft) {
     }
   }
 
-  if (draft.completedSets && typeof draft.completedSets === "object") {
+  if (isSavedFromPastDate) {
+    completedSets = {};
+    isDraftSavedToCloud = false;
+    draftModified = false;
+  } else if (draft.completedSets && typeof draft.completedSets === "object") {
     completedSets = { ...draft.completedSets };
   }
 
@@ -3014,7 +3019,8 @@ function loadStateFromStorage() {
       const draft = JSON.parse(rawDraft);
       const todayStr = getTodayDateString();
       const ageMs = Date.now() - (draft.updatedAt || 0);
-      const isSameDay = (draft.todayDate === todayStr || draft.inputDate === todayStr);
+      const draftDateKey = draft.inputDate || draft.todayDate;
+      const isSameDay = (draftDateKey === todayStr);
       const hasStretchWork = !!(draft.stretchState && (
         draft.stretchState.isRunning ||
         draft.stretchState.totalElapsedSec > 0 ||
@@ -3739,6 +3745,43 @@ function closeWeightModal() {
 // 完了・保存処理 (JSON生成 & 送信)
 let lastExportData = null;
 
+async function postToGasWithRetry(gasUrl, payload, options = {}) {
+  const { timeoutMs = 15000, maxRetries = 1, retryDelayMs = 1500 } = options;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new Error("現在オフラインです。Wi-Fiやモバイル回線の接続を確認してから再送信してください。");
+  }
+  const bodyStr = JSON.stringify(payload);
+  let lastErr = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    const timerId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+    try {
+      await fetch(gasUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: bodyStr,
+        ...(controller ? { signal: controller.signal } : {})
+      });
+      if (timerId) clearTimeout(timerId);
+      return;
+    } catch (err) {
+      if (timerId) clearTimeout(timerId);
+      if (err && err.name === "AbortError") {
+        throw new Error("送信がタイムアウトしました。通信環境を確認のうえ、必要なら設定画面から再送信してください。");
+      }
+      lastErr = err;
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+          throw new Error("通信が切断されました。接続復帰後に設定画面から再送信してください。");
+        }
+      }
+    }
+  }
+  throw lastErr || new Error("通信エラーが発生しました。");
+}
+
 function saveAndExport() {
   const dateStr = document.getElementById("input-date").value || getTodayDateString();
   
@@ -3759,6 +3802,7 @@ function saveAndExport() {
   const exercisesData = [];
   let routineName = routine.name;
   let finalMemo = memoText;
+  const isRain = (currentRoutineKey === "jog" && jogWeatherMode === "rainy");
 
   if (currentRoutineKey === "stretch") {
     routineName = "夜ストレッチ";
@@ -3827,7 +3871,6 @@ function saveAndExport() {
     markStretchCompletedForNight(new Date());
     updateStretchStatusBadge();
   } else if (currentRoutineKey === "jog") {
-    const isRain = (jogWeatherMode === "rainy");
     routineName = isRain ? "室内スロージョグ" : "ジョギング";
     duration = isRain ? rainyJogMinutes : 0; // 晴れ外ジョグは腕時計で計測、ヘルスコネクトで確定
     const rpeLabels = {
@@ -3963,32 +4006,31 @@ function saveAndExport() {
   saveBtn.disabled = true;
   saveBtn.innerText = "☁️ Google Driveに保存中...";
 
-  fetch(gasUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(lastExportData)
-  })
+  postToGasWithRetry(gasUrl, lastExportData)
   .then(() => {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
-    const subInfo = currentRoutineKey === "stretch"
-      ? `（夜ストレッチ: 約${duration}分 / 全${getActiveStretchExercises().length}種目完了 / マイドライブへ同期完了）`
-      : (currentRoutineKey === "jog"
-          ? (isRain 
-              ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
-              : `（外ジョグ送信完了 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`)
-          : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`);
-    document.getElementById("success-msg").innerHTML = `
-      <strong>Google Driveに直接保存しました！</strong><br>
-      <span style="font-size:0.75rem; color:var(--text-muted);">${subInfo}</span>
-    `;
-    document.getElementById("success-modal").classList.add("open");
+    try {
+      const subInfo = currentRoutineKey === "stretch"
+        ? `（夜ストレッチ: 約${duration}分 / 全${getActiveStretchExercises().length}種目完了 / マイドライブへ同期完了）`
+        : (currentRoutineKey === "jog"
+            ? (isRain 
+                ? `（室内スロージョグ: 約${duration}分 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`
+                : `（外ジョグ送信完了 / きつさ: ${lastExportData.cardio_rpe_label || "Zone 2"} / マイドライブへ同期完了）`)
+            : `（所要時間: 約${duration}分 / RIR: ${currentRIR} / マイドライブへ同期完了）`);
+      document.getElementById("success-msg").innerHTML = `
+        <strong>Google Driveに直接保存しました！</strong><br>
+        <span style="font-size:0.75rem; color:var(--text-muted);">${subInfo}</span>
+      `;
+      document.getElementById("success-modal").classList.add("open");
+    } catch (uiErr) {
+      console.error("Post-save UI update error:", uiErr);
+    }
   })
   .catch(err => {
     saveBtn.disabled = false;
     saveBtn.innerHTML = origBtnText;
-    alert("Google Driveへの送信に失敗しました: " + err + "\n※記録は端末内に安全にバックアップされています。設定画面から再送信できます。");
+    alert("Google Driveへの送信に失敗しました: " + (err && err.message ? err.message : err) + "\n※記録は端末内に安全にバックアップされています。設定画面から再送信できます。");
   });
 }
 
@@ -4026,7 +4068,7 @@ function renderHistoryLogs() {
           <div class="history-summary">${exSummary}</div>
           <div class="history-actions">
             <button type="button" class="history-sm-btn" onclick="copyHistoryItem(${idx})">📋 コピー</button>
-            <button type="button" class="history-sm-btn" style="border-color:var(--accent-blue); color:var(--accent-blue);" onclick="resendHistoryItem(${idx})">☁️ Driveへ再送信</button>
+            <button type="button" class="history-sm-btn" style="border-color:var(--accent-blue); color:var(--accent-blue);" onclick="resendHistoryItem(${idx}, this)">☁️ Driveへ再送信</button>
           </div>
         </div>
       `;
@@ -4050,7 +4092,7 @@ function copyHistoryItem(idx) {
   });
 }
 
-function resendHistoryItem(idx) {
+function resendHistoryItem(idx, btnEl = null) {
   const history = JSON.parse(localStorage.getItem("workout_history_v1") || "[]");
   const item = history[idx];
   if (!item) return;
@@ -4059,17 +4101,25 @@ function resendHistoryItem(idx) {
     alert("GASウェブアプリURLが設定されていません。上の設定欄に入力してください。");
     return;
   }
-  fetch(gasUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(item)
-  })
+  const origText = btnEl ? btnEl.innerHTML : "";
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerText = "☁️ 送信中...";
+  }
+  postToGasWithRetry(gasUrl, item)
   .then(() => {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = origText;
+    }
     alert(`【${item.date}の記録】\nGoogle Driveへ再送信しました！`);
   })
   .catch(err => {
-    alert("再送信に失敗しました: " + err);
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = origText;
+    }
+    alert("再送信に失敗しました: " + (err && err.message ? err.message : err));
   });
 }
 
@@ -4662,6 +4712,16 @@ const STRETCH_EXERCISES = [
     tips: "反り腰に注意・骨盤後傾を意識"
   },
   {
+    id: "half_split",
+    name: "ハーフスプリット（片膝ハムストリングス）",
+    phase: "片膝立ち・お尻引き",
+    target: "太もも裏・膝裏（ハムストリングス）",
+    durationSec: 30,
+    hasSides: true,
+    desc: "ローランジからお尻を後ろへ引き、前脚の膝を伸ばしてかかとを床・つま先を天井へ立てる。両手は床に軽く添え、背筋を伸ばしたまま股関節から前傾。",
+    tips: "腰を丸めずお尻を後ろへ突き出す・つま先を立てる"
+  },
+  {
     id: "cat_cow",
     name: "キャット＆カウ",
     phase: "四つん這い",
@@ -4692,24 +4752,14 @@ const STRETCH_EXERCISES = [
     tips: "痛気持ちいい手前・微小に揺らす"
   },
   {
-    id: "hip_90_90",
-    name: "90/90ヒップストレッチ",
-    phase: "床座位・Shin Box",
-    target: "殿筋群・股関節回旋",
+    id: "pigeon_pose",
+    name: "ピジョンポーズ（鳩のポーズ）",
+    phase: "うつ伏せ・片脚曲げ",
+    target: "殿筋群・梨状筋",
     durationSec: 30,
     hasSides: true,
-    desc: "両膝を90度に曲げて座る。背筋を伸ばし、おへそを前脚のすねに向けてゆっくり前傾。",
-    tips: "手で床を支えてOK・骨盤から前傾"
-  },
-  {
-    id: "seated_hamstring",
-    name: "両脚長座前屈",
-    phase: "床座位",
-    target: "太もも裏・膝裏（ハムストリングス）",
-    durationSec: 45,
-    hasSides: false,
-    desc: "両脚を前に伸ばして座り、膝を軽く緩めたまま息を吐いて上体を前へ預ける。手は床やすねに添えるだけで引っ張らない。",
-    tips: "腰を丸めすぎずお腹と太ももを近づける"
+    desc: "四つん這いから片脚のすねを前へ横たえ、反対の脚はまっすぐ後ろへ伸ばす。息を吐きながら上体を前へ倒し、肘や額を床へ預けてお尻を伸ばす。",
+    tips: "後ろ脚はまっすぐ伸ばす・膝がキツい時はかかとを体に近づける"
   },
   {
     id: "seiza_lean_back",
@@ -4925,28 +4975,33 @@ function getPelvicCyclePhase(ex, nowMs = Date.now()) {
   };
 }
 
-// 締める／緩めるの合図（音＋振動、設定で個別ON/OFF）
-function playPelvicCue(isContract) {
+// 締める／緩めるの合図（音は毎秒、振動は局面切替時のみ。設定で個別ON/OFF）
+function playPelvicCue(isContract, options = {}) {
+  const { vibrate = true } = options;
   if (isPelvicFloorCueOn("pelvic_floor_sound")) {
     playStretchSound(isContract ? "pf_contract" : "pf_relax");
   }
-  if (isPelvicFloorCueOn("pelvic_floor_vibrate") && navigator.vibrate) {
+  if (vibrate && isPelvicFloorCueOn("pelvic_floor_vibrate") && navigator.vibrate) {
     try { navigator.vibrate(isContract ? 160 : [40, 70, 40]); } catch (e) {}
   }
 }
 
-// 実行中のcycle種目で局面が切り替わったら合図を出す（切替時のみtrue）
+// 実行中のcycle種目で毎秒カウント音を出す（切替時は音＋振動、継続秒は音のみ）
 function evaluatePelvicCycleCue(nowMs) {
   const ex = getActiveStretchExercises()[stretchState.currentExIdx];
   if (!ex || ex.type !== "cycle" || !stretchState.isRunning || stretchState.isPrep || !stretchState.targetEndTime) {
     return false;
   }
-  if (stretchState.targetEndTime - nowMs <= 0) return false;
+  const diffMs = stretchState.targetEndTime - nowMs;
+  if (diffMs <= 150) return false;
   const ph = getPelvicCyclePhase(ex, nowMs);
-  const key = `${stretchState.currentExIdx}:${ph.rep}:${ph.isContract ? "c" : "r"}`;
-  if (stretchState.lastCycleCue === key) return false;
-  stretchState.lastCycleCue = key;
-  playPelvicCue(ph.isContract);
+  const phaseKey = `${stretchState.currentExIdx}:${ph.rep}:${ph.isContract ? "c" : "r"}`;
+  const secKey = `${phaseKey}:${ph.phaseRemainSec}`;
+  if (stretchState.lastCycleCue === secKey) return false;
+  const isPhaseStart = (stretchState.lastCyclePhaseKey !== phaseKey);
+  stretchState.lastCyclePhaseKey = phaseKey;
+  stretchState.lastCycleCue = secKey;
+  playPelvicCue(ph.isContract, { vibrate: isPhaseStart });
   return true;
 }
 
@@ -5088,7 +5143,8 @@ let stretchState = {
   totalElapsedSec: 0,
   completedExIds: {},
   lastCountdownCue: null,
-  lastCycleCue: null
+  lastCycleCue: null,
+  lastCyclePhaseKey: null
 };
 let stretchWorker = null;
 let pendingStretchFinishAlert = false;
@@ -5281,7 +5337,7 @@ function initStretchWorker() {
             if (e.data.action === "start" && !intervalId) {
               intervalId = setInterval(function() {
                 self.postMessage({ type: "tick" });
-              }, 250);
+              }, 100);
             }
             schedulePhaseTimeout();
           } else if (e.data.action === "stop") {
@@ -5323,6 +5379,7 @@ function initStretchState() {
   stretchState.completedExIds = {};
   stretchState.lastCountdownCue = null;
   stretchState.lastCycleCue = null;
+  stretchState.lastCyclePhaseKey = null;
 }
 initStretchState();
 
@@ -5534,7 +5591,7 @@ function startStretchPlayer() {
     stretchWorker.postMessage({ action: "start", targetTime: stretchState.targetEndTime });
   }
   if (stretchState.timerIntervalId) clearInterval(stretchState.timerIntervalId);
-  stretchState.timerIntervalId = setInterval(checkStretchTick, 250);
+  stretchState.timerIntervalId = setInterval(checkStretchTick, 100);
 
   updateStretchPlayerUI();
   saveDraftToStorage();
@@ -5547,6 +5604,7 @@ function pauseStretchPlayer(options = {}) {
   stretchState.targetEndTime = null;
   stretchState.lastCountdownCue = null;
   stretchState.lastCycleCue = null;
+  stretchState.lastCyclePhaseKey = null;
 
   if (stretchState.timerIntervalId) {
     clearInterval(stretchState.timerIntervalId);
@@ -5808,6 +5866,7 @@ function restoreStretchDraftState(ds) {
   stretchState.completedExIds = (ds.completedExIds && typeof ds.completedExIds === "object") ? { ...ds.completedExIds } : {};
   stretchState.lastCountdownCue = null;
   stretchState.lastCycleCue = null;
+  stretchState.lastCyclePhaseKey = null;
 
   if (ds.isRunning && ds.targetEndTime) {
     stretchState.isRunning = true;
@@ -5820,13 +5879,53 @@ function restoreStretchDraftState(ds) {
         stretchWorker.postMessage({ action: "start", targetTime: stretchState.targetEndTime });
       }
       if (stretchState.timerIntervalId) clearInterval(stretchState.timerIntervalId);
-      stretchState.timerIntervalId = setInterval(checkStretchTick, 250);
+      stretchState.timerIntervalId = setInterval(checkStretchTick, 100);
     }
   } else {
     stretchState.isRunning = false;
     stretchState.isPrep = false;
     stretchState.targetEndTime = null;
   }
+}
+
+// 日跨ぎ時の日付自動同期＆前日完了状態リセット
+function syncDateRolloverIfNeeded(now = new Date()) {
+  const dateInput = document.getElementById("input-date");
+  const todayStr = getDateString(now);
+  if (!dateInput || !dateInput.value || dateInput.value === todayStr) {
+    return false;
+  }
+  if (checkAnyTimerRunning()) {
+    return false;
+  }
+  const hasUnsavedStrength = !isDraftSavedToCloud && completedSets && Object.values(completedSets).some(Boolean);
+  const hasUnsavedStretch = !isDraftSavedToCloud && typeof stretchState !== "undefined" && stretchState && (
+    stretchState.totalElapsedSec > 0 ||
+    stretchState.currentExIdx > 0 ||
+    Object.keys(stretchState.completedExIds || {}).length > 0
+  );
+  if (hasUnsavedStrength || hasUnsavedStretch) {
+    return false;
+  }
+
+  dateInput.value = todayStr;
+  completedSets = {};
+  if (typeof initStretchState === "function") initStretchState();
+  if (rainyTimerState && !rainyTimerState.isRunning) {
+    rainyTimerState.done = false;
+    rainyTimerState.remainingSec = rainyJogMinutes * 60;
+  }
+  isDraftSavedToCloud = false;
+  draftModified = false;
+  workoutStartTime = new Date(now.getTime());
+  const memoEl = document.getElementById("input-memo");
+  if (memoEl) memoEl.value = "";
+  setCardioRPE("optimal", false);
+  currentRoutineKey = getDefaultRoutineSmart(now, { isSaved: false, hasActiveProgress: false });
+  updateTabUI();
+  renderWorkout();
+  saveDraftToStorage();
+  return true;
 }
 
 // 画面の非表示・復帰時の処理（バックグラウンド退避保存・タイマー即時同期・Wake Lock再取得）
@@ -5838,8 +5937,6 @@ async function handleVisibilityOrFocus() {
     saveDraftToStorage();
   } else if (document.visibilityState === "visible") {
     const now = new Date();
-    const todayStr = getDateString(now);
-    const dateInput = document.getElementById("input-date");
     const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (
       stretchState.isRunning ||
       (!isDraftSavedToCloud && (stretchState.totalElapsedSec > 0 || stretchState.currentExIdx > 0 || Object.keys(stretchState.completedExIds || {}).length > 0))
@@ -5847,16 +5944,8 @@ async function handleVisibilityOrFocus() {
     const isBusy = hasActiveWorkoutProgress() || stretchInProgress;
 
     // 日付またぎの自動同期（保存済み、または未入力のまま翌日を迎えた場合に今日の日付・タブへ更新）
-    if (dateInput && dateInput.value !== todayStr) {
-      const hasUnsavedChecks = completedSets && Object.values(completedSets).some(Boolean);
-      if (isDraftSavedToCloud || !hasUnsavedChecks) {
-        dateInput.value = todayStr;
-        currentRoutineKey = getDefaultRoutineSmart(now, { isSaved: false, hasActiveProgress: false });
-        updateTabUI();
-        renderWorkout();
-        saveDraftToStorage();
-      }
-    } else if (!isBusy && lastHiddenTimestamp && (Date.now() - lastHiddenTimestamp > 30 * 60 * 1000)) {
+    const rolledOver = syncDateRolloverIfNeeded(now);
+    if (!rolledOver && !isBusy && lastHiddenTimestamp && (Date.now() - lastHiddenTimestamp > 30 * 60 * 1000)) {
       // 30分以上バックグラウンドに回っていた場合は、時間帯と完了状況に合わせてデフォルトタブを再判定
       const nextRoutine = getDefaultRoutineSmart(now, {
         isSaved: isDraftSavedToCloud,
@@ -5910,11 +5999,13 @@ async function handleVisibilityOrFocus() {
 
 document.addEventListener("visibilitychange", handleVisibilityOrFocus);
 window.addEventListener("focus", () => {
+  syncDateRolloverIfNeeded(new Date());
   if (activeTimer && activeTimer.targetTime) checkTimerTick();
   if (rainyTimerState && rainyTimerState.isRunning) checkRainyTick();
   if (stretchState && stretchState.isRunning) checkStretchTick();
 });
 window.addEventListener("pageshow", () => {
+  syncDateRolloverIfNeeded(new Date());
   if (activeTimer && activeTimer.targetTime) checkTimerTick();
   if (rainyTimerState && rainyTimerState.isRunning) checkRainyTick();
   if (stretchState && stretchState.isRunning) checkStretchTick();
