@@ -651,6 +651,201 @@
     cursor: pointer;
   }
 
+  .exercise-tier-summary {
+    margin-top: 5px;
+    font-size: 0.67rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    line-height: 1.2;
+  }
+
+  /* Load Pattern Card (DUP / Pyramid Selector) */
+  .load-pattern-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .load-pattern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .load-pattern-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .load-pattern-apply-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border-card);
+    color: var(--color-primary);
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    white-space: nowrap;
+  }
+
+  .load-pattern-apply-btn:active {
+    transform: scale(0.96);
+  }
+
+  .load-pattern-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .load-pattern-btn {
+    flex: 1 1 calc(33.33% - 6px);
+    min-width: 96px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 7px 6px;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    line-height: 1.25;
+  }
+
+  .load-pattern-btn.active {
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary);
+    color: #ffffff;
+    box-shadow: 0 0 8px var(--color-primary-glow);
+  }
+
+  .load-pattern-desc {
+    margin-top: 8px;
+    padding: 6px 9px;
+    background: var(--bg-card-sub);
+    border-left: 3px solid var(--color-primary);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* Set-level Tier & Weight Controls */
+  .set-role-badge {
+    font-size: 0.7rem;
+    color: var(--color-warning-text);
+    font-weight: 700;
+  }
+
+  .set-ex-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .set-tier-bar {
+    display: flex;
+    gap: 3px;
+  }
+
+  .set-tier-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 2px;
+    border-radius: 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-card);
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .set-tier-btn.active.tier-L {
+    background: var(--color-cool-subtle);
+    border-color: var(--color-cool);
+    color: var(--color-cool);
+  }
+
+  .set-tier-btn.active.tier-M {
+    background: var(--color-warning-subtle);
+    border-color: var(--color-warning);
+    color: var(--color-warning-text);
+  }
+
+  .set-tier-btn.active.tier-H {
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .set-weight-chip {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .set-weight-chip.custom {
+    border-color: var(--color-relax);
+    color: var(--color-relax-soft);
+    background: var(--color-relax-subtle);
+  }
+
+  .modal-tier-preview {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .modal-ex-pattern-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
   /* Set Row (Interleaved) */
   .set-container {
     display: flex;
@@ -1862,7 +2057,13 @@
     </div>
 
     <div class="modal-desc" id="modal-ex-desc">前回の重量が保持されます。更新時はタップして選択。</div>
+    <div id="modal-tier-preview" class="modal-tier-preview" style="display:none;"></div>
+    <div id="modal-switch-mode-wrap" style="display:none; margin-bottom:10px;"></div>
     <div class="weight-grid" id="modal-weight-grid"></div>
+    <div id="modal-ex-pattern-wrap" class="dumbbell-mode-selector" style="display:none;">
+      <div class="dumbbell-mode-label">この種目だけのセット配分クイック設定</div>
+      <div class="modal-ex-pattern-tabs" id="modal-ex-pattern-tabs"></div>
+    </div>
     <button class="modal-close-btn" onclick="closeWeightModal()">決定 / 閉じる</button>
   </div>
 </div>
@@ -1971,6 +2172,56 @@
 const DUMBBELL_STEPS_STANDARD = [5, 9, 14, 18, 23, 27, 32, 37, 42];
 const DUMBBELL_STEPS_MINUS2   = [3, 7, 12, 16, 21, 25, 30, 35, 40];
 const WEIGHT_STEPS = DUMBBELL_STEPS_STANDARD; // 互換性保持用
+const PULLUP_STEPS = [0, 5, 9, 14, 16.5, 18, 23];
+
+// 負荷パターン定義（同重量・回数ランプ・ピラミッド3種）
+const LOAD_PATTERNS = {
+  flat: {
+    key: "flat",
+    name: "標準 (同重量)",
+    shortLabel: "標準(同重量)",
+    tiers: ["H", "H", "H"],
+    desc: "全3セットを同じ最重量(重)で実施（目標 RIR 1）",
+    setRoles: ["SET 1 (目標 RIR 1)", "SET 2 (目標 RIR 1)", "SET 3 (目標 RIR 1)"],
+    defaultReps: { pullup: [14, 12, 10], squat: [12, 11, 10], floorpress: [12, 11, 10], rdl: [15, 15, 15] }
+  },
+  rep_ramp: {
+    key: "rep_ramp",
+    name: "回数ランプ (3セット目本番)",
+    shortLabel: "回数ランプ",
+    tiers: ["H", "H", "H"],
+    desc: "同重量のまま Set 1(温め RIR4) ➔ Set 2(準本番 RIR2〜3) ➔ Set 3(🔥本番 RIR1) へ回数を増やす",
+    setRoles: ["🌱 温め・軌道 (RIR 4)", "⚡ 準本番 (RIR 2〜3)", "🔥 本番勝負 (RIR 1)"],
+    defaultReps: { pullup: [8, 10, 14], squat: [7, 9, 12], floorpress: [7, 9, 12], rdl: [8, 10, 14] }
+  },
+  peak: {
+    key: "peak",
+    name: "山型 (中→重→軽)",
+    shortLabel: "山型(中→重→軽)",
+    tiers: ["M", "H", "L"],
+    desc: "Set 1:中(温め RIR2〜3) ➔ Set 2:🔥重(最大筋力 RIR1〜2) ➔ Set 3:💪軽(安全追い込み RIR1)",
+    setRoles: ["⚡ 中・温め (RIR 2〜3)", "🔥 重・最大筋力 (RIR 1〜2)", "💪 軽・パンプ (RIR 1)"],
+    defaultReps: { pullup: [10, 14, 10], squat: [10, 8, 14], floorpress: [10, 8, 14], rdl: [10, 8, 14] }
+  },
+  asc: {
+    key: "asc",
+    name: "上昇 (軽→中→重)",
+    shortLabel: "上昇(軽→中→重)",
+    tiers: ["L", "M", "H"],
+    desc: "Set 1:軽(温め RIR3) ➔ Set 2:中(準本番 RIR1〜2) ➔ Set 3:🔥重(本番トップ RIR1)",
+    setRoles: ["🌱 軽・温め (RIR 3)", "⚡ 中・準本番 (RIR 1〜2)", "🔥 重・本番 (RIR 1)"],
+    defaultReps: { pullup: [8, 10, 14], squat: [12, 10, 8], floorpress: [12, 10, 8], rdl: [12, 10, 8] }
+  },
+  desc: {
+    key: "desc",
+    name: "下降 (重→中→軽)",
+    shortLabel: "下降(重→中→軽)",
+    tiers: ["H", "M", "L"],
+    desc: "※事前準備運動推奨 / Set 1:🔥重(最大 RIR1〜2) ➔ Set 2:中(RIR1〜2) ➔ Set 3:💪軽(パンプ RIR1)",
+    setRoles: ["🔥 重・最大筋力 (RIR 1〜2)", "⚡ 中・維持 (RIR 1〜2)", "💪 軽・パンプ (RIR 1)"],
+    defaultReps: { pullup: [14, 12, 10], squat: [8, 10, 14], floorpress: [8, 10, 14], rdl: [8, 10, 14] }
+  }
+};
 
 // ダンベル内部ウェイト設定（0 または -2。デフォルト: -2kgモード）
 let dumbbellCoreOffset = parseInt(localStorage.getItem("dumbbell_core_offset") || "-2", 10);
@@ -1978,6 +2229,115 @@ if (isNaN(dumbbellCoreOffset)) dumbbellCoreOffset = -2;
 
 function getCurrentDumbbellSteps() {
   return dumbbellCoreOffset === -2 ? DUMBBELL_STEPS_MINUS2 : DUMBBELL_STEPS_STANDARD;
+}
+
+function getNearestStepIndex(weight, steps) {
+  if (!Array.isArray(steps) || steps.length === 0) return 0;
+  const exactIdx = steps.indexOf(weight);
+  if (exactIdx !== -1) return exactIdx;
+
+  const isDumbbellSteps = (steps === DUMBBELL_STEPS_MINUS2 || steps === DUMBBELL_STEPS_STANDARD);
+  if (isDumbbellSteps) {
+    const minus2Idx = DUMBBELL_STEPS_MINUS2.indexOf(weight);
+    if (minus2Idx !== -1 && minus2Idx < steps.length) return minus2Idx;
+    const stdIdx = DUMBBELL_STEPS_STANDARD.indexOf(weight);
+    if (stdIdx !== -1 && stdIdx < steps.length) return stdIdx;
+  }
+
+  let bestIdx = 0;
+  let bestDiff = Infinity;
+  for (let i = 0; i < steps.length; i++) {
+    const diff = Math.abs(steps[i] - weight);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
+function getExerciseTierWeights(exKey) {
+  const s = workoutState[exKey];
+  if (!s) return { L: 0, M: 0, H: 0 };
+  if (s.isPullup) {
+    if (s.weight === 0) return { L: 0, M: 0, H: 0 };
+    const idx = getNearestStepIndex(s.weight, PULLUP_STEPS);
+    return {
+      L: PULLUP_STEPS[Math.max(0, idx - 2)],
+      M: PULLUP_STEPS[Math.max(0, idx - 1)],
+      H: PULLUP_STEPS[idx]
+    };
+  }
+  const steps = getCurrentDumbbellSteps();
+  const idx = getNearestStepIndex(s.weight, steps);
+  return {
+    L: steps[Math.max(0, idx - 2)],
+    M: steps[Math.max(0, idx - 1)],
+    H: steps[idx]
+  };
+}
+
+function syncExerciseSetWeights(exKey) {
+  const s = workoutState[exKey];
+  if (!s) return;
+  const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
+  if (!Array.isArray(s.setTiers) || s.setTiers.length !== 3) {
+    s.setTiers = [...pat.tiers];
+  }
+  if (!Array.isArray(s.setWeights) || s.setWeights.length !== 3) {
+    s.setWeights = [s.weight, s.weight, s.weight];
+  }
+
+  const tiers = getExerciseTierWeights(exKey);
+  const steps = s.isPullup ? PULLUP_STEPS : getCurrentDumbbellSteps();
+  s.weight = tiers.H;
+
+  for (let i = 0; i < 3; i++) {
+    const t = s.setTiers[i];
+    if (t === "L" || t === "M" || t === "H") {
+      s.setWeights[i] = tiers[t];
+    } else {
+      const normalized = steps[getNearestStepIndex(Number(s.setWeights[i]) || 0, steps)];
+      s.setWeights[i] = normalized;
+      if (normalized === tiers.H) {
+        s.setTiers[i] = "H";
+      } else if (normalized === tiers.M) {
+        s.setTiers[i] = "M";
+      } else if (normalized === tiers.L) {
+        s.setTiers[i] = "L";
+      } else {
+        s.setTiers[i] = "C";
+      }
+    }
+  }
+}
+
+function syncAllExerciseSetWeights() {
+  for (const exKey in workoutState) {
+    syncExerciseSetWeights(exKey);
+  }
+}
+
+function formatExerciseLoad(s) {
+  const weights = (Array.isArray(s.setWeights) && s.setWeights.length === 3)
+    ? [...s.setWeights]
+    : [s.weight, s.weight, s.weight];
+  const allSame = (weights[0] === weights[1] && weights[1] === weights[2]);
+  if (s.isPullup) {
+    const loadKg = Math.max(...weights);
+    const loadDetails = allSame
+      ? (weights[0] === 0 ? "自重" : `自重+${weights[0]}kg`)
+      : weights.map(w => w === 0 ? "自重" : `+${w}kg`).join("/");
+    return { loadKg, loadDetails, allSame, weights };
+  }
+  if (s.mode === "×2") {
+    const loadKg = Math.max(...weights) * 2;
+    const loadDetails = allSame ? `${weights[0]}kg×2` : `${weights.join("/")}kg×2`;
+    return { loadKg, loadDetails, allSame, weights };
+  }
+  const loadKg = Math.max(...weights);
+  const loadDetails = allSame ? `${weights[0]}kg` : `${weights.join("/")}kg`;
+  return { loadKg, loadDetails, allSame, weights };
 }
 
 // ルーティン定義 (8種目)
@@ -2090,11 +2450,14 @@ const ROUTINES_ARCHIVE = {
 
 let currentRoutineKey = "main";
 let currentRIR = 1;
+let currentLoadPattern = localStorage.getItem("workout_load_pattern_v1") || "flat";
+if (!LOAD_PATTERNS[currentLoadPattern]) currentLoadPattern = "flat";
 let currentCardioRPE = "optimal"; // easy | optimal | hard
 let lastSavedReps = {}; // { [exKey]: [r1, r2, r3] }
-let workoutState = {}; // { [exKey]: { weight: number, reps: [r1, r2, r3], mode: string } }
+let workoutState = {}; // { [exKey]: { weight: number, setTiers: [t1, t2, t3], setWeights: [w1, w2, w3], reps: [r1, r2, r3], mode: string } }
 let completedSets = {}; // { [`${exKey}_${setIdx}`]: boolean }
 let activeModalExKey = null;
+let activeModalSetIdx = null;
 let workoutStartTime = null;
 let isDraftSavedToCloud = false;
 let draftModified = false;
@@ -3145,6 +3508,7 @@ function saveDraftToStorage() {
       manualDateOverride: manualDateOverride,
       manualDateSetDay: manualDateSetDay,
       currentRoutineKey: currentRoutineKey,
+      currentLoadPattern: currentLoadPattern,
       currentRIR: currentRIR,
       currentCardioRPE: currentCardioRPE,
       memo: memoEl ? memoEl.value : "",
@@ -3211,23 +3575,16 @@ function archiveForgottenDraftIfNeeded(draft) {
         if (!s) return;
         const repsTotal = s.reps.reduce((a, b) => a + b, 0);
         const repsDetails = s.reps.join("/");
-        let loadKg = s.weight;
-        let loadDetails = `${s.weight}kg`;
-        if (s.isPullup) {
-          loadDetails = s.weight === 0 ? "自重" : `自重+${s.weight}kg`;
-        } else if (s.mode === "×2") {
-          loadKg = s.weight * 2;
-          loadDetails = `${s.weight}kg×2`;
-        }
+        const loadInfo = formatExerciseLoad(s);
         exercisesData.push({
           exercise: s.name,
-          load_kg: loadKg,
-          load_details: loadDetails,
+          load_kg: loadInfo.loadKg,
+          load_details: loadInfo.loadDetails,
           sets: 3,
           reps_total: repsTotal,
           reps_details: repsDetails,
-          target_rir: currentRoutineKey === "sub" ? 3 : 1,
-          actual_rir: draft.currentRIR !== undefined ? draft.currentRIR : (currentRoutineKey === "sub" ? 3 : 1),
+          target_rir: rKey === "sub" ? 3 : 1,
+          actual_rir: draft.currentRIR !== undefined ? draft.currentRIR : (rKey === "sub" ? 3 : 1),
           superset_group: symbol,
           notes: ""
         });
@@ -3255,6 +3612,9 @@ function applyDraftObject(draft) {
 
   if (draft.currentRoutineKey && ROUTINES[draft.currentRoutineKey]) {
     currentRoutineKey = draft.currentRoutineKey;
+  }
+  if (draft.currentLoadPattern && LOAD_PATTERNS[draft.currentLoadPattern]) {
+    currentLoadPattern = draft.currentLoadPattern;
   }
   if (draft.currentRIR !== undefined) {
     setRIR(draft.currentRIR, false);
@@ -3309,16 +3669,29 @@ function applyDraftObject(draft) {
   }
 
   if (draft.workoutState && typeof draft.workoutState === "object") {
+    const fallbackTiers = (LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat).tiers;
     for (const exKey in workoutState) {
       const ds = draft.workoutState[exKey];
       if (ds) {
         if (ds.weight !== undefined) {
           workoutState[exKey].weight = ds.weight;
         }
+        if (Array.isArray(ds.setTiers) && ds.setTiers.length === 3) {
+          workoutState[exKey].setTiers = ds.setTiers.map(t => (t === "L" || t === "M" || t === "H" || t === "C") ? t : "H");
+        } else {
+          workoutState[exKey].setTiers = [...fallbackTiers];
+        }
+        if (Array.isArray(ds.setWeights) && ds.setWeights.length === 3) {
+          workoutState[exKey].setWeights = ds.setWeights.map(w => Number(w) || 0);
+        } else {
+          const baseW = workoutState[exKey].weight;
+          workoutState[exKey].setWeights = [baseW, baseW, baseW];
+        }
         if (Array.isArray(ds.reps) && ds.reps.length === 3) {
           workoutState[exKey].reps = [...ds.reps];
         }
       }
+      syncExerciseSetWeights(exKey);
     }
   }
 
@@ -3435,6 +3808,25 @@ function loadStateFromStorage() {
     parsedWeights = savedWeights ? JSON.parse(savedWeights) : {};
   } catch (e) {}
 
+  let parsedSetTiers = {};
+  try {
+    const savedTiers = localStorage.getItem("workout_set_tiers_v1");
+    parsedSetTiers = savedTiers ? JSON.parse(savedTiers) : {};
+  } catch (e) {}
+
+  let parsedSetWeights = {};
+  try {
+    const savedSetW = localStorage.getItem("workout_set_weights_v1");
+    parsedSetWeights = savedSetW ? JSON.parse(savedSetW) : {};
+  } catch (e) {}
+
+  try {
+    const savedPat = localStorage.getItem("workout_load_pattern_v1");
+    if (savedPat && LOAD_PATTERNS[savedPat]) {
+      currentLoadPattern = savedPat;
+    }
+  } catch (e) {}
+
   try {
     const savedReps = localStorage.getItem("workout_last_reps_v1");
     lastSavedReps = savedReps ? JSON.parse(savedReps) : {};
@@ -3442,20 +3834,28 @@ function loadStateFromStorage() {
     lastSavedReps = {};
   }
 
+  const defaultPatTiers = (LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat).tiers;
+
   // 全種目の基準状態を構築
   ["main"].forEach(rKey => {
     if (!ROUTINES[rKey] || !ROUTINES[rKey].pairs) return;
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
         const savedW = parsedWeights[ex.key];
+        const savedT = parsedSetTiers[ex.key];
+        const savedSW = parsedSetWeights[ex.key];
         const lastR = lastSavedReps[ex.key];
+        const baseW = savedW !== undefined ? savedW : ex.defaultWeight;
         workoutState[ex.key] = {
           name: ex.name,
-          weight: savedW !== undefined ? savedW : ex.defaultWeight,
+          weight: baseW,
+          setTiers: (Array.isArray(savedT) && savedT.length === 3) ? [...savedT] : [...defaultPatTiers],
+          setWeights: (Array.isArray(savedSW) && savedSW.length === 3) ? savedSW.map(w => Number(w) || 0) : [baseW, baseW, baseW],
           reps: (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps],
           mode: ex.mode,
           isPullup: !!ex.isPullup
         };
+        syncExerciseSetWeights(ex.key);
       });
     });
   });
@@ -3529,21 +3929,26 @@ function loadStateFromStorage() {
 // 重量のみ永続化（種目別重量変更時：前回回数バッジ lastSavedReps を上書きしない）
 function saveWeightsToStorage() {
   const weightsOnly = {};
+  const tiersOnly = {};
+  const setWeightsOnly = {};
   for (let k in workoutState) {
     weightsOnly[k] = workoutState[k].weight;
+    tiersOnly[k] = Array.isArray(workoutState[k].setTiers) ? [...workoutState[k].setTiers] : ["H", "H", "H"];
+    setWeightsOnly[k] = Array.isArray(workoutState[k].setWeights) ? [...workoutState[k].setWeights] : [workoutState[k].weight, workoutState[k].weight, workoutState[k].weight];
   }
   localStorage.setItem("workout_weights_v1", JSON.stringify(weightsOnly));
+  localStorage.setItem("workout_set_tiers_v1", JSON.stringify(tiersOnly));
+  localStorage.setItem("workout_set_weights_v1", JSON.stringify(setWeightsOnly));
+  localStorage.setItem("workout_load_pattern_v1", currentLoadPattern);
 }
 
 // トレーニング完了・保存時の基準値更新
 function saveStateToStorage() {
-  const weightsOnly = {};
+  saveWeightsToStorage();
   const repsOnly = {};
   for (let k in workoutState) {
-    weightsOnly[k] = workoutState[k].weight;
     repsOnly[k] = [...workoutState[k].reps];
   }
-  localStorage.setItem("workout_weights_v1", JSON.stringify(weightsOnly));
   localStorage.setItem("workout_last_reps_v1", JSON.stringify(repsOnly));
   lastSavedReps = JSON.parse(JSON.stringify(repsOnly));
 }
@@ -3573,13 +3978,21 @@ function resetTodayDraftManual() {
   setRIR(1, false);
   setCardioRPE("optimal", false);
 
+  const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
   ["main"].forEach(rKey => {
     if (!ROUTINES[rKey] || !ROUTINES[rKey].pairs) return;
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
         const lastR = lastSavedReps[ex.key];
         if (workoutState[ex.key]) {
-          workoutState[ex.key].reps = (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps];
+          if (currentLoadPattern === "flat") {
+            workoutState[ex.key].reps = (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps];
+          } else if (pat.defaultReps && pat.defaultReps[ex.key]) {
+            workoutState[ex.key].reps = [...pat.defaultReps[ex.key]];
+          } else {
+            workoutState[ex.key].reps = (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps];
+          }
+          syncExerciseSetWeights(ex.key);
         }
       });
     });
@@ -3664,9 +4077,169 @@ function getWeightNominalBadge(exKey) {
   if (!s || s.isPullup) return "";
   if (dumbbellCoreOffset === -2) {
     const nominal = s.weight + 2;
-    return `<span style="font-size:0.68rem; font-weight:700; color:var(--text-secondary); opacity:0.85; margin-top:2px;">(目盛: ${nominal}kg)</span>`;
+    return `<span style="font-size:0.68rem; font-weight:700; color:var(--text-secondary); opacity:0.85; margin-top:2px;">(重の目盛: ${nominal}kg)</span>`;
   }
   return "";
+}
+
+function getTierSummaryHtml(exKey) {
+  const s = workoutState[exKey];
+  if (!s) return "";
+  if (s.isPullup && s.weight === 0) {
+    return `<div class="exercise-tier-summary"><span>自重基準 (タップで加重)</span></div>`;
+  }
+  const tiers = getExerciseTierWeights(exKey);
+  const fmt = (w) => (s.isPullup ? (w === 0 ? "自重" : `+${w}`) : `${w}`);
+  return `<div class="exercise-tier-summary"><span>軽:${fmt(tiers.L)} / 中:${fmt(tiers.M)} / 重:${fmt(tiers.H)}kg</span></div>`;
+}
+
+function setLoadPattern(patternKey, applyReps = true) {
+  if (!LOAD_PATTERNS[patternKey]) return;
+  currentLoadPattern = patternKey;
+  localStorage.setItem("workout_load_pattern_v1", patternKey);
+  const pat = LOAD_PATTERNS[patternKey];
+
+  if (ROUTINES.main && ROUTINES.main.pairs) {
+    ROUTINES.main.pairs.forEach(pair => {
+      [pair.exA, pair.exB].forEach(ex => {
+        const s = workoutState[ex.key];
+        if (!s) return;
+        for (let setIdx = 0; setIdx < 3; setIdx++) {
+          if (completedSets[`${ex.key}_${setIdx}`]) continue;
+          s.setTiers[setIdx] = pat.tiers[setIdx];
+          if (applyReps) {
+            if (patternKey === "flat" && lastSavedReps[ex.key] && Array.isArray(lastSavedReps[ex.key]) && lastSavedReps[ex.key].length === 3) {
+              s.reps[setIdx] = lastSavedReps[ex.key][setIdx];
+            } else if (pat.defaultReps && pat.defaultReps[ex.key]) {
+              s.reps[setIdx] = pat.defaultReps[ex.key][setIdx];
+            }
+          }
+        }
+        syncExerciseSetWeights(ex.key);
+      });
+    });
+  }
+
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveWeightsToStorage();
+  saveDraftToStorage();
+  renderWorkout();
+}
+
+function applyPatternDefaultReps() {
+  const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
+  if (ROUTINES.main && ROUTINES.main.pairs) {
+    ROUTINES.main.pairs.forEach(pair => {
+      [pair.exA, pair.exB].forEach(ex => {
+        const s = workoutState[ex.key];
+        if (!s) return;
+        for (let setIdx = 0; setIdx < 3; setIdx++) {
+          if (completedSets[`${ex.key}_${setIdx}`]) continue;
+          if (currentLoadPattern === "flat" && lastSavedReps[ex.key] && Array.isArray(lastSavedReps[ex.key]) && lastSavedReps[ex.key].length === 3) {
+            s.reps[setIdx] = lastSavedReps[ex.key][setIdx];
+          } else if (pat.defaultReps && pat.defaultReps[ex.key]) {
+            s.reps[setIdx] = pat.defaultReps[ex.key][setIdx];
+          }
+        }
+      });
+    });
+  }
+  if (navigator.vibrate) navigator.vibrate(15);
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveDraftToStorage();
+  renderWorkout();
+}
+
+function setExerciseSetTier(exKey, setIdx, tierKey) {
+  const s = workoutState[exKey];
+  if (!s || setIdx < 0 || setIdx > 2) return;
+  if (tierKey !== "L" && tierKey !== "M" && tierKey !== "H") return;
+  if (navigator.vibrate) navigator.vibrate(15);
+  s.setTiers[setIdx] = tierKey;
+  syncExerciseSetWeights(exKey);
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveWeightsToStorage();
+  saveDraftToStorage();
+  renderWorkout();
+}
+
+function applyExerciseTiers(exKey, tiersArray) {
+  const s = workoutState[exKey];
+  if (!s || !Array.isArray(tiersArray) || tiersArray.length !== 3) return;
+  for (let setIdx = 0; setIdx < 3; setIdx++) {
+    if (completedSets[`${exKey}_${setIdx}`]) continue;
+    s.setTiers[setIdx] = tiersArray[setIdx];
+  }
+  syncExerciseSetWeights(exKey);
+  draftModified = true;
+  isDraftSavedToCloud = false;
+  saveWeightsToStorage();
+  saveDraftToStorage();
+  renderWorkout();
+  if (activeModalExKey === exKey) {
+    openWeightModal(exKey, activeModalSetIdx);
+  }
+}
+
+function renderSetExerciseSlot(ex, setIdx, pairId, isLastExercise, isDone, isNow) {
+  const s = workoutState[ex.key];
+  const rep = s.reps[setIdx];
+  const lastRep = (lastSavedReps[ex.key] && lastSavedReps[ex.key][setIdx] !== undefined) ? lastSavedReps[ex.key][setIdx] : null;
+  const tiers = getExerciseTierWeights(ex.key);
+  const curWeight = (Array.isArray(s.setWeights) && s.setWeights[setIdx] !== undefined) ? s.setWeights[setIdx] : s.weight;
+  const curTier = (Array.isArray(s.setTiers) && s.setTiers[setIdx]) ? s.setTiers[setIdx] : "H";
+
+  let tierBarHtml = "";
+  if (!s.isPullup || s.weight > 0) {
+    const tierDefs = [
+      { key: "L", label: "軽", val: tiers.L },
+      { key: "M", label: "中", val: tiers.M },
+      { key: "H", label: "重", val: tiers.H }
+    ];
+    const btnsHtml = tierDefs.map(td => {
+      const valText = s.isPullup ? (td.val === 0 ? "自" : `+${td.val}`) : `${td.val}`;
+      const activeCls = curTier === td.key ? `active tier-${td.key}` : "";
+      return `<button type="button" class="set-tier-btn ${activeCls}" onclick="setExerciseSetTier('${ex.key}', ${setIdx}, '${td.key}')">${td.label} ${valText}</button>`;
+    }).join("");
+    tierBarHtml = `<div class="set-tier-bar">${btnsHtml}</div>`;
+  }
+
+  let chipLabel = "";
+  if (s.isPullup) {
+    chipLabel = curWeight === 0 ? "自重 (0kg)" : `+${curWeight}kg`;
+  } else {
+    const modeSuffix = s.mode === "×2" ? "×2" : "";
+    const dialText = dumbbellCoreOffset === -2 ? ` (目盛:${curWeight + 2})` : "";
+    chipLabel = `${curWeight}kg${modeSuffix}${dialText}`;
+  }
+  if (curTier === "C") {
+    chipLabel += " [個別]";
+  }
+
+  return `
+    <div class="set-ex-wrap">
+      ${tierBarHtml}
+      <button type="button" class="set-weight-chip ${curTier === 'C' ? 'custom' : ''}" onclick="openWeightModal('${ex.key}', ${setIdx})" title="このセットの重量を個別変更">
+        <span>${chipLabel}</span>
+        <span>▾</span>
+      </button>
+      <div class="stepper-box ${isDone ? 'done' : ''} ${isNow ? 'active-now' : ''}">
+        <button class="stepper-btn" onclick="adjustReps('${ex.key}', ${setIdx}, -1)">−</button>
+        <div class="stepper-val" onclick="promptReps('${ex.key}', ${setIdx})">
+          ${rep}
+          <span class="stepper-sub">${ex.name.slice(0, 4)}</span>
+          ${lastRep !== null ? `<span class="last-rep-badge">前:${lastRep}</span>` : ''}
+        </div>
+        <button class="stepper-btn" onclick="adjustReps('${ex.key}', ${setIdx}, +1)">＋</button>
+        <button class="check-btn ${isDone ? 'checked' : ''}" onclick="toggleCheck('${ex.key}', ${setIdx}, '${pairId}', ${isLastExercise})" title="完了チェック">
+          ${isDone ? '✓' : '○'}
+        </button>
+      </div>
+    </div>
+  `;
 }
 
 // 現在のルーティン内で「次にやるべきセット（NOW）」のキーを取得
@@ -3744,6 +4317,25 @@ function renderWorkout() {
   const pairs = ROUTINES[currentRoutineKey].pairs;
   const activeTargetKey = getActiveTargetKey();
   const timerMins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
+  const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
+
+  if (currentRoutineKey === "main") {
+    const patCard = document.createElement("div");
+    patCard.className = "load-pattern-card";
+    const patBtnsHtml = Object.values(LOAD_PATTERNS).map(p => {
+      const isAct = p.key === pat.key ? "active" : "";
+      return `<button type="button" class="load-pattern-btn ${isAct}" onclick="setLoadPattern('${p.key}', true)">${p.shortLabel}</button>`;
+    }).join("");
+    patCard.innerHTML = `
+      <div class="load-pattern-header">
+        <span class="load-pattern-title">🎯 負荷パターン (セット配分)</span>
+        <button type="button" class="load-pattern-apply-btn" onclick="applyPatternDefaultReps()">🔄 目安回数をセット</button>
+      </div>
+      <div class="load-pattern-tabs">${patBtnsHtml}</div>
+      <div class="load-pattern-desc">${pat.desc}</div>
+    `;
+    container.appendChild(patCard);
+  }
 
   pairs.forEach(pair => {
     const card = document.createElement("div");
@@ -3788,24 +4380,26 @@ function renderWorkout() {
 
       <div class="exercise-settings-grid">
         <div class="exercise-setting-box">
-          <div class="ex-name-label">${exA.name}</div>
-          <button class="weight-select-btn" onclick="openWeightModal('${exA.key}')">
+          <div class="ex-name-label">${exA.name}（最重量）</div>
+          <button class="weight-select-btn" onclick="openWeightModal('${exA.key}', null)">
             <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
               <span>${getWeightDisplayString(exA.key)}</span>
               ${getWeightNominalBadge(exA.key)}
             </div>
             <span style="margin-left:4px;">▾</span>
           </button>
+          ${getTierSummaryHtml(exA.key)}
         </div>
         <div class="exercise-setting-box">
-          <div class="ex-name-label">${exB.name}</div>
-          <button class="weight-select-btn" onclick="openWeightModal('${exB.key}')">
+          <div class="ex-name-label">${exB.name}（最重量）</div>
+          <button class="weight-select-btn" onclick="openWeightModal('${exB.key}', null)">
             <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
               <span>${getWeightDisplayString(exB.key)}</span>
               ${getWeightNominalBadge(exB.key)}
             </div>
             <span style="margin-left:4px;">▾</span>
           </button>
+          ${getTierSummaryHtml(exB.key)}
         </div>
       </div>
 
@@ -3813,12 +4407,6 @@ function renderWorkout() {
     `;
 
     for (let setIdx = 0; setIdx < 3; setIdx++) {
-      const repA = workoutState[exA.key].reps[setIdx];
-      const repB = workoutState[exB.key].reps[setIdx];
-
-      const lastRepA = (lastSavedReps[exA.key] && lastSavedReps[exA.key][setIdx] !== undefined) ? lastSavedReps[exA.key][setIdx] : null;
-      const lastRepB = (lastSavedReps[exB.key] && lastSavedReps[exB.key][setIdx] !== undefined) ? lastSavedReps[exB.key][setIdx] : null;
-
       const keyA = `${exA.key}_${setIdx}`;
       const keyB = `${exB.key}_${setIdx}`;
 
@@ -3828,37 +4416,17 @@ function renderWorkout() {
       const nowA = (keyA === activeTargetKey);
       const nowB = (keyB === activeTargetKey);
 
+      const roleText = (pat && pat.setRoles && pat.setRoles[setIdx]) ? pat.setRoles[setIdx] : `SET ${setIdx + 1}`;
+
       html += `
         <div class="set-card">
           <div class="set-label-bar">
             <span>SET ${setIdx + 1}</span>
-            <span>${exA.name} ➔ ${exB.name}</span>
+            <span class="set-role-badge">${roleText}</span>
           </div>
           <div class="set-inputs-grid">
-            <div class="stepper-box ${doneA ? 'done' : ''} ${nowA ? 'active-now' : ''}">
-              <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, -1)">−</button>
-              <div class="stepper-val" onclick="promptReps('${exA.key}', ${setIdx})">
-                ${repA}
-                <span class="stepper-sub">${exA.name.slice(0, 4)}</span>
-                ${lastRepA !== null ? `<span class="last-rep-badge">前:${lastRepA}</span>` : ''}
-              </div>
-              <button class="stepper-btn" onclick="adjustReps('${exA.key}', ${setIdx}, +1)">＋</button>
-              <button class="check-btn ${doneA ? 'checked' : ''}" onclick="toggleCheck('${exA.key}', ${setIdx}, '${pair.id}', false)" title="完了チェック">
-                ${doneA ? '✓' : '○'}
-              </button>
-            </div>
-            <div class="stepper-box ${doneB ? 'done' : ''} ${nowB ? 'active-now' : ''}">
-              <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, -1)">−</button>
-              <div class="stepper-val" onclick="promptReps('${exB.key}', ${setIdx})">
-                ${repB}
-                <span class="stepper-sub">${exB.name.slice(0, 4)}</span>
-                ${lastRepB !== null ? `<span class="last-rep-badge">前:${lastRepB}</span>` : ''}
-              </div>
-              <button class="stepper-btn" onclick="adjustReps('${exB.key}', ${setIdx}, +1)">＋</button>
-              <button class="check-btn ${doneB ? 'checked' : ''}" onclick="toggleCheck('${exB.key}', ${setIdx}, '${pair.id}', true)" title="完了チェック">
-                ${doneB ? '✓' : '○'}
-              </button>
-            </div>
+            ${renderSetExerciseSlot(exA, setIdx, pair.id, false, doneA, nowA)}
+            ${renderSetExerciseSlot(exB, setIdx, pair.id, true, doneB, nowB)}
           </div>
         </div>
       `;
@@ -4162,24 +4730,87 @@ function promptReps(exKey, setIdx) {
 }
 
 // Weight Modal
-function openWeightModal(exKey) {
+function openWeightModal(exKey, setIdx = null) {
   activeModalExKey = exKey;
+  activeModalSetIdx = (typeof setIdx === "number" && setIdx >= 0 && setIdx <= 2) ? setIdx : null;
   const s = workoutState[exKey];
-  document.getElementById("modal-ex-title").innerText = `${s.name} の重量`;
+  const isSetEdit = (activeModalSetIdx !== null);
+
+  document.getElementById("modal-ex-title").innerText = isSetEdit
+    ? `${s.name} — SET ${activeModalSetIdx + 1} の重量`
+    : `${s.name} の最重量 (重)`;
+
   const grid = document.getElementById("modal-weight-grid");
   grid.innerHTML = "";
 
   const modeWrap = document.getElementById("modal-dumbbell-mode-wrap");
   const minus2Btn = document.getElementById("db-mode-minus2");
   const stdBtn = document.getElementById("db-mode-standard");
+  const previewEl = document.getElementById("modal-tier-preview");
+  const switchWrap = document.getElementById("modal-switch-mode-wrap");
+  const exPatWrap = document.getElementById("modal-ex-pattern-wrap");
+  const exPatTabs = document.getElementById("modal-ex-pattern-tabs");
+
+  const currentVal = isSetEdit ? s.setWeights[activeModalSetIdx] : s.weight;
+  const tiers = getExerciseTierWeights(exKey);
+
+  if (switchWrap) {
+    if (isSetEdit) {
+      switchWrap.style.display = "block";
+      switchWrap.innerHTML = `<button type="button" class="modal-close-btn" style="background:var(--bg-input); font-size:0.8rem; padding:8px;" onclick="openWeightModal('${exKey}', null)">⚙️ 種目の最重量 (重) 設定に戻る</button>`;
+    } else {
+      switchWrap.style.display = "none";
+      switchWrap.innerHTML = "";
+    }
+  }
+
+  if (previewEl) {
+    if (isSetEdit) {
+      const curTier = s.setTiers[activeModalSetIdx];
+      const tierLabelMap = { L: "軽", M: "中", H: "重", C: "個別" };
+      const dispW = s.isPullup ? (currentVal === 0 ? "自重 (0kg)" : `+${currentVal}kg`) : `${currentVal}kg`;
+      previewEl.style.display = "block";
+      previewEl.innerHTML = `現在: <strong>${tierLabelMap[curTier] || "重"} (${dispW})</strong> ／ 軽・中・重の自動候補: ${tiers.L} / ${tiers.M} / ${tiers.H}kg`;
+    } else if (s.isPullup && s.weight === 0) {
+      previewEl.style.display = "block";
+      previewEl.innerHTML = `現在: <strong>自重 (0kg)</strong> — 加重する場合は下から重量を選択してください`;
+    } else {
+      const dialNote = (!s.isPullup && dumbbellCoreOffset === -2)
+        ? `<br><small style="color:var(--text-muted);">目盛: 軽 ${tiers.L + 2} / 中 ${tiers.M + 2} / 重 ${tiers.H + 2}kg</small>`
+        : "";
+      previewEl.style.display = "block";
+      previewEl.innerHTML = `自動計算された3段階 → <strong>軽:${tiers.L}kg</strong> / <strong>中:${tiers.M}kg</strong> / <strong>重:${tiers.H}kg</strong>${dialNote}`;
+    }
+  }
+
+  if (exPatWrap && exPatTabs) {
+    if (!isSetEdit && (!s.isPullup || s.weight > 0)) {
+      exPatWrap.style.display = "block";
+      const curTiersStr = Array.isArray(s.setTiers) ? s.setTiers.join(",") : "H,H,H";
+      const exPatOptions = [
+        { label: "重×3 (同重量)", tiers: ["H", "H", "H"] },
+        { label: "中→重→軽 (山型)", tiers: ["M", "H", "L"] },
+        { label: "軽→中→重 (上昇)", tiers: ["L", "M", "H"] },
+        { label: "重→中→軽 (下降)", tiers: ["H", "M", "L"] }
+      ];
+      exPatTabs.innerHTML = exPatOptions.map(opt => {
+        const isAct = curTiersStr === opt.tiers.join(",") ? "active" : "";
+        return `<button type="button" class="dumbbell-mode-btn ${isAct}" onclick='applyExerciseTiers("${exKey}", ${JSON.stringify(opt.tiers)})'><span>${opt.label}</span></button>`;
+      }).join("");
+    } else {
+      exPatWrap.style.display = "none";
+      exPatTabs.innerHTML = "";
+    }
+  }
 
   if (s.isPullup) {
     if (modeWrap) modeWrap.style.display = "none";
-    document.getElementById("modal-ex-desc").innerText = "自重、または追加加重量を選択：";
-    const pullupOptions = [0, 5, 9, 14, 16.5, 18, 23];
-    pullupOptions.forEach(w => {
+    document.getElementById("modal-ex-desc").innerText = isSetEdit
+      ? `SET ${activeModalSetIdx + 1} のみの重さを選択：`
+      : "基準（最重量）の自重または追加加重量を選択：";
+    PULLUP_STEPS.forEach(w => {
       const btn = document.createElement("button");
-      btn.className = "weight-option-btn " + (s.weight === w ? "selected" : "");
+      btn.className = "weight-option-btn " + (currentVal === w ? "selected" : "");
       btn.innerText = w === 0 ? "自重 (0)" : `+${w}kg`;
       btn.onclick = () => selectWeight(w);
       grid.appendChild(btn);
@@ -4197,11 +4828,13 @@ function openWeightModal(exKey) {
     }
     const currentSteps = getCurrentDumbbellSteps();
     const modeDesc = dumbbellCoreOffset === -2 ? "内部重り外しモード（刻み: 3〜40kg）" : "標準モード（刻み: 5〜42kg）";
-    document.getElementById("modal-ex-desc").innerText = `${modeDesc}。タップして選択：`;
+    document.getElementById("modal-ex-desc").innerText = isSetEdit
+      ? `${modeDesc}。SET ${activeModalSetIdx + 1} の重量を選択：`
+      : `${modeDesc}。最重量(重)を選ぶと軽・中が自動設定されます：`;
 
     currentSteps.forEach(w => {
       const btn = document.createElement("button");
-      btn.className = "weight-option-btn " + (s.weight === w ? "selected" : "");
+      btn.className = "weight-option-btn " + (currentVal === w ? "selected" : "");
       
       const valSpan = document.createElement("span");
       valSpan.className = "weight-val";
@@ -4226,15 +4859,21 @@ function openWeightModal(exKey) {
 function setDumbbellMode(offset) {
   dumbbellCoreOffset = offset;
   localStorage.setItem("dumbbell_core_offset", offset);
+  syncAllExerciseSetWeights();
+  saveWeightsToStorage();
+  saveDraftToStorage();
   renderWorkout();
   if (activeModalExKey) {
-    openWeightModal(activeModalExKey);
+    openWeightModal(activeModalExKey, activeModalSetIdx);
   }
 }
 
 function setDumbbellModeFromSettings(offset) {
   dumbbellCoreOffset = offset;
   localStorage.setItem("dumbbell_core_offset", offset);
+  syncAllExerciseSetWeights();
+  saveWeightsToStorage();
+  saveDraftToStorage();
   renderWorkout();
   updateSettingsDumbbellModeUI();
 }
@@ -4255,7 +4894,24 @@ function updateSettingsDumbbellModeUI() {
 
 function selectWeight(weight) {
   if (activeModalExKey) {
-    workoutState[activeModalExKey].weight = weight;
+    const s = workoutState[activeModalExKey];
+    if (activeModalSetIdx !== null) {
+      const tiers = getExerciseTierWeights(activeModalExKey);
+      if (weight === tiers.H) {
+        s.setTiers[activeModalSetIdx] = "H";
+      } else if (weight === tiers.M) {
+        s.setTiers[activeModalSetIdx] = "M";
+      } else if (weight === tiers.L) {
+        s.setTiers[activeModalSetIdx] = "L";
+      } else {
+        s.setTiers[activeModalSetIdx] = "C";
+      }
+      s.setWeights[activeModalSetIdx] = weight;
+      syncExerciseSetWeights(activeModalExKey);
+    } else {
+      s.weight = weight;
+      syncExerciseSetWeights(activeModalExKey);
+    }
     draftModified = true;
     isDraftSavedToCloud = false;
     saveWeightsToStorage();
@@ -4268,6 +4924,7 @@ function selectWeight(weight) {
 function closeWeightModal() {
   document.getElementById("weight-modal").classList.remove("open");
   activeModalExKey = null;
+  activeModalSetIdx = null;
 }
 
 // 完了・保存処理 (JSON生成 & 送信)
@@ -4466,38 +5123,49 @@ function saveAndExport() {
       memo: finalMemo
     };
   } else {
+    const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
     routine.pairs.forEach((pair, pIdx) => {
       const symbol = currentRoutineKey === "main" ? (pIdx === 0 ? "①" : "②") : (pIdx === 0 ? "③" : "④");
       [pair.exA, pair.exB].forEach(exDef => {
+        syncExerciseSetWeights(exDef.key);
         const s = workoutState[exDef.key];
         const repsTotal = s.reps.reduce((a, b) => a + b, 0);
         const repsDetails = s.reps.join("/");
+        const loadInfo = formatExerciseLoad(s);
 
-        let loadKg = 0;
-        let loadDetails = "";
-
-        if (s.isPullup) {
-          loadKg = s.weight;
-          loadDetails = s.weight === 0 ? "自重" : `自重+${s.weight}kg`;
-        } else if (s.mode === "×2") {
-          loadKg = s.weight * 2;
-          loadDetails = `${s.weight}kg×2`;
-        } else {
-          loadKg = s.weight;
-          loadDetails = `${s.weight}kg`;
+        let exNotes = "";
+        if (currentRoutineKey === "main") {
+          const tiersStr = Array.isArray(s.setTiers) ? s.setTiers.join("") : "";
+          const isCustomOrMulti = !loadInfo.allSame;
+          if (tiersStr === "MHL") {
+            exNotes = "パターン:山型 (中→重→軽)";
+          } else if (tiersStr === "LMH") {
+            exNotes = "パターン:上昇 (軽→中→重)";
+          } else if (tiersStr === "HML") {
+            exNotes = "パターン:下降 (重→中→軽)";
+          } else if (isCustomOrMulti) {
+            exNotes = `パターン:${pat.name} (セット別重量:${loadInfo.loadDetails})`;
+          } else if (currentLoadPattern === "rep_ramp") {
+            exNotes = `パターン:${pat.name}`;
+          } else if (currentLoadPattern !== "flat") {
+            exNotes = "パターン:標準 (同重量)";
+          }
         }
 
         exercisesData.push({
           exercise: s.name,
-          load_kg: loadKg,
-          load_details: loadDetails,
+          load_kg: loadInfo.loadKg,
+          load_details: loadInfo.loadDetails,
           sets: 3,
           reps_total: repsTotal,
           reps_details: repsDetails,
           target_rir: currentRoutineKey === "sub" ? 3 : 1,
           actual_rir: currentRIR,
           superset_group: symbol,
-          notes: ""
+          load_pattern: currentRoutineKey === "main" ? currentLoadPattern : "flat",
+          set_weights: [...loadInfo.weights],
+          set_tiers: Array.isArray(s.setTiers) ? [...s.setTiers] : ["H", "H", "H"],
+          notes: exNotes
         });
       });
     });
@@ -4507,6 +5175,7 @@ function saveAndExport() {
       date: dateStr,
       created_at: new Date().toISOString(),
       routine_type: routine.name,
+      load_pattern: currentRoutineKey === "main" ? currentLoadPattern : "flat",
       duration_min: duration,
       exercises: exercisesData,
       memo: finalMemo
