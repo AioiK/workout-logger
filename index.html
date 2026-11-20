@@ -614,7 +614,7 @@
   /* Exercise Headers (Weight Selector) */
   .exercise-settings-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
     margin-bottom: 12px;
   }
@@ -624,10 +624,12 @@
     border: 1px solid var(--border-card);
     border-radius: var(--radius-sm);
     padding: 8px;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .ex-name-label {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
@@ -638,28 +640,55 @@
 
   .weight-select-btn {
     width: 100%;
+    min-width: 0;
     background: var(--bg-input);
     border: 1px solid var(--border-card);
     color: var(--color-warning-text);
     padding: 6px 8px;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 4px;
     cursor: pointer;
+  }
+
+  .weight-select-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .weight-select-text > span {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .exercise-tier-summary {
     margin-top: 5px;
-    font-size: 0.67rem;
+    font-size: 0.65rem;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 4px;
     line-height: 1.2;
+    min-width: 0;
+  }
+
+  .exercise-tier-summary > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 
   /* Load Pattern Card (DUP / Pyramid Selector) */
@@ -757,6 +786,7 @@
   .set-ex-wrap {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     gap: 4px;
     min-width: 0;
   }
@@ -776,6 +806,7 @@
     color: var(--text-muted);
     font-size: 0.65rem;
     font-weight: 700;
+    line-height: 1.2;
     text-align: center;
     cursor: pointer;
     touch-action: manipulation;
@@ -805,18 +836,25 @@
 
   .set-weight-chip {
     width: 100%;
+    min-width: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-card);
     border-radius: 6px;
     padding: 3px 6px;
     font-size: 0.68rem;
     font-weight: 700;
+    line-height: 1.2;
     color: var(--text-secondary);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 4px;
     cursor: pointer;
     touch-action: manipulation;
+  }
+
+  .set-weight-chip > span:first-child {
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -872,7 +910,7 @@
 
   .set-inputs-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
   }
 
@@ -4192,20 +4230,17 @@ function renderSetExerciseSlot(ex, setIdx, pairId, isLastExercise, isDone, isNow
   const curWeight = (Array.isArray(s.setWeights) && s.setWeights[setIdx] !== undefined) ? s.setWeights[setIdx] : s.weight;
   const curTier = (Array.isArray(s.setTiers) && s.setTiers[setIdx]) ? s.setTiers[setIdx] : "H";
 
-  let tierBarHtml = "";
-  if (!s.isPullup || s.weight > 0) {
-    const tierDefs = [
-      { key: "L", label: "軽", val: tiers.L },
-      { key: "M", label: "中", val: tiers.M },
-      { key: "H", label: "重", val: tiers.H }
-    ];
-    const btnsHtml = tierDefs.map(td => {
-      const valText = s.isPullup ? (td.val === 0 ? "自" : `+${td.val}`) : `${td.val}`;
-      const activeCls = curTier === td.key ? `active tier-${td.key}` : "";
-      return `<button type="button" class="set-tier-btn ${activeCls}" onclick="setExerciseSetTier('${ex.key}', ${setIdx}, '${td.key}')">${td.label} ${valText}</button>`;
-    }).join("");
-    tierBarHtml = `<div class="set-tier-bar">${btnsHtml}</div>`;
-  }
+  const tierDefs = [
+    { key: "L", label: "軽", val: tiers.L },
+    { key: "M", label: "中", val: tiers.M },
+    { key: "H", label: "重", val: tiers.H }
+  ];
+  const btnsHtml = tierDefs.map(td => {
+    const valText = s.isPullup ? (td.val === 0 ? "自" : `+${td.val}`) : `${td.val}`;
+    const activeCls = curTier === td.key ? `active tier-${td.key}` : "";
+    return `<button type="button" class="set-tier-btn ${activeCls}" onclick="setExerciseSetTier('${ex.key}', ${setIdx}, '${td.key}')">${td.label} ${valText}</button>`;
+  }).join("");
+  const tierBarHtml = `<div class="set-tier-bar">${btnsHtml}</div>`;
 
   let chipLabel = "";
   if (s.isPullup) {
@@ -4380,24 +4415,24 @@ function renderWorkout() {
 
       <div class="exercise-settings-grid">
         <div class="exercise-setting-box">
-          <div class="ex-name-label">${exA.name}（最重量）</div>
+          <div class="ex-name-label">${exA.name}</div>
           <button class="weight-select-btn" onclick="openWeightModal('${exA.key}', null)">
-            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+            <div class="weight-select-text">
               <span>${getWeightDisplayString(exA.key)}</span>
               ${getWeightNominalBadge(exA.key)}
             </div>
-            <span style="margin-left:4px;">▾</span>
+            <span style="flex-shrink:0;">▾</span>
           </button>
           ${getTierSummaryHtml(exA.key)}
         </div>
         <div class="exercise-setting-box">
-          <div class="ex-name-label">${exB.name}（最重量）</div>
+          <div class="ex-name-label">${exB.name}</div>
           <button class="weight-select-btn" onclick="openWeightModal('${exB.key}', null)">
-            <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+            <div class="weight-select-text">
               <span>${getWeightDisplayString(exB.key)}</span>
               ${getWeightNominalBadge(exB.key)}
             </div>
-            <span style="margin-left:4px;">▾</span>
+            <span style="flex-shrink:0;">▾</span>
           </button>
           ${getTierSummaryHtml(exB.key)}
         </div>
