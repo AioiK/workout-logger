@@ -1331,6 +1331,10 @@
     display: inline-block;
     font-weight: 600;
   }
+  .last-rep-badge.est {
+    color: var(--color-cool);
+    background: var(--color-cool-subtle);
+  }
 
   /* History Log in Settings Modal */
   .history-item {
@@ -2492,6 +2496,202 @@ let currentLoadPattern = localStorage.getItem("workout_load_pattern_v1") || "fla
 if (!LOAD_PATTERNS[currentLoadPattern]) currentLoadPattern = "flat";
 let currentCardioRPE = "optimal"; // easy | optimal | hard
 let lastSavedReps = {}; // { [exKey]: [r1, r2, r3] }
+let maxRepsByWeight = {}; // { [exKey]: { [weightKey]: number } }
+
+const DEFAULT_MAX_REPS_SEED = {
+  pullup: { "0": 14 },
+  squat: { "14": 20, "18": 15, "21": 12 },
+  floorpress: { "14": 20, "18": 17, "21": 12 },
+  rdl: { "18": 17, "23": 16, "25": 15 }
+};
+
+const EXERCISE_NAME_TO_KEY = {
+  "懸垂": "pullup",
+  "ダンベルスクワット": "squat",
+  "ダンベルフロアプレス": "floorpress",
+  "両脚ダンベルRDL": "rdl"
+};
+
+function recordMaxRepCandidate(targetMap, exKey, weight, reps) {
+  if (!targetMap || !exKey) return;
+  const wNum = Number(weight);
+  const rNum = Number(reps);
+  if (isNaN(wNum) || wNum < 0 || isNaN(rNum) || rNum <= 0) return;
+  const wKey = String(wNum);
+  if (!targetMap[exKey]) targetMap[exKey] = {};
+  if (!targetMap[exKey][wKey] || rNum > targetMap[exKey][wKey]) {
+    targetMap[exKey][wKey] = rNum;
+  }
+}
+
+function parseWeightsFromLoadDetails(loadDetails) {
+  if (!loadDetails || typeof loadDetails !== "string") return null;
+  const trimmed = loadDetails.trim();
+  if (!trimmed) return null;
+  const parsePart = (part) => {
+    const p = part.trim();
+    if (p === "自重") return 0;
+    const m = p.match(/(\d+(?:\.\d+)?)/);
+    return m ? Number(m[1]) : null;
+  };
+  if (trimmed.includes("/")) {
+    const parts = trimmed.split("/");
+    const parsed = parts.map(parsePart);
+    if (parsed.length === 3 && parsed.every(v => v !== null && !isNaN(v))) {
+      return parsed;
+    }
+  } else {
+    const single = parsePart(trimmed);
+    if (single !== null && !isNaN(single)) {
+      return [single, single, single];
+    }
+  }
+  return null;
+}
+
+function initMaxRepsFromStorage(parsedWeights = {}, parsedSetWeights = {}, lastReps = {}) {
+  const merged = {};
+  Object.keys(DEFAULT_MAX_REPS_SEED).forEach(exKey => {
+    merged[exKey] = { ...DEFAULT_MAX_REPS_SEED[exKey] };
+  });
+
+  try {
+    const savedMax = localStorage.getItem("workout_max_reps_v1");
+    if (savedMax) {
+      const parsed = JSON.parse(savedMax);
+      if (parsed && typeof parsed === "object") {
+        Object.keys(parsed).forEach(exKey => {
+          const wMap = parsed[exKey];
+          if (wMap && typeof wMap === "object") {
+            Object.keys(wMap).forEach(wKey => {
+              recordMaxRepCandidate(merged, exKey, wKey, wMap[wKey]);
+            });
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const rawHistory = localStorage.getItem("workout_history_v1");
+    if (rawHistory) {
+      const history = JSON.parse(rawHistory);
+      if (Array.isArray(history)) {
+        history.forEach(item => {
+          if (!item || !Array.isArray(item.exercises)) return;
+          item.exercises.forEach(e => {
+            const exKey = EXERCISE_NAME_TO_KEY[e.exercise];
+            if (!exKey) return;
+            const repsArr = String(e.reps_details || "").split("/").map(n => parseInt(n, 10));
+            if (repsArr.length !== 3 || repsArr.some(n => isNaN(n))) return;
+            let weightsArr = null;
+            if (Array.isArray(e.set_weights) && e.set_weights.length === 3) {
+              weightsArr = e.set_weights.map(w => Number(w));
+            } else {
+              weightsArr = parseWeightsFromLoadDetails(e.load_details);
+            }
+            if (!weightsArr || weightsArr.length !== 3) return;
+            for (let i = 0; i < 3; i++) {
+              recordMaxRepCandidate(merged, exKey, weightsArr[i], repsArr[i]);
+            }
+          });
+        });
+      }
+    }
+  } catch (e) {}
+
+  if (lastReps && typeof lastReps === "object") {
+    Object.keys(lastReps).forEach(exKey => {
+      const rArr = lastReps[exKey];
+      if (!Array.isArray(rArr) || rArr.length !== 3) return;
+      const swArr = parsedSetWeights && Array.isArray(parsedSetWeights[exKey]) && parsedSetWeights[exKey].length === 3
+        ? parsedSetWeights[exKey]
+        : null;
+      const baseW = parsedWeights && parsedWeights[exKey] !== undefined ? parsedWeights[exKey] : undefined;
+      for (let i = 0; i < 3; i++) {
+        const w = swArr ? swArr[i] : baseW;
+        if (w !== undefined) {
+          recordMaxRepCandidate(merged, exKey, w, rArr[i]);
+        }
+      }
+    });
+  }
+
+  maxRepsByWeight = merged;
+  try {
+    localStorage.setItem("workout_max_reps_v1", JSON.stringify(maxRepsByWeight));
+  } catch (e) {}
+}
+
+function getTargetRepInfoForWeight(exKey, weight) {
+  const wNum = Number(weight) || 0;
+  const wKey = String(wNum);
+  const wMap = maxRepsByWeight[exKey];
+  if (wMap && wMap[wKey] > 0) {
+    const recordedMax = wMap[wKey];
+    return { reps: recordedMax, isEstimated: false, badgeText: `最高:${recordedMax}` };
+  }
+
+  const entries = wMap
+    ? Object.entries(wMap)
+        .map(([k, v]) => [Number(k), Number(v)])
+        .filter(([w0, r0]) => !isNaN(w0) && !isNaN(r0) && r0 > 0)
+    : [];
+
+  if (entries.length > 0) {
+    let bestEntry = entries[0];
+    let bestDiff = Math.abs(bestEntry[0] - wNum);
+    for (let i = 1; i < entries.length; i++) {
+      const diff = Math.abs(entries[i][0] - wNum);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestEntry = entries[i];
+      }
+    }
+    const [w0, r0] = bestEntry;
+    const isPullup = (exKey === "pullup") || !!(workoutState[exKey] && workoutState[exKey].isPullup);
+    const eff0 = isPullup ? (63 + w0) : Math.max(1, w0);
+    const effTarget = isPullup ? (63 + wNum) : Math.max(1, wNum);
+    const oneRm = eff0 * (1 + r0 / 30);
+    let est = Math.round(30 * (oneRm / effTarget - 1));
+    if (effTarget > eff0 && est >= r0) {
+      est = r0 - 1;
+    } else if (effTarget < eff0 && est <= r0) {
+      est = r0 + 1;
+    }
+    est = Math.max(1, Math.min(30, est));
+    return { reps: est, isEstimated: true, badgeText: `目安:${est}` };
+  }
+
+  return { reps: 12, isEstimated: true, badgeText: "目安:12" };
+}
+
+function getRecommendedSetRep(exKey, setIdx, weight, patternKey = currentLoadPattern) {
+  const baseReps = getTargetRepInfoForWeight(exKey, weight).reps;
+  if (patternKey === "rep_ramp") {
+    if (setIdx === 0) return Math.max(1, Math.round(baseReps * 0.6));
+    if (setIdx === 1) return Math.max(1, Math.round(baseReps * 0.75));
+  }
+  return baseReps;
+}
+
+function syncExerciseRepsWithWeights(exKey, targetSetIdx = null) {
+  const s = workoutState[exKey];
+  if (!s) return;
+  if (typeof targetSetIdx === "number" && targetSetIdx >= 0 && targetSetIdx <= 2) {
+    if (!completedSets[`${exKey}_${targetSetIdx}`]) {
+      const w = (Array.isArray(s.setWeights) && s.setWeights[targetSetIdx] !== undefined) ? s.setWeights[targetSetIdx] : s.weight;
+      s.reps[targetSetIdx] = getTargetRepInfoForWeight(exKey, w).reps;
+    }
+    return;
+  }
+  for (let i = 0; i < 3; i++) {
+    if (!completedSets[`${exKey}_${i}`]) {
+      const w = (Array.isArray(s.setWeights) && s.setWeights[i] !== undefined) ? s.setWeights[i] : s.weight;
+      s.reps[i] = getRecommendedSetRep(exKey, i, w, currentLoadPattern);
+    }
+  }
+}
 let workoutState = {}; // { [exKey]: { weight: number, setTiers: [t1, t2, t3], setWeights: [w1, w2, w3], reps: [r1, r2, r3], mode: string } }
 let completedSets = {}; // { [`${exKey}_${setIdx}`]: boolean }
 let activeModalExKey = null;
@@ -3872,6 +4072,8 @@ function loadStateFromStorage() {
     lastSavedReps = {};
   }
 
+  initMaxRepsFromStorage(parsedWeights, parsedSetWeights, lastSavedReps);
+
   const defaultPatTiers = (LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat).tiers;
 
   // 全種目の基準状態を構築
@@ -3894,6 +4096,9 @@ function loadStateFromStorage() {
           isPullup: !!ex.isPullup
         };
         syncExerciseSetWeights(ex.key);
+        workoutState[ex.key].reps = [0, 1, 2].map(i =>
+          getRecommendedSetRep(ex.key, i, workoutState[ex.key].setWeights[i], currentLoadPattern)
+        );
       });
     });
   });
@@ -3984,11 +4189,22 @@ function saveWeightsToStorage() {
 function saveStateToStorage() {
   saveWeightsToStorage();
   const repsOnly = {};
+  const hasAnyChecked = Object.keys(completedSets).some(k => completedSets[k]);
   for (let k in workoutState) {
     repsOnly[k] = [...workoutState[k].reps];
+    for (let i = 0; i < 3; i++) {
+      if (hasAnyChecked && !completedSets[`${k}_${i}`]) continue;
+      const w = (Array.isArray(workoutState[k].setWeights) && workoutState[k].setWeights[i] !== undefined)
+        ? workoutState[k].setWeights[i]
+        : workoutState[k].weight;
+      recordMaxRepCandidate(maxRepsByWeight, k, w, workoutState[k].reps[i]);
+    }
   }
   localStorage.setItem("workout_last_reps_v1", JSON.stringify(repsOnly));
   lastSavedReps = JSON.parse(JSON.stringify(repsOnly));
+  try {
+    localStorage.setItem("workout_max_reps_v1", JSON.stringify(maxRepsByWeight));
+  } catch (e) {}
 }
 
 // 設定画面から本日の入力・チェック状態を手動リセットする機能
@@ -4016,21 +4232,13 @@ function resetTodayDraftManual() {
   setRIR(1, false);
   setCardioRPE("optimal", false);
 
-  const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
   ["main"].forEach(rKey => {
     if (!ROUTINES[rKey] || !ROUTINES[rKey].pairs) return;
     ROUTINES[rKey].pairs.forEach(p => {
       [p.exA, p.exB].forEach(ex => {
-        const lastR = lastSavedReps[ex.key];
         if (workoutState[ex.key]) {
-          if (currentLoadPattern === "flat") {
-            workoutState[ex.key].reps = (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps];
-          } else if (pat.defaultReps && pat.defaultReps[ex.key]) {
-            workoutState[ex.key].reps = [...pat.defaultReps[ex.key]];
-          } else {
-            workoutState[ex.key].reps = (lastR && Array.isArray(lastR) && lastR.length === 3) ? [...lastR] : [...ex.defaultReps];
-          }
           syncExerciseSetWeights(ex.key);
+          syncExerciseRepsWithWeights(ex.key, null);
         }
       });
     });
@@ -4145,15 +4353,11 @@ function setLoadPattern(patternKey, applyReps = true) {
         for (let setIdx = 0; setIdx < 3; setIdx++) {
           if (completedSets[`${ex.key}_${setIdx}`]) continue;
           s.setTiers[setIdx] = pat.tiers[setIdx];
-          if (applyReps) {
-            if (patternKey === "flat" && lastSavedReps[ex.key] && Array.isArray(lastSavedReps[ex.key]) && lastSavedReps[ex.key].length === 3) {
-              s.reps[setIdx] = lastSavedReps[ex.key][setIdx];
-            } else if (pat.defaultReps && pat.defaultReps[ex.key]) {
-              s.reps[setIdx] = pat.defaultReps[ex.key][setIdx];
-            }
-          }
         }
         syncExerciseSetWeights(ex.key);
+        if (applyReps) {
+          syncExerciseRepsWithWeights(ex.key, null);
+        }
       });
     });
   }
@@ -4166,20 +4370,12 @@ function setLoadPattern(patternKey, applyReps = true) {
 }
 
 function applyPatternDefaultReps() {
-  const pat = LOAD_PATTERNS[currentLoadPattern] || LOAD_PATTERNS.flat;
   if (ROUTINES.main && ROUTINES.main.pairs) {
     ROUTINES.main.pairs.forEach(pair => {
       [pair.exA, pair.exB].forEach(ex => {
-        const s = workoutState[ex.key];
-        if (!s) return;
-        for (let setIdx = 0; setIdx < 3; setIdx++) {
-          if (completedSets[`${ex.key}_${setIdx}`]) continue;
-          if (currentLoadPattern === "flat" && lastSavedReps[ex.key] && Array.isArray(lastSavedReps[ex.key]) && lastSavedReps[ex.key].length === 3) {
-            s.reps[setIdx] = lastSavedReps[ex.key][setIdx];
-          } else if (pat.defaultReps && pat.defaultReps[ex.key]) {
-            s.reps[setIdx] = pat.defaultReps[ex.key][setIdx];
-          }
-        }
+        if (!workoutState[ex.key]) return;
+        syncExerciseSetWeights(ex.key);
+        syncExerciseRepsWithWeights(ex.key, null);
       });
     });
   }
@@ -4197,6 +4393,7 @@ function setExerciseSetTier(exKey, setIdx, tierKey) {
   if (navigator.vibrate) navigator.vibrate(15);
   s.setTiers[setIdx] = tierKey;
   syncExerciseSetWeights(exKey);
+  syncExerciseRepsWithWeights(exKey, setIdx);
   draftModified = true;
   isDraftSavedToCloud = false;
   saveWeightsToStorage();
@@ -4212,6 +4409,7 @@ function applyExerciseTiers(exKey, tiersArray) {
     s.setTiers[setIdx] = tiersArray[setIdx];
   }
   syncExerciseSetWeights(exKey);
+  syncExerciseRepsWithWeights(exKey, null);
   draftModified = true;
   isDraftSavedToCloud = false;
   saveWeightsToStorage();
@@ -4225,9 +4423,9 @@ function applyExerciseTiers(exKey, tiersArray) {
 function renderSetExerciseSlot(ex, setIdx, pairId, isLastExercise, isDone, isNow) {
   const s = workoutState[ex.key];
   const rep = s.reps[setIdx];
-  const lastRep = (lastSavedReps[ex.key] && lastSavedReps[ex.key][setIdx] !== undefined) ? lastSavedReps[ex.key][setIdx] : null;
   const tiers = getExerciseTierWeights(ex.key);
   const curWeight = (Array.isArray(s.setWeights) && s.setWeights[setIdx] !== undefined) ? s.setWeights[setIdx] : s.weight;
+  const repInfo = getTargetRepInfoForWeight(ex.key, curWeight);
   const curTier = (Array.isArray(s.setTiers) && s.setTiers[setIdx]) ? s.setTiers[setIdx] : "H";
 
   const tierDefs = [
@@ -4266,7 +4464,7 @@ function renderSetExerciseSlot(ex, setIdx, pairId, isLastExercise, isDone, isNow
         <div class="stepper-val" onclick="promptReps('${ex.key}', ${setIdx})">
           ${rep}
           <span class="stepper-sub">${ex.name.slice(0, 4)}</span>
-          ${lastRep !== null ? `<span class="last-rep-badge">前:${lastRep}</span>` : ''}
+          <span class="last-rep-badge ${repInfo.isEstimated ? 'est' : ''}">${repInfo.badgeText}</span>
         </div>
         <button class="stepper-btn" onclick="adjustReps('${ex.key}', ${setIdx}, +1)">＋</button>
         <button class="check-btn ${isDone ? 'checked' : ''}" onclick="toggleCheck('${ex.key}', ${setIdx}, '${pairId}', ${isLastExercise})" title="完了チェック">
@@ -4895,6 +5093,9 @@ function setDumbbellMode(offset) {
   dumbbellCoreOffset = offset;
   localStorage.setItem("dumbbell_core_offset", offset);
   syncAllExerciseSetWeights();
+  for (const exKey in workoutState) {
+    syncExerciseRepsWithWeights(exKey, null);
+  }
   saveWeightsToStorage();
   saveDraftToStorage();
   renderWorkout();
@@ -4907,6 +5108,9 @@ function setDumbbellModeFromSettings(offset) {
   dumbbellCoreOffset = offset;
   localStorage.setItem("dumbbell_core_offset", offset);
   syncAllExerciseSetWeights();
+  for (const exKey in workoutState) {
+    syncExerciseRepsWithWeights(exKey, null);
+  }
   saveWeightsToStorage();
   saveDraftToStorage();
   renderWorkout();
@@ -4943,9 +5147,11 @@ function selectWeight(weight) {
       }
       s.setWeights[activeModalSetIdx] = weight;
       syncExerciseSetWeights(activeModalExKey);
+      syncExerciseRepsWithWeights(activeModalExKey, activeModalSetIdx);
     } else {
       s.weight = weight;
       syncExerciseSetWeights(activeModalExKey);
+      syncExerciseRepsWithWeights(activeModalExKey, null);
     }
     draftModified = true;
     isDraftSavedToCloud = false;
