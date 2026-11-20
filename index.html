@@ -1696,7 +1696,7 @@
   <!-- ステータスバー -->
   <div class="stretch-quick-card">
     <div class="stretch-quick-header" style="margin-bottom:0;">
-      <div class="stretch-badge-moon" id="stretch-badge-moon">🌙 就寝前リセット（約10分）</div>
+      <div class="stretch-badge-moon" id="stretch-badge-moon">🌙 就寝前リセット（約8分）</div>
       <div id="stretch-status-badge" class="stretch-status-badge">未実施</div>
     </div>
     <div class="pf-inline-bar" id="pf-inline-bar">
@@ -1707,12 +1707,18 @@
       <button type="button" class="pf-inline-btn" id="pf-inline-3" onclick="setPelvicFloorFromBar(3)">S3 立位</button>
       <button type="button" class="pf-inline-btn" id="pf-inline-4" onclick="setPelvicFloorFromBar(4)">S4 動作中</button>
     </div>
+    <div class="pf-inline-bar" style="justify-content:space-between; margin-top:8px; padding-top:8px;">
+      <span class="pf-inline-label">進行モード:</span>
+      <button type="button" class="pf-inline-btn active" id="stretch-auto-next-btn" onclick="toggleStretchAutoNext()" style="flex:0 0 auto; padding:5px 10px;">
+        🔄 連続オート進行: ON
+      </button>
+    </div>
   </div>
 
   <!-- プレイヤーカード -->
   <div class="stretch-card" id="stretch-player-card">
     <div class="stretch-card-top">
-      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/10</span>
+      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/7</span>
       <span class="stretch-phase-tag" id="stretch-phase-tag">立位</span>
     </div>
 
@@ -1731,7 +1737,7 @@
       🔔 体勢を整えてスタートを押してください (3秒準備)
     </div>
 
-    <!-- 骨盤底ブロック: 締める／緩める 交互キュー（cycle種目のみ表示） -->
+    <!-- 骨盤底ブロック / 連続種目キュー表示 -->
     <div class="pf-cycle-display" id="pf-cycle-display">
       <div class="pf-cycle-phase idle" id="pf-cycle-phase">締める ／ 緩める</div>
       <div class="pf-cycle-meta" id="pf-cycle-meta"></div>
@@ -1748,7 +1754,7 @@
     </div>
 
     <div class="stretch-next-preview" id="stretch-next-preview">
-      <span>NEXT:</span> <span id="stretch-next-name">ローランジ (片膝立ち)</span>
+      <span>NEXT:</span> <span id="stretch-next-name">ローランジ＆ハーフスプリット連続 (片膝立ち・前後連続)</span>
     </div>
 
     <div class="stretch-instruction-box" id="stretch-instruction-box">
@@ -1756,11 +1762,11 @@
     </div>
   </div>
 
-  <!-- 全10種目シークエンス・リスト -->
+  <!-- 全7種目シークエンス・リスト -->
   <div class="stretch-list-card">
     <div class="stretch-list-title">
       <span>全身ストレッチ シークエンス</span>
-      <span class="stretch-total-time" id="stretch-total-time">全10種目 / 立位→就寝フロー</span>
+      <span class="stretch-total-time" id="stretch-total-time">全7種目 / 立位→就寝フロー</span>
     </div>
     <div class="stretch-items-container" id="stretch-items-container">
       <!-- JSで動的に一覧描画 -->
@@ -1911,9 +1917,9 @@
       </div>
     </div>
     <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-card);">
-      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">🌙 夜ストレッチ：骨盤底ブロック</label>
+      <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px;">🌙 夜ストレッチ：骨盤底ブロック・連続進行</label>
       <div class="pf-setting-row">
-        <span>骨盤底ブロックを追加（冒頭に配置）</span>
+        <span>骨盤底ブロックを追加（S1/S2:末尾・S3/S4:冒頭に自動配置）</span>
         <input type="checkbox" id="setting-pf-enabled" onchange="onPelvicFloorEnabledChange(this.checked)">
       </div>
       <div class="pf-stage-grid">
@@ -1921,6 +1927,10 @@
         <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-2" onclick="setPelvicFloorStage(2)"><span>ステージ2</span><small>3〜4週 座位＋橋 (8秒×10)</small></button>
         <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-3" onclick="setPelvicFloorStage(3)"><span>ステージ3</span><small>5〜8週 立位＋連動 (10秒×10)</small></button>
         <button type="button" class="dumbbell-mode-btn" id="setting-pf-stage-4" onclick="setPelvicFloorStage(4)"><span>ステージ4</span><small>9〜12週 立位・動作中 (10秒×12)</small></button>
+      </div>
+      <div class="pf-setting-row">
+        <span>🔄 種目間を自動で次へ進む（5秒切替準備）</span>
+        <input type="checkbox" id="setting-stretch-auto-next" onchange="setStretchAutoNext(this.checked)">
       </div>
       <div class="pf-setting-row">
         <span>🔔 締める／緩めるの合図音（毎秒カウント）</span>
@@ -1932,7 +1942,7 @@
       </div>
       <button type="button" class="modal-close-btn" style="background:var(--bg-card-sub); border:1px solid var(--border-card);" onclick="testPelvicFloorCue()">▲▽ 合図テスト（締める→緩める）</button>
       <span style="font-size:0.7rem; color:var(--text-secondary); display:block; margin-top:6px; line-height:1.4;">
-        ※ ステージに応じて姿勢（仰向け→座位→立位→動作中）と種目・回数が段階的に進みます。痛みや違和感がある場合は中止してください。<br>
+        ※ ステージに応じて姿勢（S3/S4立位は冒頭、S1/S2仰向け系は末尾）と種目・回数が進みます。痛みや違和感がある場合は中止してください。<br>
         ※ 夜ストレッチの進行中に変更すると、進捗をリセットして反映します。
       </span>
     </div>
@@ -2088,6 +2098,8 @@ let activeModalExKey = null;
 let workoutStartTime = null;
 let isDraftSavedToCloud = false;
 let draftModified = false;
+let lastCloudSavedAt = 0;
+let nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
 let manualDateOverride = false;
 let manualDateSetDay = null;
 let pendingAppUpdateVersion = null;
@@ -2215,61 +2227,140 @@ function setAmbientAudioSession() {
   }
 }
 
-// ロー・ゴング / パワーコード風の終了音（A2-A3-E4-A4 2連打）をWeb Audio APIで合成再生
+// ロー・ゴング / パワーコード風の終了音（A2-A3-E4-A4 2連打）定義
 const ALARM_GONG_STRIKES = [
   { start: 0.00, dur: 0.18, amp: 0.62, cutoffStart: 1350, cutoffEnd: 340, includeSub: false },
   { start: 0.21, dur: 0.95, amp: 0.90, cutoffStart: 1900, cutoffEnd: 380, includeSub: true }
 ];
 
-function scheduleGongStrike(audioCtx, destNode, baseTime, strike) {
-  const t0 = baseTime + strike.start;
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.Q.setValueAtTime(1.8, t0);
-  filter.frequency.setValueAtTime(strike.cutoffStart, t0);
-  filter.frequency.exponentialRampToValueAtTime(strike.cutoffEnd, t0 + strike.dur * 0.55);
+// アラーム音用の事前アンロックAudioContext（BGMのAudioFocusを奪わないよう<audio>要素やMediaSessionは使わない）
+let alarmAudioCtx = null;
+let cachedAlarmAudioBuffer = null;
+let cachedAlarmSampleRate = 0;
+let cachedKeepAliveAudioBuffer = null;
+let cachedTriggerAudioBuffer = null;
+let scheduledAlarmGraph = {
+  keepAliveNode: null,
+  alarmNode: null,
+  triggerNode: null,
+  alarmGainNode: null,
+  token: 0,
+  alarmStartCtxTime: 0,
+  alarmEndCtxTime: 0
+};
+let pendingRestTimerGestureRebind = false;
 
-  const strikeGain = audioCtx.createGain();
-  strikeGain.gain.setValueAtTime(0.0001, t0);
-  strikeGain.gain.linearRampToValueAtTime(strike.amp, t0 + 0.008);
-  strikeGain.gain.exponentialRampToValueAtTime(0.0005, t0 + strike.dur);
+function buildGongAudioBuffer(audioCtx) {
+  const sr = audioCtx.sampleRate || 48000;
+  const durationSec = 1.35;
+  const numSamples = Math.ceil(sr * durationSec);
+  const buffer = audioCtx.createBuffer(1, numSamples, sr);
+  const data = buffer.getChannelData(0);
 
-  filter.connect(strikeGain);
-  strikeGain.connect(destNode);
-
-  const voices = [
+  const voiceDefs = [
     { type: "sawtooth", freq: 220.00, gainScale: 0.34, durScale: 1.0,  pitchDrop: true }, // A3
     { type: "sawtooth", freq: 329.63, gainScale: 0.25, durScale: 0.88, pitchDrop: true }, // E4
     { type: "triangle", freq: 440.00, gainScale: 0.14, durScale: 0.65, pitchDrop: false } // A4（スマホスピーカーでの視認性用）
   ];
-  if (strike.includeSub) {
-    voices.push({ type: "sine", freq: 110.00, gainScale: 0.30, durScale: 0.92, pitchDrop: false }); // A2（低域の厚み）
-  }
 
-  voices.forEach(v => {
-    const osc = audioCtx.createOscillator();
-    const vGain = audioCtx.createGain();
-    const voiceDur = strike.dur * v.durScale;
-    osc.type = v.type;
-    if (v.pitchDrop) {
-      osc.frequency.setValueAtTime(v.freq * 1.025, t0);
-      osc.frequency.exponentialRampToValueAtTime(v.freq, t0 + 0.035);
-    } else {
-      osc.frequency.setValueAtTime(v.freq, t0);
+  ALARM_GONG_STRIKES.forEach(strike => {
+    const startSample = Math.floor(strike.start * sr);
+    const strikeSamples = Math.min(numSamples - startSample, Math.ceil(strike.dur * sr));
+    if (strikeSamples <= 0) return;
+
+    const voices = strike.includeSub
+      ? [...voiceDefs, { type: "sine", freq: 110.00, gainScale: 0.30, durScale: 0.92, pitchDrop: false }]
+      : voiceDefs;
+
+    const phases = voices.map(() => 0);
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    const Q = 1.8;
+    const cutoffSweepDur = strike.dur * 0.55;
+
+    for (let i = 0; i < strikeSamples; i++) {
+      const dt = i / sr;
+      let mix = 0;
+
+      for (let vIdx = 0; vIdx < voices.length; vIdx++) {
+        const v = voices[vIdx];
+        const voiceDur = strike.dur * v.durScale;
+        if (dt > voiceDur) continue;
+
+        let instFreq = v.freq;
+        if (v.pitchDrop && dt < 0.035) {
+          instFreq = v.freq * Math.pow(1.025, 1 - dt / 0.035);
+        }
+        phases[vIdx] = (phases[vIdx] + instFreq / sr) % 1;
+        const p = phases[vIdx];
+
+        let wave = 0;
+        if (v.type === "sawtooth") {
+          wave = 2 * p - 1;
+        } else if (v.type === "triangle") {
+          wave = 1 - 4 * Math.abs(p - 0.5);
+        } else {
+          wave = Math.sin(2 * Math.PI * p);
+        }
+
+        const vGain = v.gainScale * Math.pow(0.001 / v.gainScale, dt / voiceDur);
+        mix += wave * vGain;
+      }
+
+      const fc = dt < cutoffSweepDur
+        ? strike.cutoffStart * Math.pow(strike.cutoffEnd / strike.cutoffStart, dt / cutoffSweepDur)
+        : strike.cutoffEnd;
+      const w0 = 2 * Math.PI * Math.min(fc, sr * 0.45) / sr;
+      const cosW0 = Math.cos(w0);
+      const alpha = Math.sin(w0) / (2 * Q);
+      const a0 = 1 + alpha;
+      const b0 = (1 - cosW0) * 0.5;
+      const b1 = 1 - cosW0;
+      const b2 = b0;
+      const a1 = -2 * cosW0;
+      const a2 = 1 - alpha;
+
+      const filtered = (b0 * mix + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2) / a0;
+      x2 = x1; x1 = mix;
+      y2 = y1; y1 = filtered;
+
+      let env = 0;
+      if (dt < 0.008) {
+        env = strike.amp * (dt / 0.008);
+      } else {
+        env = strike.amp * Math.pow(0.0005 / strike.amp, (dt - 0.008) / Math.max(0.01, strike.dur - 0.008));
+      }
+
+      const outIdx = startSample + i;
+      data[outIdx] = Math.max(-1, Math.min(1, data[outIdx] + filtered * env));
     }
-    vGain.gain.setValueAtTime(v.gainScale, t0);
-    vGain.gain.exponentialRampToValueAtTime(0.001, t0 + voiceDur);
-    osc.connect(vGain);
-    vGain.connect(filter);
-    osc.start(t0);
-    osc.stop(t0 + voiceDur + 0.02);
   });
+
+  return buffer;
 }
 
-// アラーム音用の事前アンロックAudioContext（BGMのAudioFocusを奪わないよう<audio>要素やMediaSessionは使わない）
-let alarmAudioCtx = null;
-let alarmKeepAliveOsc = null;
-let alarmKeepAliveGain = null;
+function ensureAlarmAudioBuffers(audioCtx) {
+  const sr = audioCtx.sampleRate || 48000;
+  if (cachedAlarmAudioBuffer && cachedKeepAliveAudioBuffer && cachedTriggerAudioBuffer && cachedAlarmSampleRate === sr) {
+    return;
+  }
+  cachedAlarmSampleRate = sr;
+  cachedAlarmAudioBuffer = buildGongAudioBuffer(audioCtx);
+
+  // SilentSinkSuspender（16bitゼロ丸め判定）を確実に回避しつつ完全無音（-55dBFS）を保つ4秒ループバッファ
+  const kaSamples = sr * 4;
+  cachedKeepAliveAudioBuffer = audioCtx.createBuffer(1, kaSamples, sr);
+  const kaData = cachedKeepAliveAudioBuffer.getChannelData(0);
+  for (let i = 0; i < kaSamples; i++) {
+    kaData[i] = Math.sin(2 * Math.PI * 18 * (i / sr)) * 0.0014 + ((i % 2 === 0 ? 1 : -1) * 0.0004);
+  }
+
+  // C++オーディオスレッドからジャストタイムでJSメインスレッドを起床させるonendedトリガー用バッファ
+  cachedTriggerAudioBuffer = audioCtx.createBuffer(1, 128, sr);
+  const trigData = cachedTriggerAudioBuffer.getChannelData(0);
+  for (let i = 0; i < 128; i++) {
+    trigData[i] = (i % 2 === 0 ? 1 : -1) * 0.0004;
+  }
+}
 
 function clearAlarmSuspendTimer() {
   if (alarmSuspendTimerId) {
@@ -2278,46 +2369,122 @@ function clearAlarmSuspendTimer() {
   }
 }
 
-function preloadAlarmAudio(keepRunning = true) {
+function cancelScheduledAlarmGraph() {
+  scheduledAlarmGraph.token++;
+  [scheduledAlarmGraph.triggerNode, scheduledAlarmGraph.alarmNode, scheduledAlarmGraph.keepAliveNode].forEach(node => {
+    if (!node) return;
+    try { node.onended = null; } catch (e) {}
+    try { node.stop(); } catch (e) {}
+    try { node.disconnect(); } catch (e) {}
+  });
+  if (scheduledAlarmGraph.alarmGainNode) {
+    try { scheduledAlarmGraph.alarmGainNode.disconnect(); } catch (e) {}
+  }
+  scheduledAlarmGraph.keepAliveNode = null;
+  scheduledAlarmGraph.alarmNode = null;
+  scheduledAlarmGraph.triggerNode = null;
+  scheduledAlarmGraph.alarmGainNode = null;
+  scheduledAlarmGraph.alarmStartCtxTime = 0;
+  scheduledAlarmGraph.alarmEndCtxTime = 0;
+}
+
+function getOrCreateAlarmAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
+    alarmAudioCtx = new AudioContextClass();
+    cachedAlarmSampleRate = 0;
+  }
+  return alarmAudioCtx;
+}
+
+function scheduleHardwareAlarm(durationSec) {
   try {
     setAmbientAudioSession();
     clearAlarmSuspendTimer();
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
-      alarmAudioCtx = new AudioContextClass();
-      alarmKeepAliveOsc = null;
-      alarmKeepAliveGain = null;
+    cancelScheduledAlarmGraph();
+
+    const ctx = getOrCreateAlarmAudioContext();
+    if (!ctx) return false;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
     }
-    if (alarmAudioCtx.state === "suspended") {
-      alarmAudioCtx.resume().catch(() => {});
+    ensureAlarmAudioBuffers(ctx);
+
+    const token = ++scheduledAlarmGraph.token;
+    const nowCtx = ctx.currentTime;
+    const delaySec = Math.max(0.05, Number(durationSec) || 0.05);
+    const alarmStart = nowCtx + delaySec;
+    const alarmDur = cachedAlarmAudioBuffer.duration;
+    const alarmEnd = alarmStart + alarmDur;
+
+    // 1. 物理オーディオシンク維持用（BGM非干渉）
+    const keepAliveNode = ctx.createBufferSource();
+    keepAliveNode.buffer = cachedKeepAliveAudioBuffer;
+    keepAliveNode.loop = true;
+    keepAliveNode.connect(ctx.destination);
+    keepAliveNode.start(nowCtx);
+    keepAliveNode.stop(alarmEnd + 0.15);
+
+    // 2. 終了ゴング波形をC++ Audio Render Threadへ事前予約（JS凍結時もジャストタイムで直接鳴動）
+    const alarmNode = ctx.createBufferSource();
+    const alarmGainNode = ctx.createGain();
+    alarmNode.buffer = cachedAlarmAudioBuffer;
+    alarmGainNode.gain.setValueAtTime(0.88, nowCtx);
+    alarmNode.connect(alarmGainNode);
+    alarmGainNode.connect(ctx.destination);
+    alarmNode.start(alarmStart);
+    alarmNode.onended = () => {
+      if (scheduledAlarmGraph.token !== token) return;
+      cancelScheduledAlarmGraph();
+      if (!checkAnyTimerRunning()) {
+        stopBackgroundKeepAlive(true);
+        releaseWakeLock();
+      }
+    };
+
+    // 3. オーディオスレッドからジャストタイムでJS側を起床させるトリガー
+    const triggerNode = ctx.createBufferSource();
+    triggerNode.buffer = cachedTriggerAudioBuffer;
+    triggerNode.loop = true;
+    triggerNode.connect(ctx.destination);
+    triggerNode.start(nowCtx);
+    triggerNode.stop(alarmStart);
+    triggerNode.onended = () => {
+      if (scheduledAlarmGraph.token !== token) return;
+      if (activeTimer.targetTime && !activeTimer.wasFinished) {
+        onTimerFinished({ hardwareAudioAlreadyTriggered: true });
+      }
+    };
+
+    scheduledAlarmGraph.keepAliveNode = keepAliveNode;
+    scheduledAlarmGraph.alarmNode = alarmNode;
+    scheduledAlarmGraph.triggerNode = triggerNode;
+    scheduledAlarmGraph.alarmGainNode = alarmGainNode;
+    scheduledAlarmGraph.alarmStartCtxTime = alarmStart;
+    scheduledAlarmGraph.alarmEndCtxTime = alarmEnd;
+    return true;
+  } catch (e) {
+    console.warn("scheduleHardwareAlarm error:", e);
+    return false;
+  }
+}
+
+function preloadAlarmAudio(keepRunning = false) {
+  try {
+    setAmbientAudioSession();
+    clearAlarmSuspendTimer();
+    const ctx = getOrCreateAlarmAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
     }
-    if (keepRunning && !alarmKeepAliveOsc) {
-      alarmKeepAliveOsc = alarmAudioCtx.createOscillator();
-      alarmKeepAliveGain = alarmAudioCtx.createGain();
-      alarmKeepAliveOsc.frequency.value = 16;
-      alarmKeepAliveGain.gain.value = 0.0001;
-      alarmKeepAliveOsc.connect(alarmKeepAliveGain);
-      alarmKeepAliveGain.connect(alarmAudioCtx.destination);
-      alarmKeepAliveOsc.start();
-    }
+    ensureAlarmAudioBuffers(ctx);
   } catch (e) {}
 }
 
-function stopAlarmKeepAliveNode() {
-  if (alarmKeepAliveOsc) {
-    try { alarmKeepAliveOsc.stop(); } catch (e) {}
-    try { alarmKeepAliveOsc.disconnect(); } catch (e) {}
-    alarmKeepAliveOsc = null;
-  }
-  if (alarmKeepAliveGain) {
-    try { alarmKeepAliveGain.disconnect(); } catch (e) {}
-    alarmKeepAliveGain = null;
-  }
-}
-
 function suspendAlarmAudioContext() {
-  stopAlarmKeepAliveNode();
+  cancelScheduledAlarmGraph();
   if (alarmAudioCtx && alarmAudioCtx.state === "running") {
     try { alarmAudioCtx.suspend().catch(() => {}); } catch (e) {}
   }
@@ -2334,6 +2501,45 @@ function stopBackgroundKeepAlive(force = false) {
   clearAlarmSuspendTimer();
   suspendAlarmAudioContext();
   setAmbientAudioSession();
+}
+
+function postTimerToServiceWorker(targetTime, mins) {
+  if (!('serviceWorker' in navigator)) return;
+  const payload = {
+    action: "schedule_rest_timer",
+    targetTime: targetTime,
+    title: "⏱️ 筋トレタイマー終了！",
+    body: mins ? `休憩時間（${mins}分）が終了しました。次のセットを開始してください！` : "休憩時間が終了しました。次のセットを開始してください！"
+  };
+  try {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage(payload);
+      return;
+    }
+    (swRegistration ? Promise.resolve(swRegistration) : navigator.serviceWorker.ready)
+      .then(reg => {
+        const sw = navigator.serviceWorker.controller || (reg && (reg.active || reg.waiting || reg.installing));
+        if (sw) sw.postMessage(payload);
+      })
+      .catch(() => {});
+  } catch (e) {}
+}
+
+function cancelTimerInServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const payload = { action: "cancel_rest_timer" };
+  try {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage(payload);
+      return;
+    }
+    (swRegistration ? Promise.resolve(swRegistration) : navigator.serviceWorker.ready)
+      .then(reg => {
+        const sw = navigator.serviceWorker.controller || (reg && (reg.active || reg.waiting || reg.installing));
+        if (sw) sw.postMessage(payload);
+      })
+      .catch(() => {});
+  } catch (e) {}
 }
 
 function initTimerWorker() {
@@ -2420,7 +2626,11 @@ async function initNotificationService() {
 }
 
 // バックグラウンド通知の送信
-async function triggerPopupNotification(title = "⏱️ 筋トレタイマー終了！", body = "休憩時間が終了しました。次のセットを開始してください！") {
+async function triggerPopupNotification(
+  title = "⏱️ 筋トレタイマー終了！",
+  body = "休憩時間が終了しました。次のセットを開始してください！",
+  optionsExtra = {}
+) {
   if (!("Notification" in window) || Notification.permission !== "granted") {
     return;
   }
@@ -2429,19 +2639,30 @@ async function triggerPopupNotification(title = "⏱️ 筋トレタイマー終
     body: body,
     icon: "./icon.svg",
     vibrate: [300, 150, 300, 150, 500],
-    tag: "workout-rest-timer",
+    tag: optionsExtra.tag || "workout-rest-timer",
     renotify: true,
     requireInteraction: true,
     silent: false
   };
+  if (optionsExtra.dedupeTargetTime) {
+    options.data = { targetTime: optionsExtra.dedupeTargetTime };
+  }
 
   // 1. Service Worker 経由（Android Chromeのバックグラウンド通知で必須）
   if ('serviceWorker' in navigator) {
     try {
       const reg = swRegistration || await navigator.serviceWorker.ready;
-      if (reg && reg.showNotification) {
-        await reg.showNotification(title, options);
-        return;
+      if (reg) {
+        if (optionsExtra.dedupeTargetTime && reg.getNotifications) {
+          const existing = await reg.getNotifications({ tag: options.tag }).catch(() => []);
+          if (existing && existing.some(n => n.data && n.data.targetTime === optionsExtra.dedupeTargetTime)) {
+            return;
+          }
+        }
+        if (reg.showNotification) {
+          await reg.showNotification(title, options);
+          return;
+        }
       }
     } catch (err) {
       console.log("SW showNotification error:", err);
@@ -2518,6 +2739,33 @@ function hasActiveWorkoutProgress() {
     stretchState.currentExIdx > 0 ||
     Object.keys(stretchState.completedExIds || {}).length > 0
   )) return true;
+  return false;
+}
+
+// タブ自動切替をブロックすべき「実際に進行中の運動」判定（単なる数値変更等では夜タブ切替を妨げない）
+function hasActiveMainOrJogSession(now = new Date()) {
+  if (checkAnyTimerRunning()) return true;
+  if (!isDraftSavedToCloud && Object.values(completedSets).some(Boolean)) return true;
+  if (!isDraftSavedToCloud && rainyTimerState && rainyTimerState.remainingSec < rainyJogMinutes * 60) return true;
+  if (typeof stretchState !== "undefined" && stretchState && (
+    stretchState.isRunning ||
+    (!isDraftSavedToCloud && (
+      stretchState.totalElapsedSec > 0 ||
+      stretchState.currentExIdx > 0 ||
+      Object.keys(stretchState.completedExIds || {}).length > 0
+    ))
+  )) {
+    return true;
+  }
+  const logicalNight = getLogicalNightString(now);
+  if (
+    nightManualTabOverride &&
+    nightManualTabOverride.nightKey === logicalNight &&
+    nightManualTabOverride.routineKey === currentRoutineKey &&
+    (now.getTime() - nightManualTabOverride.timestamp < 30 * 60 * 1000)
+  ) {
+    return true;
+  }
   return false;
 }
 
@@ -2698,12 +2946,13 @@ function getDefaultRoutineByDay(dateObj = new Date()) {
   return "jog";
 }
 
-// 時間帯・保存状態・ストレッチ完了状況を考慮したデフォルトタブ判定（案A）
+// 時間帯・保存状態・ストレッチ完了状況を考慮したデフォルトタブ判定（19:00以降は夜ストレッチ自動選択）
 function getDefaultRoutineSmart(dateObj = new Date(), context = {}) {
   const {
     isSaved = false,
     hasActiveProgress = false,
     savedRoutineKey = null,
+    savedAt = 0,
     updatedAt = 0
   } = context;
 
@@ -2713,23 +2962,24 @@ function getDefaultRoutineSmart(dateObj = new Date(), context = {}) {
   }
 
   const hour = dateObj.getHours();
-  const isNightStretchWindow = (hour >= 21 || hour < 3);
-  const isEvening = (hour >= 18);
+  const isNightStretchWindow = (hour >= 19 || hour < 3);
+  const isEarlyEvening = (hour >= 18);
   const stretchDone = isStretchDoneForNight(dateObj);
 
-  // 2. 今夜のストレッチを完了・保存済みなら夜間帯はそのまま維持
-  if (stretchDone && savedRoutineKey === "stretch" && isSaved && (isEvening || hour < 3)) {
+  // 2. 夜間帯（19:00〜翌02:59）は進行中ワークアウトがなければ常に夜ストレッチをデフォルト選択
+  if (isNightStretchWindow) {
     return "stretch";
   }
 
-  // 3. 就寝前帯（21:00〜翌02:59）でストレッチ未完了なら夜ストレッチをデフォルト表示
-  if (!stretchDone && isNightStretchWindow) {
+  // 3. 今夜のストレッチを完了・保存済みなら夕方帯もそのまま維持
+  if (stretchDone && savedRoutineKey === "stretch" && isSaved && isEarlyEvening) {
     return "stretch";
   }
 
-  // 4. 夕方以降（18:00〜20:59）で本日のメイン運動（筋トレ/Jog）が保存済み＆15分以上経過していれば夜ストレッチへ切替
-  const elapsedSinceSaveMs = updatedAt ? (dateObj.getTime() - updatedAt) : Infinity;
-  if (!stretchDone && isEvening && isSaved && savedRoutineKey && savedRoutineKey !== "stretch" && elapsedSinceSaveMs >= 15 * 60 * 1000) {
+  // 4. 夕方（18:00〜18:59）で本日のメイン運動（筋トレ/Jog）が保存済み＆15分以上経過していれば夜ストレッチへ切替
+  const refSaveTime = savedAt || updatedAt || 0;
+  const elapsedSinceSaveMs = refSaveTime ? (dateObj.getTime() - refSaveTime) : Infinity;
+  if (!stretchDone && isEarlyEvening && isSaved && savedRoutineKey && savedRoutineKey !== "stretch" && elapsedSinceSaveMs >= 15 * 60 * 1000) {
     return "stretch";
   }
 
@@ -2740,6 +2990,37 @@ function getDefaultRoutineSmart(dateObj = new Date(), context = {}) {
 
   // 6. 通常時は曜日ルール
   return getDefaultRoutineByDay(dateObj);
+}
+
+// 時間帯に応じたタブ自動追従（19:00以降や保存15分後に自動で夜ストレッチタブを選択）
+function maybeAutoSwitchRoutineByTime(now = new Date()) {
+  if (hasActiveMainOrJogSession(now)) {
+    return false;
+  }
+  const nextRoutine = getDefaultRoutineSmart(now, {
+    isSaved: isDraftSavedToCloud,
+    hasActiveProgress: false,
+    savedRoutineKey: currentRoutineKey,
+    savedAt: lastCloudSavedAt,
+    updatedAt: lastCloudSavedAt || lastHiddenTimestamp
+  });
+  if (nextRoutine && nextRoutine !== currentRoutineKey && ROUTINES[nextRoutine]) {
+    currentRoutineKey = nextRoutine;
+    const dateInput = document.getElementById("input-date");
+    if (dateInput && !manualDateOverride) {
+      const todayStr = getDateString(now);
+      const logicalNightStr = getLogicalNightString(now);
+      if (!dateInput.value || dateInput.value === todayStr || dateInput.value === logicalNightStr) {
+        dateInput.value = getExpectedDateForRoutine(currentRoutineKey, now);
+      }
+    }
+    updateDateMismatchBanner(now);
+    updateTabUI();
+    renderWorkout();
+    saveDraftToStorage();
+    return true;
+  }
+  return false;
 }
 
 // 初期化
@@ -2769,6 +3050,17 @@ function initApp() {
   renderWorkout();
   updateDateMismatchBanner(new Date());
   checkForAppUpdate(false);
+
+  // 開いたまま夜間帯（19:00〜）や日付変更を跨いだ場合の定期チェック
+  setInterval(() => {
+    if (document.visibilityState === "visible") {
+      const tickNow = new Date();
+      const rolledOver = syncDateRolloverIfNeeded(tickNow);
+      if (!rolledOver) {
+        maybeAutoSwitchRoutineByTime(tickNow);
+      }
+    }
+  }, 60 * 1000);
 }
 
 // メモ欄・日付欄・画面遷移時のリアルタイム自動保存リスナー
@@ -2808,6 +3100,18 @@ function bindInputPersistenceListeners() {
   window.addEventListener("blur", () => {
     saveDraftToStorage();
   });
+  const handleGestureAudioRebind = () => {
+    if (!pendingRestTimerGestureRebind) return;
+    pendingRestTimerGestureRebind = false;
+    if (activeTimer && activeTimer.targetTime && !activeTimer.wasFinished) {
+      const remSec = (activeTimer.targetTime - Date.now()) / 1000;
+      if (remSec > 0.1) {
+        scheduleHardwareAlarm(remSec);
+      }
+    }
+  };
+  document.addEventListener("pointerdown", handleGestureAudioRebind, { passive: true, capture: true });
+  document.addEventListener("keydown", handleGestureAudioRebind, { passive: true, capture: true });
   window.addEventListener("storage", (e) => {
     // 別タブ等で更新された場合にも最新の下書きを同期
     if (e.key === "workout_draft_v1" && e.newValue && document.visibilityState === "visible") {
@@ -2834,6 +3138,8 @@ function saveDraftToStorage() {
       todayDate: todayStr,
       inputDate: (dateEl && dateEl.value) ? dateEl.value : todayStr,
       updatedAt: Date.now(),
+      savedAt: lastCloudSavedAt,
+      nightManualTabOverride: nightManualTabOverride,
       isSaved: isDraftSavedToCloud,
       draftModified: draftModified,
       manualDateOverride: manualDateOverride,
@@ -2963,6 +3269,23 @@ function applyDraftObject(draft) {
   const effRoutine = draft.currentRoutineKey || currentRoutineKey;
   const expectedDate = getExpectedDateForRoutine(effRoutine, now);
   const isSavedFromPastDate = !!(draft.isSaved && draft.inputDate && draft.inputDate !== todayStr && draft.inputDate !== expectedDate);
+  if (isSavedFromPastDate) {
+    lastCloudSavedAt = 0;
+    nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
+  } else {
+    lastCloudSavedAt = (typeof draft.savedAt === "number")
+      ? draft.savedAt
+      : (draft.isSaved && typeof draft.updatedAt === "number" ? draft.updatedAt : 0);
+    if (draft.nightManualTabOverride && typeof draft.nightManualTabOverride === "object") {
+      nightManualTabOverride = {
+        nightKey: draft.nightManualTabOverride.nightKey || null,
+        routineKey: draft.nightManualTabOverride.routineKey || null,
+        timestamp: Number(draft.nightManualTabOverride.timestamp) || 0
+      };
+    } else {
+      nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
+    }
+  }
   if (dateInput) {
     if (isSavedFromPastDate) {
       dateInput.value = expectedDate;
@@ -3032,15 +3355,21 @@ function applyDraftObject(draft) {
         activeTimer.targetTime = draft.activeTimer.targetTime;
         activeTimer.wasFinished = false;
         requestWakeLock();
-        preloadAlarmAudio();
+        preloadAlarmAudio(false);
         startBackgroundKeepAlive();
+        if (alarmAudioCtx && alarmAudioCtx.state === "running") {
+          scheduleHardwareAlarm(diffMs / 1000);
+        } else {
+          pendingRestTimerGestureRebind = true;
+        }
+        postTimerToServiceWorker(activeTimer.targetTime, Math.max(1, Math.round(rem / 60)));
         if (timerWorker) {
           timerWorker.postMessage({ action: "start", targetTime: activeTimer.targetTime });
         }
         if (activeTimer.intervalId) clearInterval(activeTimer.intervalId);
         activeTimer.intervalId = setInterval(() => {
           checkTimerTick();
-        }, 500);
+        }, 250);
         if (activeTimer.timeoutId) clearTimeout(activeTimer.timeoutId);
         activeTimer.timeoutId = setTimeout(() => {
           if (activeTimer.targetTime && !activeTimer.wasFinished) {
@@ -3177,8 +3506,9 @@ function loadStateFromStorage() {
   ));
   currentRoutineKey = getDefaultRoutineSmart(now, {
     isSaved: isDraftSavedToCloud,
-    hasActiveProgress: hasActiveWorkoutProgress() || stretchInProgress,
+    hasActiveProgress: hasActiveMainOrJogSession(now) || stretchInProgress,
     savedRoutineKey: restoredDraft ? restoredDraft.currentRoutineKey : currentRoutineKey,
+    savedAt: lastCloudSavedAt,
     updatedAt: restoredDraft ? (restoredDraft.updatedAt || 0) : 0
   });
 
@@ -3187,7 +3517,7 @@ function loadStateFromStorage() {
     if (dateInput) dateInput.value = getExpectedDateForRoutine(currentRoutineKey, now);
     manualDateOverride = false;
     manualDateSetDay = null;
-  } else if (!manualDateOverride && isDraftSavedToCloud) {
+  } else if (!manualDateOverride && (isDraftSavedToCloud || restoredDraft.currentRoutineKey !== currentRoutineKey)) {
     const expectedDate = getExpectedDateForRoutine(currentRoutineKey, now);
     if (dateInput && dateInput.value !== expectedDate) {
       dateInput.value = expectedDate;
@@ -3230,6 +3560,8 @@ function resetTodayDraftManual() {
   completedSets = {};
   isDraftSavedToCloud = false;
   draftModified = false;
+  lastCloudSavedAt = 0;
+  nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
   manualDateOverride = false;
   manualDateSetDay = null;
   workoutStartTime = new Date();
@@ -3266,6 +3598,16 @@ function switchRoutine(routineKey) {
   stopJogTimers();
   stopStretchTimers();
   const now = new Date();
+  const hour = now.getHours();
+  if (routineKey === "stretch") {
+    nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
+  } else if (hour >= 19 || hour < 3 || (hour >= 18 && isDraftSavedToCloud)) {
+    nightManualTabOverride = {
+      nightKey: getLogicalNightString(now),
+      routineKey: routineKey,
+      timestamp: now.getTime()
+    };
+  }
   const dateInput = document.getElementById("input-date");
   if (dateInput && !manualDateOverride) {
     const todayStr = getDateString(now);
@@ -3601,10 +3943,10 @@ function updateTimerDisplay(remaining) {
 }
 
 function startTimer(pairId) {
-  stopTimer();
+  stopTimer({ keepAudioRunning: true });
   requestWakeLock();
-  preloadAlarmAudio();
   pendingMissedAlarmSound = false;
+  pendingRestTimerGestureRebind = false;
 
   const mins = parseInt(localStorage.getItem("workout_timer_minutes") || "2", 10);
   activeTimer.pairId = pairId;
@@ -3612,25 +3954,29 @@ function startTimer(pairId) {
   activeTimer.targetTime = Date.now() + activeTimer.remainingSec * 1000;
   activeTimer.wasFinished = false;
 
-  // BGM非干渉のバックグラウンド設定（ambientセッション維持）
+  // BGM非干渉のバックグラウンド設定＋C++ Audio Render Threadへのハードウェア事前予約
   startBackgroundKeepAlive();
+  scheduleHardwareAlarm(activeTimer.remainingSec);
 
   // 通知許可のリクエスト（未設定時）
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
 
+  // Service Worker での独立タイマー通知予約（メインスレッド凍結時の保険）
+  postTimerToServiceWorker(activeTimer.targetTime, mins);
+
   // Web Worker でバックグラウンドカウントダウン開始
   if (timerWorker) {
     timerWorker.postMessage({ action: "start", targetTime: activeTimer.targetTime });
   }
 
-  // フォールバック兼用のメインスレッドタイマー（500ms周期でTick）
+  // フォールバック兼用のメインスレッドタイマー（250ms周期でTick）
   activeTimer.intervalId = setInterval(() => {
     checkTimerTick();
-  }, 500);
+  }, 250);
 
-  // メインスレッドでの直接setTimeout終了トリガー（万が一の二重保険）
+  // メインスレッドでの直接setTimeout終了トリガー（二重保険）
   if (activeTimer.timeoutId) clearTimeout(activeTimer.timeoutId);
   const remainingMs = Math.max(0, activeTimer.targetTime - Date.now());
   activeTimer.timeoutId = setTimeout(() => {
@@ -3658,10 +4004,12 @@ function checkTimerTick() {
   }
 }
 
-function onTimerFinished() {
+function onTimerFinished(options = {}) {
   if (activeTimer.wasFinished) return;
+  const finishedTargetTime = activeTimer.targetTime;
   activeTimer.wasFinished = true;
   activeTimer.remainingSec = 0;
+  pendingRestTimerGestureRebind = false;
 
   // カウントダウン用タイマーのみ停止（アラーム鳴動後にAudioContextを解放）
   if (activeTimer.intervalId) {
@@ -3676,15 +4024,46 @@ function onTimerFinished() {
     timerWorker.postMessage({ action: "stop" });
   }
   activeTimer.targetTime = null;
+  cancelTimerInServiceWorker();
 
-  playAlarmSound();
+  // 事前予約済みハードウェアゴングが鳴動中/境界直前なら二重鳴動せず自然終了を待つ
+  const hasPreScheduledAudio = !!(
+    scheduledAlarmGraph.alarmNode &&
+    alarmAudioCtx &&
+    alarmAudioCtx.state === "running" &&
+    (options.hardwareAudioAlreadyTriggered || (scheduledAlarmGraph.alarmStartCtxTime - alarmAudioCtx.currentTime <= 0.35))
+  );
+
+  if (!hasPreScheduledAudio) {
+    playAlarmSound();
+  } else {
+    clearAlarmSuspendTimer();
+    const remainPlaybackMs = Math.max(
+      1500,
+      Math.ceil((scheduledAlarmGraph.alarmEndCtxTime - alarmAudioCtx.currentTime + 0.25) * 1000)
+    );
+    alarmSuspendTimerId = setTimeout(() => {
+      alarmSuspendTimerId = null;
+      cancelScheduledAlarmGraph();
+      if (!checkAnyTimerRunning()) {
+        stopBackgroundKeepAlive(true);
+        releaseWakeLock();
+      }
+    }, remainPlaybackMs);
+  }
+
   if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
-  triggerPopupNotification();
+  triggerPopupNotification(
+    "⏱️ 筋トレタイマー終了！",
+    "休憩時間が終了しました。次のセットを開始してください！",
+    finishedTargetTime ? { dedupeTargetTime: finishedTargetTime } : {}
+  );
   saveDraftToStorage();
   renderWorkout();
 }
 
-function stopTimer() {
+function stopTimer(options = {}) {
+  const { keepAudioRunning = false } = options;
   if (activeTimer.intervalId) {
     clearInterval(activeTimer.intervalId);
     activeTimer.intervalId = null;
@@ -3696,12 +4075,17 @@ function stopTimer() {
   if (timerWorker) {
     timerWorker.postMessage({ action: "stop" });
   }
+  cancelTimerInServiceWorker();
+  cancelScheduledAlarmGraph();
   clearAlarmSuspendTimer();
   pendingMissedAlarmSound = false;
+  pendingRestTimerGestureRebind = false;
   activeTimer.targetTime = null;
-  stopBackgroundKeepAlive(true);
-  if (!checkAnyTimerRunning()) {
-    releaseWakeLock();
+  if (!keepAudioRunning) {
+    stopBackgroundKeepAlive(true);
+    if (!checkAnyTimerRunning()) {
+      releaseWakeLock();
+    }
   }
 }
 
@@ -3709,6 +4093,7 @@ function stopTimer() {
 async function playAlarmSound() {
   setAmbientAudioSession();
   clearAlarmSuspendTimer();
+  cancelScheduledAlarmGraph();
 
   const webAudioOk = await playBeepWebAudio();
   if (!webAudioOk && document.visibilityState !== "visible") {
@@ -3721,34 +4106,28 @@ async function playAlarmSound() {
       stopBackgroundKeepAlive(true);
       releaseWakeLock();
     }
-  }, 1400);
+  }, 1550);
 }
 
 async function playBeepWebAudio() {
   try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return false;
-    if (!alarmAudioCtx || alarmAudioCtx.state === "closed") {
-      alarmAudioCtx = new AudioContextClass();
-      alarmKeepAliveOsc = null;
-      alarmKeepAliveGain = null;
+    const ctx = getOrCreateAlarmAudioContext();
+    if (!ctx) return false;
+    if (ctx.state === "suspended") {
+      await ctx.resume().catch(() => {});
     }
-    if (alarmAudioCtx.state === "suspended") {
-      await alarmAudioCtx.resume().catch(() => {});
-    }
-    if (alarmAudioCtx.state !== "running") {
+    if (ctx.state !== "running") {
       return false;
     }
-    const audioCtx = alarmAudioCtx;
-    const now = audioCtx.currentTime;
-
-    const masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(0.85, now);
-    masterGain.connect(audioCtx.destination);
-
-    ALARM_GONG_STRIKES.forEach(strike => {
-      scheduleGongStrike(audioCtx, masterGain, now, strike);
-    });
+    ensureAlarmAudioBuffers(ctx);
+    const now = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    const masterGain = ctx.createGain();
+    src.buffer = cachedAlarmAudioBuffer;
+    masterGain.gain.setValueAtTime(0.88, now);
+    src.connect(masterGain);
+    masterGain.connect(ctx.destination);
+    src.start(now);
     return true;
   } catch (e) {
     console.log("Web Audio play error", e);
@@ -3967,6 +4346,8 @@ function saveAndExport() {
   stopJogTimers();
   stopStretchTimers();
   isDraftSavedToCloud = true;
+  lastCloudSavedAt = now.getTime();
+  nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
   manualDateOverride = false;
   manualDateSetDay = null;
   updateDateMismatchBanner(now);
@@ -4876,54 +5257,37 @@ const STRETCH_EXERCISES = [
     tips: "手は前脚か壁に軽く添えるだけ・かかと浮かせない"
   },
   {
-    id: "low_lunge",
-    name: "ローランジ",
-    phase: "片膝立ち",
-    target: "股関節前側・腸腰筋",
-    durationSec: 30,
+    id: "lunge_half_split",
+    name: "ローランジ＆ハーフスプリット連続",
+    phase: "片膝立ち・前後連続",
+    target: "股関節前側（腸腰筋）＋太もも裏・膝裏",
+    durationSec: 50,
+    midSwitchSec: 25,
     hasSides: true,
-    desc: "立位から後ろ膝を床に下ろし、前脚を大きく踏み出して後ろ脚の股関節前面を心地よく伸ばす。骨盤を立てる。",
-    tips: "反り腰に注意・骨盤後傾を意識"
-  },
-  {
-    id: "half_split",
-    name: "ハーフスプリット（片膝ハムストリングス）",
-    phase: "片膝立ち・お尻引き",
-    target: "太もも裏・膝裏（ハムストリングス）",
-    durationSec: 30,
-    hasSides: true,
-    desc: "ローランジからお尻を後ろへ引き、前脚の膝を伸ばしてかかとを床・つま先を天井へ立てる。両手は床に軽く添え、背筋を伸ばしたまま股関節から前傾。",
-    tips: "腰を丸めずお尻を後ろへ突き出す・つま先を立てる"
+    firstHalfLabel: "前半25秒：ローランジ（前へ踏み込み股関節前側）",
+    secondHalfLabel: "後半25秒：ハーフスプリット（お尻を引き太もも裏・足首背屈）",
+    desc: "片脚ごとに前後連続で実施。前半25秒は前脚へ大きく踏み込み後ろ脚の付け根（腸腰筋）を伸ばし、中間チャイムで後半25秒はお尻を後ろへ引いて前脚の膝を伸ばし、つま先を天井へ立てて太もも裏〜ふくらはぎ上部を伸ばす。",
+    tips: "反り腰・腰丸め注意・脚の入れ替えは左右各1回のみ"
   },
   {
     id: "cat_cow",
-    name: "キャット＆カウ",
-    phase: "四つん這い",
-    target: "脊柱・自律神経のリセット",
+    name: "キャット＆カウ（腹式呼吸＆骨盤底リリース）",
+    phase: "四つん這い・呼吸連動",
+    target: "脊柱・横隔膜＆骨盤底リリース・自律神経",
     durationSec: 40,
     hasSides: false,
-    desc: "四つん這いで息を吐きながら背中を丸め、吸いながら軽く反らす。背骨を1骨ずつ動かす意識。",
-    tips: "呼気優位・吐く息を長めに深呼吸"
+    desc: "四つん這いで息を吸いながら胸を開きお腹・骨盤底をふわっと下方へ緩める。吐く息を長めにしながら背中を丸め、骨盤底が自然に戻る感覚を確認しながら背骨を1骨ずつ動かす。",
+    tips: "呼気優位・吸う息で骨盤底を脱力リリース"
   },
   {
-    id: "side_child",
-    name: "サイド・チャイルドポーズ",
-    phase: "正座・脱力",
-    target: "広背筋・脇の下・肩甲骨",
+    id: "wide_child_reach",
+    name: "開脚チャイルド＆サイドリーチ（仙骨＋広背筋）",
+    phase: "開脚正座・脱力",
+    target: "股関節横・内転筋・仙骨＋広背筋・脇・肩甲骨",
     durationSec: 30,
     hasSides: true,
-    desc: "お尻をかかとに落としたまま、左側時は両手を右斜め前へ、右側時は左斜め前へ歩かせて脇〜背中を伸ばす。",
-    tips: "腕の力は抜いてお尻の重みで伸ばす"
-  },
-  {
-    id: "frog",
-    name: "仙骨割り（カエル）",
-    phase: "四つん這い・肘つき",
-    target: "股関節横・内転筋・仙骨",
-    durationSec: 45,
-    hasSides: false,
-    desc: "両膝を左右に開き肘をつく。息を吐きながらお尻を後ろへじんわり引いて脱力。",
-    tips: "痛気持ちいい手前・微小に揺らす"
+    desc: "両膝を左右に広めに開いてお尻をかかとへ引き（内転筋・仙骨）、左側時は両手を右斜め前へ、右側時は左斜め前へ歩かせて胸を床へ沈め、脇〜広背筋を同時に伸ばす。",
+    tips: "腕の力は抜いてお尻の重みで内転筋と広背筋を同時に伸ばす"
   },
   {
     id: "pigeon_pose",
@@ -4937,33 +5301,23 @@ const STRETCH_EXERCISES = [
   },
   {
     id: "seiza_lean_back",
-    name: "両脚正座・後傾ストレッチ",
+    name: "両脚正座・後傾＆胸開きストレッチ",
     phase: "床座位・後傾",
-    target: "太もも前側（大腿四頭筋）",
-    durationSec: 45,
+    target: "太もも前側（大腿四頭筋）・胸前部",
+    durationSec: 40,
     hasSides: false,
-    desc: "足先をまっすぐ後ろへ向けた正座（または少し広め）から後ろに手をつき、上体を後ろへ傾けて前ももを伸ばす。",
+    desc: "足先をまっすぐ後ろへ向けた正座（または少し広め）から後ろに手をつき、肩甲骨を軽く寄せて胸を開きながら上体を後ろへ傾けて前ももと胸前部を伸ばす。",
     tips: "反り腰に注意・お腹を締めて尾てい骨を前へ送る"
   },
   {
-    id: "open_book",
-    name: "横向きオープンブック",
-    phase: "横向き・胸開き",
-    target: "大胸筋・肩前面・胸椎",
-    durationSec: 30,
+    id: "open_spine_twist",
+    name: "ワニのポーズ＆胸開き（オープン・ツイスト）",
+    phase: "仰向け・体幹回旋＆胸開き",
+    target: "大胸筋・肩前面・胸椎＋腰背部・腹斜筋",
+    durationSec: 35,
     hasSides: true,
-    desc: "横向きで両膝を曲げて床に固定し、前に合わせた上の腕を息を吐きながら反対側へ大きく開いて床へ預ける。（左側＝左胸／右側＝右胸）",
-    tips: "腕の重みだけで脱力・呼吸を深く"
-  },
-  {
-    id: "spine_twist",
-    name: "ワニのポーズ（ねじり）",
-    phase: "仰向け・体幹回旋",
-    target: "腰背部・肋骨・腹斜筋",
-    durationSec: 30,
-    hasSides: true,
-    desc: "片膝を曲げて反対側へパタンと倒す。顔は反対向き、両肩は床につけたまま。",
-    tips: "息を吐きながら全身脱力"
+    desc: "仰向けで片膝を曲げて反対側へ倒し（左＝左膝を右へ倒し左腕を左斜め上へ開く）、顔と反対側の腕を大きく床へ開いて胸・肩前面と腰背部を同時に脱力して伸ばす。",
+    tips: "両肩を床へ預け、腕の重みと深い呼吸で全身脱力"
   }
 ];
 
@@ -5073,19 +5427,9 @@ function makePelvicCycleExercise(def) {
 
 function buildPelvicFloorExercises(stage) {
   const s = PELVIC_FLOOR_STAGES[stage] || PELVIC_FLOOR_STAGES[1];
+  // 腹式呼吸リリースはストレッチ側の「キャット＆カウ（腹式呼吸＆骨盤底リリース）」へ統合
+  // クイック収縮・ロングホールド・ステージ連動の回数と秒数は従来の12週間プログラム通りに維持
   const list = [
-    {
-      id: "pf_breath",
-      block: "pelvic",
-      name: "腹式呼吸リリース",
-      shortName: "呼吸",
-      phase: s.phase,
-      target: "骨盤底・横隔膜の連動",
-      durationSec: 40,
-      hasSides: false,
-      desc: s.breathDesc,
-      tips: "力まない・お腹と骨盤底をゆるめる"
-    },
     makePelvicCycleExercise({
       id: "pf_quick",
       name: "クイック収縮",
@@ -5117,13 +5461,44 @@ function buildPelvicFloorExercises(stage) {
   return list;
 }
 
-// 実際に使う夜ストレッチ種目リスト（骨盤底ON時は冒頭に4種目を配置）
+// ステージ姿勢に応じた自動配置（S3/S4の立位系は冒頭、S1/S2の仰向け・座位系は末尾で一方向フロー）
+function isPelvicFloorAtStart(stage = getPelvicFloorStage()) {
+  return stage >= 3;
+}
+
+// 実際に使う夜ストレッチ種目リスト
 function getActiveStretchExercises() {
   if (!isPelvicFloorEnabled()) return STRETCH_EXERCISES;
-  return [
-    ...buildPelvicFloorExercises(getPelvicFloorStage()),
-    ...STRETCH_EXERCISES
-  ];
+  const stage = getPelvicFloorStage();
+  const pfList = buildPelvicFloorExercises(stage);
+  return isPelvicFloorAtStart(stage)
+    ? [...pfList, ...STRETCH_EXERCISES]
+    : [...STRETCH_EXERCISES, ...pfList];
+}
+
+function isStretchAutoNextEnabled() {
+  return localStorage.getItem("stretch_auto_next") !== "0"; // 既定ON
+}
+
+function updateStretchAutoNextUI() {
+  const enabled = isStretchAutoNextEnabled();
+  const btn = document.getElementById("stretch-auto-next-btn");
+  if (btn) {
+    btn.classList.toggle("active", enabled);
+    btn.textContent = enabled ? "🔄 連続オート進行: ON" : "⏸ 種目ごと手動: OFF";
+  }
+  const chk = document.getElementById("setting-stretch-auto-next");
+  if (chk) chk.checked = enabled;
+}
+
+function setStretchAutoNext(enabled) {
+  localStorage.setItem("stretch_auto_next", enabled ? "1" : "0");
+  updateStretchAutoNextUI();
+  updateStretchHeaderInfo();
+}
+
+function toggleStretchAutoNext() {
+  setStretchAutoNext(!isStretchAutoNextEnabled());
 }
 
 // cycle種目の現在位置（実行中は終了時刻から、停止中は残り秒数から算出）
@@ -5181,8 +5556,10 @@ function evaluatePelvicCycleCue(nowMs) {
 
 function estimateStretchTotalMinutes(list) {
   let sec = 0;
-  list.forEach(ex => {
-    sec += 3 + ex.durationSec * (ex.hasSides ? 2 : 1) + (ex.hasSides ? 5 : 0);
+  const autoNext = isStretchAutoNextEnabled();
+  list.forEach((ex, idx) => {
+    const prepSec = (idx === 0 || !autoNext) ? 3 : 5;
+    sec += prepSec + ex.durationSec * (ex.hasSides ? 2 : 1) + (ex.hasSides ? 5 : 0);
   });
   return Math.round(sec / 60);
 }
@@ -5195,9 +5572,12 @@ function updateStretchHeaderInfo() {
   if (badge) badge.textContent = `🌙 就寝前リセット（約${estimateStretchTotalMinutes(list)}分）`;
   const total = document.getElementById("stretch-total-time");
   if (total) {
-    total.textContent = enabled
-      ? `全${list.length}種目 / 骨盤底S${stage}（${PELVIC_FLOOR_STAGES[stage].posture}）`
-      : `全${list.length}種目 / 立位→就寝フロー`;
+    if (enabled) {
+      const posLabel = isPelvicFloorAtStart(stage) ? "冒頭配置" : "末尾配置";
+      total.textContent = `全${list.length}種目 / 骨盤底S${stage}（${PELVIC_FLOOR_STAGES[stage].posture}・${posLabel}）`;
+    } else {
+      total.textContent = `全${list.length}種目 / 立位→就寝フロー`;
+    }
   }
   const offBtn = document.getElementById("pf-inline-off");
   if (offBtn) offBtn.classList.toggle("active", !enabled);
@@ -5205,6 +5585,7 @@ function updateStretchHeaderInfo() {
     const btn = document.getElementById(`pf-inline-${n}`);
     if (btn) btn.classList.toggle("active", enabled && stage === n);
   });
+  updateStretchAutoNextUI();
 }
 
 function setPelvicFloorFromBar(stage) {
@@ -5293,6 +5674,7 @@ function updatePelvicFloorSettingsUI() {
   if (snd) snd.checked = isPelvicFloorCueOn("pelvic_floor_sound");
   const vib = document.getElementById("setting-pf-vibrate");
   if (vib) vib.checked = isPelvicFloorCueOn("pelvic_floor_vibrate");
+  updateStretchAutoNextUI();
 }
 
 function testPelvicFloorCue() {
@@ -5311,12 +5693,13 @@ let stretchState = {
   prepRemainingSec: 3,
   currentExIdx: 0,
   currentSide: "left",
-  remainingSec: 40,
+  remainingSec: 30,
   targetEndTime: null,
   timerIntervalId: null,
   totalElapsedSec: 0,
   completedExIds: {},
   lastCountdownCue: null,
+  lastMidSwitchCue: null,
   lastCycleCue: null,
   lastCyclePhaseKey: null
 };
@@ -5552,6 +5935,7 @@ function initStretchState() {
   stretchState.totalElapsedSec = 0;
   stretchState.completedExIds = {};
   stretchState.lastCountdownCue = null;
+  stretchState.lastMidSwitchCue = null;
   stretchState.lastCycleCue = null;
   stretchState.lastCyclePhaseKey = null;
 }
@@ -5567,9 +5951,7 @@ function renderStretchView() {
 function updateStretchStatusBadge() {
   const badge = document.getElementById("stretch-status-badge");
   if (!badge) return;
-  const lastDate = localStorage.getItem("stretch_last_completed_date");
-  const todayStr = getTodayDateString();
-  if (lastDate === todayStr) {
+  if (isStretchDoneForNight(new Date())) {
     badge.className = "stretch-status-badge completed";
     badge.innerHTML = "✨ 本日完了";
   } else {
@@ -5631,6 +6013,8 @@ function updateStretchPlayerUI() {
       intervalNoticeEl.style.display = "block";
       if (ex.hasSides && stretchState.currentSide === "right") {
         intervalNoticeEl.textContent = `🔄 右側へ切り替え中... 体勢を整えてください (${stretchState.prepRemainingSec}秒)`;
+      } else if (stretchState.currentExIdx > 0 && isStretchAutoNextEnabled()) {
+        intervalNoticeEl.textContent = `🔄 次の種目「${ex.name}」へ移行中... (${stretchState.prepRemainingSec}秒)`;
       } else {
         intervalNoticeEl.textContent = `🔔 準備中... 体勢を整えてください (${stretchState.prepRemainingSec}秒)`;
       }
@@ -5646,14 +6030,15 @@ function updateStretchPlayerUI() {
     }
   }
 
-  // 骨盤底: 締める／緩める 交互キュー表示
+  // 骨盤底: 締める／緩める 交互キュー表示 ＋ 前後連続種目（ローランジ＆ハーフスプリット）フェーズ表示
   const cycleWrapEl = document.getElementById("pf-cycle-display");
   if (cycleWrapEl) {
+    const phaseEl = document.getElementById("pf-cycle-phase");
+    const metaEl = document.getElementById("pf-cycle-meta");
     if (ex.type === "cycle") {
       cycleWrapEl.style.display = "block";
-      const phaseEl = document.getElementById("pf-cycle-phase");
-      const metaEl = document.getElementById("pf-cycle-meta");
       const ph = getPelvicCyclePhase(ex);
+      if (phaseEl) phaseEl.style.fontSize = "";
       if (stretchState.isRunning && !stretchState.isPrep) {
         if (phaseEl) {
           phaseEl.className = "pf-cycle-phase " + (ph.isContract ? "contract" : "relax");
@@ -5666,6 +6051,19 @@ function updateStretchPlayerUI() {
           phaseEl.textContent = `締める${ex.contractSec}秒 ／ 緩める${ex.relaxSec}秒`;
         }
         if (metaEl) metaEl.textContent = ph.started ? `${ph.rep} / ${ex.reps} 回目から再開` : `× ${ex.reps} 回`;
+      }
+    } else if (ex.midSwitchSec) {
+      cycleWrapEl.style.display = "block";
+      const isSecondHalf = !stretchState.isPrep && (stretchState.remainingSec <= ex.midSwitchSec);
+      if (phaseEl) {
+        phaseEl.style.fontSize = "1.02rem";
+        phaseEl.className = "pf-cycle-phase " + (stretchState.isRunning && !stretchState.isPrep ? (isSecondHalf ? "relax" : "contract") : "idle");
+        phaseEl.textContent = isSecondHalf ? ex.secondHalfLabel : ex.firstHalfLabel;
+      }
+      if (metaEl) {
+        metaEl.textContent = stretchState.isPrep
+          ? `前半${ex.durationSec - ex.midSwitchSec}秒 ➔ 後半${ex.midSwitchSec}秒（自動で中間チャイム）`
+          : (isSecondHalf ? "後半：お尻を後ろへ引き太もも裏・足首背屈" : "前半：前脚へ踏み込み股関節前側を伸ばす");
       }
     } else {
       cycleWrapEl.style.display = "none";
@@ -5753,6 +6151,7 @@ function startStretchPlayer() {
   stretchState.prepRemainingSec = 3;
   stretchState.targetEndTime = Date.now() + 3000;
   stretchState.lastCountdownCue = `prep:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}:3`;
+  stretchState.lastMidSwitchCue = null;
 
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
@@ -5777,6 +6176,7 @@ function pauseStretchPlayer(options = {}) {
   stretchState.isPrep = false;
   stretchState.targetEndTime = null;
   stretchState.lastCountdownCue = null;
+  stretchState.lastMidSwitchCue = null;
   stretchState.lastCycleCue = null;
   stretchState.lastCyclePhaseKey = null;
 
@@ -5804,8 +6204,10 @@ function checkStretchTick() {
   if (!stretchState.isRunning || !stretchState.targetEndTime) return;
 
   const now = Date.now();
+  const prevExIdx = stretchState.currentExIdx;
   let stateChanged = false;
   let pendingMidSwitchSound = false;
+  let pendingAutoNextVibrate = false;
   let targetTimeUpdated = false;
   let safetyCounter = 0;
 
@@ -5839,6 +6241,19 @@ function checkStretchTick() {
         const cueKey = `active:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}:${rem}`;
         const curExForCue = getActiveStretchExercises()[stretchState.currentExIdx];
         const isCycleEx = !!(curExForCue && curExForCue.type === "cycle");
+        if (curExForCue && curExForCue.midSwitchSec && rem <= curExForCue.midSwitchSec && rem > 0) {
+          const midCueKey = `mid:${stretchState.currentExIdx}:${stretchState.currentSide || "none"}`;
+          if (stretchState.lastMidSwitchCue !== midCueKey) {
+            stretchState.lastMidSwitchCue = midCueKey;
+            if (rem === curExForCue.midSwitchSec && diffMs > 150) {
+              playStretchMidSwitchSound();
+              if (navigator.vibrate) {
+                try { navigator.vibrate(140); } catch (e) {}
+              }
+            }
+            stateChanged = true;
+          }
+        }
         if (!isCycleEx && rem <= 3 && rem > 0 && stretchState.lastCountdownCue !== cueKey) {
           stretchState.lastCountdownCue = cueKey;
           if (diffMs > 150) {
@@ -5856,6 +6271,7 @@ function checkStretchTick() {
       stretchState.isPrep = false;
       stretchState.prepRemainingSec = 0;
       stretchState.lastCountdownCue = null;
+      stretchState.lastMidSwitchCue = null;
       stretchState.targetEndTime = endedAt + stretchState.remainingSec * 1000;
       targetTimeUpdated = true;
       pendingMidSwitchSound = true;
@@ -5866,11 +6282,16 @@ function checkStretchTick() {
         stretchState.remainingSec = 0;
       }
       stretchState.lastCountdownCue = null;
+      stretchState.lastMidSwitchCue = null;
+      const prevIdxBeforeStep = stretchState.currentExIdx;
       const continued = handleStretchStepCompletion(endedAt, true);
       stateChanged = true;
       if (!continued) {
         pendingMidSwitchSound = false;
         break;
+      }
+      if (stretchState.currentExIdx !== prevIdxBeforeStep) {
+        pendingAutoNextVibrate = true;
       }
       targetTimeUpdated = true;
       pendingMidSwitchSound = true;
@@ -5888,8 +6309,14 @@ function checkStretchTick() {
   if (pendingMidSwitchSound && stretchState.isRunning) {
     playStretchMidSwitchSound();
   }
+  if (pendingAutoNextVibrate && stretchState.isRunning && navigator.vibrate) {
+    try { navigator.vibrate([200, 100, 200]); } catch (e) {}
+  }
   if (stateChanged) {
     updateStretchPlayerUI();
+    if (stretchState.currentExIdx !== prevExIdx) {
+      renderStretchList();
+    }
     saveDraftToStorage();
   }
 }
@@ -5904,6 +6331,7 @@ function handleStretchStepCompletion(endedAt = Date.now(), deferMidSound = false
     stretchState.prepRemainingSec = 5;
     stretchState.remainingSec = currentEx.durationSec;
     stretchState.lastCountdownCue = null;
+    stretchState.lastMidSwitchCue = null;
     stretchState.targetEndTime = endedAt + 5000;
     if (!deferMidSound) {
       if (stretchWorker) {
@@ -5919,20 +6347,47 @@ function handleStretchStepCompletion(endedAt = Date.now(), deferMidSound = false
   // 2. 種目完了（右側または左右なし）
   stretchState.completedExIds[currentEx.id] = true;
 
-  // 次の種目があるか確認（種目間はタイマー停止し手動スタート待機）
+  // 次の種目があるか確認
   if (stretchState.currentExIdx < getActiveStretchExercises().length - 1) {
-    pauseStretchPlayer({ keepAliveForSound: true });
     stretchState.currentExIdx++;
     const nextEx = getActiveStretchExercises()[stretchState.currentExIdx];
     stretchState.currentSide = nextEx.hasSides ? "left" : null;
-    stretchState.isPrep = false;
     stretchState.remainingSec = nextEx.durationSec;
+    stretchState.lastCountdownCue = null;
+    stretchState.lastMidSwitchCue = null;
+    stretchState.lastCycleCue = null;
+    stretchState.lastCyclePhaseKey = null;
+
+    if (isStretchAutoNextEnabled()) {
+      // 連続オート進行: 5秒の体勢切替カウントダウン後、そのまま次の種目を自動開始
+      stretchState.isPrep = true;
+      stretchState.prepRemainingSec = 5;
+      stretchState.targetEndTime = endedAt + 5000;
+      if (!deferMidSound) {
+        if (stretchWorker) {
+          stretchWorker.postMessage({ action: "sync", targetTime: stretchState.targetEndTime });
+        }
+        playStretchMidSwitchSound();
+        if (navigator.vibrate) {
+          try { navigator.vibrate([200, 100, 200]); } catch (e) {}
+        }
+        updateStretchPlayerUI();
+        renderStretchList();
+        saveDraftToStorage();
+      }
+      return true;
+    }
+
+    // 手動進行モード: 種目間で一時停止しスタート待機
+    pauseStretchPlayer({ keepAliveForSound: true });
+    stretchState.isPrep = false;
     playStretchEndAudio("switch");
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     if (document.visibilityState !== "visible") {
       triggerPopupNotification(
         `🧘 ${currentEx.name} 完了！`,
-        `次の種目「${nextEx.name}」の準備ができたらスタートを押してください。`
+        `次の種目「${nextEx.name}」の準備ができたらスタートを押してください。`,
+        { tag: "workout-stretch-timer" }
       );
     }
     updateStretchPlayerUI();
@@ -5961,7 +6416,8 @@ function finishAllStretch() {
     pendingStretchFinishAlert = true;
     triggerPopupNotification(
       "🌙 全身ストレッチ完了！",
-      `全${getActiveStretchExercises().length}種目が終了しました。深呼吸のままゆっくりお休みください。`
+      `全${getActiveStretchExercises().length}種目が終了しました。深呼吸のままゆっくりお休みください。`,
+      { tag: "workout-stretch-timer" }
     );
   } else {
     pendingStretchFinishAlert = false;
@@ -6039,6 +6495,7 @@ function restoreStretchDraftState(ds) {
   stretchState.totalElapsedSec = (typeof ds.totalElapsedSec === "number") ? Math.max(0, ds.totalElapsedSec) : 0;
   stretchState.completedExIds = (ds.completedExIds && typeof ds.completedExIds === "object") ? { ...ds.completedExIds } : {};
   stretchState.lastCountdownCue = null;
+  stretchState.lastMidSwitchCue = null;
   stretchState.lastCycleCue = null;
   stretchState.lastCyclePhaseKey = null;
 
@@ -6097,6 +6554,8 @@ function syncDateRolloverIfNeeded(now = new Date()) {
   }
   isDraftSavedToCloud = false;
   draftModified = false;
+  lastCloudSavedAt = 0;
+  nightManualTabOverride = { nightKey: null, routineKey: null, timestamp: 0 };
   manualDateOverride = false;
   manualDateSetDay = null;
   workoutStartTime = new Date(now.getTime());
@@ -6121,37 +6580,12 @@ async function handleVisibilityOrFocus() {
     saveDraftToStorage();
   } else if (document.visibilityState === "visible") {
     const now = new Date();
-    const stretchInProgress = (typeof stretchState !== "undefined" && stretchState && (
-      stretchState.isRunning ||
-      (!isDraftSavedToCloud && (stretchState.totalElapsedSec > 0 || stretchState.currentExIdx > 0 || Object.keys(stretchState.completedExIds || {}).length > 0))
-    ));
-    const isBusy = hasActiveWorkoutProgress() || stretchInProgress;
 
     // 日付またぎの自動同期（保存済み、または未入力のまま翌日を迎えた場合に今日の日付・タブへ更新）
     const rolledOver = syncDateRolloverIfNeeded(now);
-    if (!rolledOver && !isBusy && lastHiddenTimestamp && (Date.now() - lastHiddenTimestamp > 30 * 60 * 1000)) {
-      // 30分以上バックグラウンドに回っていた場合は、時間帯と完了状況に合わせてデフォルトタブを再判定
-      const nextRoutine = getDefaultRoutineSmart(now, {
-        isSaved: isDraftSavedToCloud,
-        hasActiveProgress: false,
-        savedRoutineKey: currentRoutineKey,
-        updatedAt: lastHiddenTimestamp
-      });
-      if (nextRoutine !== currentRoutineKey) {
-        currentRoutineKey = nextRoutine;
-        const dateInput = document.getElementById("input-date");
-        if (dateInput && !manualDateOverride) {
-          const todayStr = getDateString(now);
-          const logicalNightStr = getLogicalNightString(now);
-          if (!dateInput.value || dateInput.value === todayStr || dateInput.value === logicalNightStr) {
-            dateInput.value = getExpectedDateForRoutine(currentRoutineKey, now);
-          }
-        }
-        updateDateMismatchBanner(now);
-        updateTabUI();
-        renderWorkout();
-        saveDraftToStorage();
-      }
+    if (!rolledOver) {
+      // 30分制限を撤廃し、19:00以降や保存15分経過時に即座に夜ストレッチへ追従（進行中セッション・夜間手動切替は保護）
+      maybeAutoSwitchRoutineByTime(now);
     }
     // インターバルタイマーの即時再同期（targetTimeが存在すれば必ずTickを実行）
     if (pendingMissedAlarmSound) {
@@ -6160,6 +6594,16 @@ async function handleVisibilityOrFocus() {
     }
     if (activeTimer && activeTimer.targetTime) {
       checkTimerTick();
+    }
+    if (activeTimer && activeTimer.targetTime && !activeTimer.wasFinished) {
+      const remMs = activeTimer.targetTime - Date.now();
+      if (remMs > 250) {
+        if (!alarmAudioCtx || alarmAudioCtx.state !== "running" ||
+            !scheduledAlarmGraph.alarmNode ||
+            Math.abs((scheduledAlarmGraph.alarmStartCtxTime - alarmAudioCtx.currentTime) - (remMs / 1000)) > 0.5) {
+          scheduleHardwareAlarm(remMs / 1000);
+        }
+      }
     }
     if (alarmAudioCtx && alarmAudioCtx.state === "suspended" && checkAnyTimerRunning()) {
       alarmAudioCtx.resume().catch(() => {});
@@ -6192,13 +6636,19 @@ async function handleVisibilityOrFocus() {
 
 document.addEventListener("visibilitychange", handleVisibilityOrFocus);
 window.addEventListener("focus", () => {
-  syncDateRolloverIfNeeded(new Date());
+  const nowEvt = new Date();
+  if (!syncDateRolloverIfNeeded(nowEvt)) {
+    maybeAutoSwitchRoutineByTime(nowEvt);
+  }
   if (activeTimer && activeTimer.targetTime) checkTimerTick();
   if (rainyTimerState && rainyTimerState.isRunning) checkRainyTick();
   if (stretchState && stretchState.isRunning) checkStretchTick();
 });
 window.addEventListener("pageshow", () => {
-  syncDateRolloverIfNeeded(new Date());
+  const nowEvt = new Date();
+  if (!syncDateRolloverIfNeeded(nowEvt)) {
+    maybeAutoSwitchRoutineByTime(nowEvt);
+  }
   if (activeTimer && activeTimer.targetTime) checkTimerTick();
   if (rainyTimerState && rainyTimerState.isRunning) checkRainyTick();
   if (stretchState && stretchState.isRunning) checkStretchTick();

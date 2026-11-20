@@ -1,4 +1,4 @@
-# deploy.ps1
+﻿# deploy.ps1
 param (
     [string]$msg = "feat: update stretch sequence timer (manual start with 3s prep) and remove metronome"
 )
@@ -10,7 +10,7 @@ $ver = Get-Date -Format "yyyy.MM.dd.HHmm"
 Write-Host "New Version: $ver" -ForegroundColor Green
 
 # 2. git add, commit, push
-git add index.html workout_logger.html icon.svg manifest.json version.json deploy.ps1 .gitignore routine_archive.json
+git add index.html workout_logger.html sw.js icon.svg manifest.json version.json deploy.ps1 .gitignore routine_archive.json
 git commit -m "$msg ($ver)"
 git push origin main
 
