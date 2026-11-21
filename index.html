@@ -1949,12 +1949,12 @@
   <!-- プレイヤーカード -->
   <div class="stretch-card" id="stretch-player-card">
     <div class="stretch-card-top">
-      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/8</span>
+      <span class="stretch-step-idx" id="stretch-step-idx">STEP 1/9</span>
       <span class="stretch-phase-tag" id="stretch-phase-tag">立位</span>
     </div>
 
-    <div class="stretch-ex-name" id="stretch-ex-name">立位アキレス腱伸ばし</div>
-    <div class="stretch-target-desc" id="stretch-target-desc">ふくらはぎ・アキレス腱</div>
+    <div class="stretch-ex-name" id="stretch-ex-name">立位アキレス腱・ヒラメ筋伸ばし</div>
+    <div class="stretch-target-desc" id="stretch-target-desc">ふくらはぎ・ヒラメ筋・アキレス腱</div>
 
     <!-- 左右インジケーター（左右がある種目のみ表示） -->
     <div class="stretch-side-indicator" id="stretch-side-indicator" style="display:none;">
@@ -1985,19 +1985,19 @@
     </div>
 
     <div class="stretch-next-preview" id="stretch-next-preview">
-      <span>NEXT:</span> <span id="stretch-next-name">ローランジ＆ハーフスプリット連続 (片膝立ち・前後連続)</span>
+      <span>NEXT:</span> <span id="stretch-next-name">ローランジ (片膝立ち)</span>
     </div>
 
     <div class="stretch-instruction-box" id="stretch-instruction-box">
-      前後に足を開き、後ろ脚のかかとを床につけたまま前脚へ体重を預ける。後半は後ろ膝を少し緩めるとヒラメ筋まで伸びる。
+      前後に足を開き、後ろ脚のかかとを床につけたまま前脚へ体重を預けてふくらはぎ上部（腓腹筋）を伸ばす。後半は後ろ膝を少し緩めて深層のヒラメ筋・アキレス腱まで伸ばす。
     </div>
   </div>
 
-  <!-- 全8種目シークエンス・リスト -->
+  <!-- 全9種目シークエンス・リスト -->
   <div class="stretch-list-card">
     <div class="stretch-list-title">
       <span>全身ストレッチ シークエンス</span>
-      <span class="stretch-total-time" id="stretch-total-time">全8種目 / 立位→就寝フロー</span>
+      <span class="stretch-total-time" id="stretch-total-time">全9種目 / 立位→就寝フロー</span>
     </div>
     <div class="stretch-items-container" id="stretch-items-container">
       <!-- JSで動的に一覧描画 -->
@@ -6148,86 +6148,93 @@ function stopJogTimers() {
 const STRETCH_EXERCISES = [
   {
     id: "achilles_calf",
-    name: "立位アキレス腱伸ばし",
+    name: "立位アキレス腱・ヒラメ筋伸ばし",
     phase: "立位",
-    target: "ふくらはぎ・アキレス腱",
+    target: "ふくらはぎ・ヒラメ筋・アキレス腱",
     durationSec: 30,
     hasSides: true,
-    desc: "前後に足を開き、後ろ脚のかかとを床につけたまま前脚へ体重を預ける。後半は後ろ膝を少し緩めるとヒラメ筋まで伸びる。",
+    desc: "前後に足を開き、後ろ脚のかかとを床につけたまま前脚へ体重を預けてふくらはぎ上部（腓腹筋）を伸ばす。後半は後ろ膝を少し緩めて深層のヒラメ筋・アキレス腱まで伸ばす。",
     tips: "手は前脚か壁に軽く添えるだけ・かかと浮かせない"
   },
   {
-    id: "lunge_half_split",
-    name: "ローランジ＆ハーフスプリット連続",
-    phase: "片膝立ち・前後連続",
-    target: "股関節前側（腸腰筋）＋太もも裏・膝裏",
-    durationSec: 50,
-    midSwitchSec: 25,
+    id: "low_lunge",
+    name: "ローランジ",
+    phase: "片膝立ち",
+    target: "腸腰筋・股関節前面",
+    durationSec: 30,
     hasSides: true,
-    firstHalfLabel: "前半25秒：ローランジ（前へ踏み込み股関節前側）",
-    secondHalfLabel: "後半25秒：ハーフスプリット（お尻を引き太もも裏・足首背屈）",
-    desc: "片脚ごとに前後連続で実施。前半25秒は前脚へ大きく踏み込み後ろ脚の付け根（腸腰筋）を伸ばし、中間チャイムで後半25秒はお尻を後ろへ引いて前脚の膝を伸ばし、つま先を天井へ立てて太もも裏〜ふくらはぎ上部を伸ばす。",
-    tips: "反り腰・腰丸め注意・脚の入れ替えは左右各1回のみ"
+    desc: "片膝立ちで前脚を大きく踏み出し、後ろ脚の股関節前面（腸腰筋）を心地よく伸ばす。腰を反らさず骨盤を軽く後傾させる。",
+    tips: "反り腰に注意・尾てい骨を下へ向け骨盤を立てる"
+  },
+  {
+    id: "half_split",
+    name: "ハーフスプリット",
+    phase: "片膝立ち・お尻引き",
+    target: "ハムストリングス・膝裏",
+    durationSec: 30,
+    hasSides: true,
+    desc: "ローランジの姿勢からお尻を後ろへ引き、前脚の膝を伸ばしてかかとを床・つま先を天井へ立てる。両手は床に軽く添え、背筋を伸ばしたまま股関節から前傾する。",
+    tips: "腰を丸めずお尻を後ろへ突き出す・つま先を立てる"
   },
   {
     id: "cat_cow",
-    name: "キャット＆カウ（腹式呼吸＆骨盤底リリース）",
+    name: "キャット＆カウ（腹式呼吸）",
     phase: "四つん這い・呼吸連動",
-    target: "脊柱・横隔膜＆骨盤底リリース・自律神経",
+    target: "脊柱起立筋・背骨全体・横隔膜",
     durationSec: 40,
     hasSides: false,
-    desc: "四つん這いで息を吸いながら胸を開きお腹・骨盤底をふわっと下方へ緩める。吐く息を長めにしながら背中を丸め、骨盤底が自然に戻る感覚を確認しながら背骨を1骨ずつ動かす。",
-    tips: "呼気優位・吸う息で骨盤底を脱力リリース"
+    desc: "四つん這いで息を吸いながら胸を開きお腹・骨盤底をふわっと緩め、吐く息を長めにしながら背中を丸める。背骨を1骨ずつ動かして自律神経を整える。",
+    tips: "呼気優位・吐く息を長めに深呼吸"
   },
   {
     id: "side_child",
     name: "サイド・チャイルドポーズ",
-    phase: "正座・脱力",
-    target: "広背筋・脇の下・肩甲骨",
+    phase: "正座・前屈",
+    target: "広背筋・大円筋・脇・肩甲骨外側",
     durationSec: 30,
     hasSides: true,
-    desc: "お尻をかかとに落としたまま、左側時は両手を右斜め前へ、右側時は左斜め前へ歩かせて脇〜背中を伸ばす。",
-    tips: "腕の力は抜いてお尻の重みで伸ばす"
+    desc: "正座からお尻をかかとに落としたまま上体を倒し、左側時は両手を右斜め前へ、右側時は左斜め前へ歩かせて脇の下〜広背筋を伸ばす。",
+    tips: "腕の力は抜いてお尻の重みでじんわり伸ばす"
   },
   {
     id: "frog",
     name: "仙骨割り（カエル）",
     phase: "四つん這い・肘つき",
-    target: "股関節横・内転筋・仙骨",
+    target: "内転筋群・股関節内側・仙骨",
     durationSec: 45,
     hasSides: false,
-    desc: "両膝を左右に開き肘をつく。息を吐きながらお尻を後ろへじんわり引いて脱力。",
-    tips: "痛気持ちいい手前・微小に揺らす"
+    desc: "両膝を左右に大きく開き肘をつく。息を吐きながらお尻を後ろへじんわり引いて内転筋と仙骨周りを脱力させる。",
+    tips: "痛気持ちいい手前・小さく前後に揺らす"
   },
   {
     id: "pigeon_pose",
     name: "ピジョンポーズ（鳩のポーズ）",
     phase: "うつ伏せ・片脚曲げ",
-    target: "殿筋群・梨状筋",
+    target: "大臀筋・中臀筋・梨状筋",
     durationSec: 30,
     hasSides: true,
-    desc: "四つん這いから片脚のすねを前へ横たえ、反対の脚はまっすぐ後ろへ伸ばす。息を吐きながら上体を前へ倒し、肘や額を床へ預けてお尻を伸ばす。",
+    desc: "四つん這いから片脚のすねを前へ横たえ、反対の脚はまっすぐ後ろへ伸ばす。息を吐きながら上体を前へ倒し、肘や額を床へ預けてお尻を深く伸ばす。",
     tips: "後ろ脚はまっすぐ伸ばす・膝がキツい時はかかとを体に近づける"
   },
   {
     id: "seiza_lean_back",
-    name: "両脚正座・後傾＆胸開きストレッチ",
+    name: "両脚正座・後傾ストレッチ",
     phase: "床座位・後傾",
-    target: "太もも前側（大腿四頭筋）・胸前部",
-    durationSec: 40,
+    target: "大腿四頭筋（前もも）",
+    durationSec: 45,
     hasSides: false,
-    desc: "足先をまっすぐ後ろへ向けた正座（または少し広め）から後ろに手をつき、肩甲骨を軽く寄せて胸を開きながら上体を後ろへ傾けて前ももと胸前部を伸ばす。",
+    desc: "足先をまっすぐ後ろへ向けた正座（または少し広め）から後ろに手をつき、上体を後ろへ傾けて両前ももを同時に伸ばす。",
     tips: "反り腰に注意・お腹を締めて尾てい骨を前へ送る"
   },
   {
-    id: "open_spine_twist",
-    name: "ワニのポーズ＆胸開き（オープン・ツイスト）",
-    phase: "仰向け・体幹回旋＆胸開き",
-    target: "大胸筋・肩前面・胸椎＋腰背部・腹斜筋",
-    durationSec: 35,
+    id: "spine_twist",
+    name: "ワニのポーズ（仰向けねじり）",
+    phase: "仰向け",
+    target: "腰背部・腹斜筋・全身脱力",
+    durationSec: 30,
     hasSides: true,
-    desc: "仰向けで片膝を曲げて反対側へ倒し（左＝左膝を右へ倒し左腕を左斜め上へ開く）、顔と反対側の腕を大きく床へ開いて胸・肩前面と腰背部を同時に脱力して伸ばす。",
-    tips: "両肩を床へ預け、腕の重みと深い呼吸で全身脱力"
+    desc: "仰向けで片膝を曲げて反対側へパタンと倒し、顔は反対向きにして両肩を床へ預ける。息を吐きながら腰背部と全身を脱力させる。",
+    tips: "力まず重力に任せて脱力・そのまま仰向けで就寝へ"
   }
 ];
 
